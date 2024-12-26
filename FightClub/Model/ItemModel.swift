@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 struct ItemModel: Decodable, Identifiable {
     let id: Int
     let uid: String
