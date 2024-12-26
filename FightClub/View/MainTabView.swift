@@ -19,13 +19,21 @@ struct MainTabView: View {
                   Image(systemName: "flame").renderingMode(.template)
                               }
           }
-        Text("tab2")
+          Tab2View()
           .tabItem {
               VStack {
                   Text("채팅")
                   Image(systemName: "message").renderingMode(.template)
                               }
           }
+          Text("라이브")
+            .tabItem {
+                VStack {
+                    Text("LIVE")
+                    Image(systemName: "antenna.radiowaves.left.and.right").renderingMode(.template)
+                                }
+            }
+          
       }
       .font(.headline)
       .tint(.red)
