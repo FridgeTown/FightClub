@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChatListView: View {
     var body: some View {
-        Text("채팅 요청")
+        Text("채팅!")
     }
 }
 
