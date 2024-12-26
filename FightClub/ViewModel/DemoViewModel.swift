@@ -1,5 +1,5 @@
 //
-//  HomeViewModel.swift
+//  DemoViewModel.swift
 //  FightClub
 //
 //  Created by Edward Lee on 12/25/24.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-class HomeViewModel: ObservableObject {
+class DemoViewModel: ObservableObject {
     @Published private(set) var items: [ItemModel] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?

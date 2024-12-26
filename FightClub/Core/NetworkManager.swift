@@ -23,7 +23,7 @@ class NetworkManager: NetworkManagerProtocol {
                                                  parameters: endpoint.parameters)
                 .serializingData()
                 .value
-            
+                
             let decoder = JSONDecoder()
             do {
                 let items = try decoder.decode([T].self, from: response)
