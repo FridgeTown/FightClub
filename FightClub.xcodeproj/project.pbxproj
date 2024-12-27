@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 305E53A52D1B10A0002E4746 /* Alamofire */; };
+		30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3ED2D1EEED50035E422 /* GoogleSignIn */; };
+		30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,7 +71,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */,
 				305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */,
+				30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +135,8 @@
 			name = FightClub;
 			packageProductDependencies = (
 				305E53A52D1B10A0002E4746 /* Alamofire */,
+				30BEF3ED2D1EEED50035E422 /* GoogleSignIn */,
+				30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -216,6 +222,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -433,7 +440,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dongInLee.FightClub;
+				PRODUCT_BUNDLE_IDENTIFIER = I;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -464,7 +471,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dongInLee.FightClub;
+				PRODUCT_BUNDLE_IDENTIFIER = I;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -594,6 +601,14 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = exactVersion;
+				version = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -601,6 +616,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		30BEF3ED2D1EEED50035E422 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
