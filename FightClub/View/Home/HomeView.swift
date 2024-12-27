@@ -28,12 +28,13 @@ struct HomeView: View {
         VStack {
             Image("title_logo")
                 .resizable()
-                .aspectRatio(16/9, contentMode: .fit) // 16:9 비율 적용
-                .frame(width: 100) // 가로 기준 크기 지정
+                .aspectRatio(16/9, contentMode: .fit)
+                .frame(width: 100)
             SwipeView(profiles: $profiles,
                       onSwiped: { userModel, hasLiked in print("test")}
             )
         }
+        .background(Color(.background))
     }
 }
 
