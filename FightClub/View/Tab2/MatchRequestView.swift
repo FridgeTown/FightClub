@@ -17,29 +17,32 @@ struct MatchRequestView: View {
                     // 프로필 이미지
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)]),
-                                                 startPoint: .topLeading,
-                                                 endPoint: .bottomTrailing))
-                            .frame(width: 80, height: 80)
+                            .fill(Color.gray.opacity(0.1))
+                            .frame(width: 60, height: 60)
                         
                         Image("profile_placeholder") // 프로필 이미지
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 70, height: 70)
+                            .frame(width: 50, height: 50)
                             .clipShape(Circle())
-                            .shadow(radius: 4)
+                            .shadow(radius: 3)
                     }
                     
                     // 사용자 정보
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(request.nickname)
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .font(.headline)
                         
-                        HStack(spacing: 8) {
-                            SpecView()
-//                            TagView(text: "\(request.weight)kg", color: .green)
-//                            TagView(text: "\(request.height)cm", color: .blue)
+                        HStack(spacing: 6) {
+                            Text("\(request.weight)kg")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Divider()
+                                .frame(height: 14)
+                                .background(Color.secondary.opacity(0.4))
+                            Text("\(request.height)cm")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
                     
@@ -47,40 +50,28 @@ struct MatchRequestView: View {
                     
                     // 수락/거절 버튼
                     VStack(spacing: 8) {
-                        Button(action: {
-                            print("Accepted \(request.nickname)")
-                        }) {
-                            Text("수락")
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.green.opacity(0.7)]),
-                                                           startPoint: .leading,
-                                                           endPoint: .trailing))
-                                .foregroundColor(.white)
-                                .cornerRadius(20)
-                        }
+                        CircularIconButton(
+                            action: {
+                                print("Accepted \(request.nickname)")
+                            },
+                            icon: "checkmark.circle.fill",
+                            gradientColors: [Color.green, Color.teal]
+                        )
                         
-                        Button(action: {
-                            print("Declined \(request.nickname)")
-                        }) {
-                            Text("거절")
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(LinearGradient(gradient: Gradient(colors: [Color.red, Color.red.opacity(0.7)]),
-                                                           startPoint: .leading,
-                                                           endPoint: .trailing))
-                                .foregroundColor(.white)
-                                .cornerRadius(20)
-                        }
+                        CircularIconButton(
+                            action: {
+                                print("Declined \(request.nickname)")
+                            },
+                            icon: "xmark.circle.fill",
+                            gradientColors: [Color.red, Color.orange]
+                        )
                     }
                 }
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .shadow(color: .gray.opacity(0.2), radius: 8, x: 0, y: 4)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
                 )
             }
         }
@@ -88,23 +79,44 @@ struct MatchRequestView: View {
     }
 }
 
-// MARK: - SIBAL 
+// MARK: - CircularIconButton
+struct CircularIconButton: View {
+    let action: () -> Void
+    let icon: String
+    let gradientColors: [Color]
 
-// MARK: - TagView
-struct TagView: View {
-    let text: String
-    let color: Color
+    @State private var isPressed = false
 
     var body: some View {
-        Text(text)
-            .font(.footnote)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.2))
-            .foregroundColor(color)
-            .cornerRadius(10)
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(gradient: Gradient(colors: gradientColors),
+                                       startPoint: .topLeading,
+                                       endPoint: .bottomTrailing)
+                    )
+                    .frame(width: 50, height: 50)
+                    .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(.white)
+            }
+        }
+        .scaleEffect(isPressed ? 1.1 : 1.0)
+        .onLongPressGesture(
+            minimumDuration: 0.1,
+            pressing: { pressing in
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = pressing
+                }
+            },
+            perform: {}
+        )
     }
 }
+
 
 // MARK: - Preview
 struct MatchRequestView_Previews: PreviewProvider {

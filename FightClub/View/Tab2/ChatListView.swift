@@ -27,7 +27,7 @@ struct ChatListView: View {
                         .foregroundColor(.gray)
                 }
                 .padding()
-                .background(Color.white)
+                .background(Color.background)
                 .cornerRadius(8)
                 .shadow(radius: 2)
             }

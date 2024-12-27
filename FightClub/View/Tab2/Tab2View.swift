@@ -38,7 +38,7 @@ struct Tab2View: View {
                     }
                     .padding(.vertical)
                 }
-                .background(Color(.systemGroupedBackground))
+                .background(Color(.background))
             }
 }
 
