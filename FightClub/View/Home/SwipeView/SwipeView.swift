@@ -16,52 +16,66 @@ struct ProfileCardModel {
     let name: String
     let age: Int
     let pictures: [UIImage]
+    let weightClass: String
+    let record: (wins: Int, losses: Int)
+    let style: String
+    let bio: String
 }
 
 struct SwipeView: View {
     @Binding var profiles: [ProfileCardModel]
     @State var swipeAction: SwipeAction = .doNothing
-    //Bool: true if it was a like (swipe to the right
     var onSwiped: (ProfileCardModel, Bool) -> ()
     
     var body: some View {
-        VStack{
+        VStack {
             Spacer()
-            VStack{
-                ZStack{
-                    Text("no-more-profiles").font(.title3).fontWeight(.medium).foregroundColor(Color(UIColor.systemGray)).multilineTextAlignment(.center)
-                    ForEach(profiles.indices, id: \.self){ index  in
+            VStack {
+                ZStack {
+                    Text("더 이상 매칭 가능한 스파링 파트너가 없습니다")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(UIColor.systemGray))
+                        .multilineTextAlignment(.center)
+                    
+                    ForEach(profiles.indices, id: \.self) { index in
                         let model: ProfileCardModel = profiles[index]
                         
-                        if(index == profiles.count - 1){
+                        if(index == profiles.count - 1) {
                             SwipeableCardView(model: model, swipeAction: $swipeAction, onSwiped: performSwipe)
-                        } else if(index == profiles.count - 2){
+                        } else if(index == profiles.count - 2) {
                             SwipeCardView(model: model)
                         }
                     }
                 }
             }.padding()
             Spacer()
-            HStack{
+            HStack {
                 Spacer()
-                GradientOutlineButton(action:{swipeAction = .swipeLeft}, iconName: "multiply", colors:  [Color(red: 232/255, green: 57/255, blue: 132/255), Color(red: 244/255, green: 125/255, blue: 83/255)])
+                GradientOutlineButton(
+                    action: { swipeAction = .swipeLeft },
+                    iconName: "xmark.circle.fill",
+                    colors: [Color.mainRed.opacity(0.8), Color.mainRed]
+                )
                 Spacer()
-                GradientOutlineButton(action: {swipeAction = .swipeRight}, iconName: "figure.boxing", colors:  [Color(red: 232/255, green: 57/255, blue: 132/255), Color(red: 244/255, green: 125/255, blue: 83/255)])
+                GradientOutlineButton(
+                    action: { swipeAction = .swipeRight },
+                    iconName: "figure.boxing",
+                    colors: [Color.mainRed.opacity(0.8), Color.mainRed]
+                )
                 Spacer()
             }.padding(.bottom)
         }
     }
     
-    private func performSwipe(userProfile: ProfileCardModel, hasLiked: Bool){
+    private func performSwipe(userProfile: ProfileCardModel, hasLiked: Bool) {
         removeTopItem()
         onSwiped(userProfile, hasLiked)
     }
     
-    private func removeTopItem(){
+    private func removeTopItem() {
         profiles.removeLast()
     }
-    
-    
 }
 
 //Swipe functionality
@@ -187,75 +201,128 @@ struct SwipeableCardView: View {
 //Card design
 struct SwipeCardView: View {
     let model: ProfileCardModel
-    
     @State private var currentImageIndex: Int = 0
     
     var body: some View {
-        ZStack(alignment: .bottom){
-            GeometryReader{ geometry in
+        ZStack(alignment: .bottom) {
+            GeometryReader { geometry in
                 Image(uiImage: model.pictures[currentImageIndex])
                     .centerCropped()
                     .gesture(DragGesture(minimumDistance: 0).onEnded({ value in
-                        if value.translation.equalTo(.zero){
-                            if(value.location.x <= geometry.size.width/2){
+                        if value.translation.equalTo(.zero) {
+                            if(value.location.x <= geometry.size.width/2) {
                                 showPrevPicture()
-                            } else { showNextPicture()}
+                            } else {
+                                showNextPicture()
+                            }
                         }
                     }))
             }
             
-            VStack{
-                if(model.pictures.count > 1){
-                    HStack{
-                        ForEach(0..<model.pictures.count, id: \.self){ index in
-                            Rectangle().frame(height: 3).foregroundColor(index == currentImageIndex ? .white : .gray).opacity(index == currentImageIndex ? 1 : 0.5)
+            // 프로필 정보 오버레이
+            VStack {
+                // 이미지 인디케이터
+                if(model.pictures.count > 1) {
+                    HStack {
+                        ForEach(0..<model.pictures.count, id: \.self) { index in
+                            Rectangle()
+                                .frame(height: 3)
+                                .foregroundColor(index == currentImageIndex ? .white : .gray)
+                                .opacity(index == currentImageIndex ? 1 : 0.5)
                         }
                     }
                     .padding(.top, 6)
-                    .padding(.leading)
-                    .padding(.trailing)
+                    .padding(.horizontal)
                 }
+                
                 Spacer()
-                VStack{
-                    HStack(alignment: .firstTextBaseline){
-                        Text(model.name).font(.largeTitle).fontWeight(.semibold)
-                        Text("\(model.age)").font(.title).fontWeight(.medium)
+                
+                // 프로필 정보
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(model.name)
+                            .font(.title)
+                            .fontWeight(.bold)
+                        Text("\(model.age)")
+                            .font(.title2)
+                            .fontWeight(.medium)
                         Spacer()
+                    }
+                    
+                    // 복싱 스탯
+                    HStack(spacing: 15) {
+                        StatLabel(title: "체중", value: model.weightClass)
+                        StatLabel(title: "키", value: "178")
+//                        StatLabel(title: "", value: model.style)
+                    }
+                    .padding(.top, 4)
+                    
+                    // 자기소개
+                    if !model.bio.isEmpty {
+                        Text(model.bio)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.9))
+                            .lineLimit(2)
+                            .padding(.top, 4)
                     }
                 }
                 .padding()
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.clear, .black.opacity(0.8)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .foregroundColor(.white)
             }
-            .frame(maxWidth: .infinity)
         }
-        
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .aspectRatio(0.7, contentMode: .fit)
         .background(.white)
-        .cornerRadius(10)
-        .shadow(radius: 10)
+        .cornerRadius(15)
+        .shadow(color: Color.mainRed.opacity(0.2), radius: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.mainRed.opacity(0.1), lineWidth: 1)
+        )
     }
     
-    
-    private func showNextPicture(){
+    private func showNextPicture() {
         if currentImageIndex < model.pictures.count - 1 {
             currentImageIndex += 1
         }
     }
     
-    private func showPrevPicture(){
+    private func showPrevPicture() {
         if currentImageIndex > 0 {
             currentImageIndex -= 1
         }
     }
 }
 
+struct StatLabel: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+            Text(value)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.white)
+        }
+    }
+}
 
 struct SwipeView_Previews: PreviewProvider {
     @State static private var profiles: [ProfileCardModel] = [
-        ProfileCardModel(userId: "defdwsfewfes", name: "Michael Jackson", age: 50, pictures: [UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!]),
-        ProfileCardModel(userId: "defdwsfewfes", name: "Michael Jackson", age: 50, pictures: [UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!])
+        ProfileCardModel(userId: "defdwsfewfes", name: "Michael Jackson", age: 50, pictures: [UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!], weightClass: "2A", record: (wins: 10, losses: 15), style: "킥", bio: "마짱뜨실분"),
+        ProfileCardModel(userId: "defdwsfewfes", name: "Michael Jackson", age: 50, pictures: [UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!], weightClass: "2A", record: (wins: 10, losses: 15), style: "킥", bio: "마짱뜨실분")
     ]
+    
     static var previews: some View {
         SwipeView(profiles: $profiles, onSwiped: {_,_ in})
     }
