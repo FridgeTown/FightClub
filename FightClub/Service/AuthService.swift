@@ -14,13 +14,13 @@ class AuthService {
         return false
     }
     
-    func signUp(userData: UserSignUpData) async throws {
+//    func signUp(userData: UserSignUpData) async throws {
         // TODO: API 구현
         // let response = try await NetworkManager.shared.request(
         //     .signUp(userData: userData)
         // )
         // try tokenManager.saveAccessToken(response.token)
-    }
+//    }
     
     func validateToken(_ token: String) async throws -> Bool {
         // TODO: API 구현

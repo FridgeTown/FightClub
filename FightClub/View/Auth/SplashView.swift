@@ -9,7 +9,7 @@ struct SplashView: View {
         NavigationStack {
             ZStack {
                 // 배경
-                Color.mainRed.ignoresSafeArea()
+                Color.background.ignoresSafeArea()
                 
                 // 로고 및 로딩 인디케이터
                 VStack(spacing: 20) {
