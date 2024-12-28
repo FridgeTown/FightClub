@@ -6,8 +6,13 @@
 //
 
 import SwiftUI
+import GoogleSignInSwift
+import AuthenticationServices
 
 struct LoginView: View {
+    @StateObject private var viewModel = GoogleOAuthViewModel()
+    @StateObject private var appleSignInCoordinator = AppleSignInCoordinator()
+    
     var body: some View {
         ZStack {
             Color(red: 0.89, green: 0.1, blue: 0.1)
@@ -25,29 +30,40 @@ struct LoginView: View {
                     )
                     .shadow(color: .black.opacity(0.8), radius: 4, x: 2, y: 2)
 
-                Text("소셜 계정으로 로그인하세요.")
-                    .font(Font.custom("League Spartan", size: 16))
+                Text("간편하게 시작하기")
                     .foregroundColor(.white)
 
                 VStack(spacing: 20) {
-                    FCButton("Google로 로그인") {
-                        print("Google 로그인 버튼 탭")
-                    }
+                    GoogleSignInButton(scheme: .light, style: .wide) {
+                        viewModel.signIn()
+                    }.frame(width: 200, height: 40)
                     
-                    FCButton("Apple ID로 로그인") {
-                        print("Apple 로그인 버튼 탭")
-                    }
-                }
-                .padding(.horizontal, 40)
-
-                Spacer().frame(height: 40)
-                
-                Text("아직 회원이 아니신가요?")
-                    .font(Font.custom("League Spartan", size: 14).weight(.light))
-                    .foregroundColor(.white)
-                
-                FCButton("회원가입 하기") {
-                    print("회원가입 버튼 탭")
+                    
+                    SignInWithAppleButton(
+                        onRequest: { request in
+                            request.requestedScopes = [.fullName, .email]
+                        },
+                        onCompletion: { result in
+                            switch result {
+                            case .success(let authResults):
+                                if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
+                                    // 이메일과 유저 ID 저장
+                                    appleSignInCoordinator.email = appleIDCredential.email
+                                    appleSignInCoordinator.userIdentifier = appleIDCredential.user
+                                    
+                                    // 토큰 처리
+                                    if let tokenData = appleIDCredential.identityToken,
+                                       let token = String(data: tokenData, encoding: .utf8) {
+                                        appleSignInCoordinator.idToken = token
+                                    }
+                                }
+                            case .failure(let error):
+                                print("Authorization failed: \(error.localizedDescription)")
+                            }
+                        }
+                    )
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(width: 200, height: 40)
                 }
                 .padding(.horizontal, 40)
             }
