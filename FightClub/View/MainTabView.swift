@@ -15,7 +15,7 @@ struct MainTabView: View {
           HomeView()
           .tabItem {
               VStack {
-                      Text("홈")
+                  Text("홈")
                   Image(systemName: "flame").renderingMode(.template)
                               }
           }
