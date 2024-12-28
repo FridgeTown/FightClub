@@ -12,11 +12,30 @@
 
 import SwiftUI
 
+class SignupData: ObservableObject {
+    @Published var gender: String? = nil
+    @Published var age: Int? = nil
+    @Published var weight: Float? = nil
+    @Published var height: Float? = nil
+    @Published var nickname: String? = nil
+
+    func toDictionary() -> [String: Any] {
+        return [
+            "gender": gender ?? "",
+            "age": age ?? 0,
+            "weight": weight ?? 0.0,
+            "height": height ?? 0.0,
+            "nickname": nickname ?? ""
+        ]
+    }
+}
+
 struct SignupFirstView: View {
-    @State private var navigateToSecondView = false // 상태 추가
+    @State private var path: [String] = [] // 경로 상태 추가
+    @StateObject var signupData = SignupData()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) { // path를 NavigationStack에 바인딩
             ZStack {
                 Color(red: 0.89, green: 0.1, blue: 0.1)
                     .ignoresSafeArea()
@@ -46,15 +65,28 @@ struct SignupFirstView: View {
                             .foregroundColor(.white)
 
                         FCButton("Next") {
-                            navigateToSecondView = true // 버튼 동작으로 화면 전환
+                            path.append("SignupSecondView") // 경로를 추가하여 화면 전환
                         }
                     }
                     .padding(.vertical, 20)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $navigateToSecondView) {
-                SignupSecondView() // 두 번째 화면으로 이동
+            .navigationDestination(for: String.self) { view in
+                switch view {
+                case "SignupSecondView":
+                    SignupSecondView(signupData: signupData, path: $path)
+                case "SignupThirdView":
+                    SignupThirdView(signupData: signupData, path: $path)
+                case "SignupFourthView":
+                    SignupFourthView(signupData: signupData, path: $path)
+                case "SignupFifthView":
+                    SignupFifthView(signupData: signupData, path: $path)
+                case "ProfileView":
+                    ProfileView(signupData: signupData)
+                default:
+                    EmptyView()
+                }
             }
         }
     }
@@ -64,5 +96,6 @@ struct SignupFirstView: View {
 struct SignupFirstView_Previews: PreviewProvider {
     static var previews: some View {
         SignupFirstView()
+            .environmentObject(SignupData()) // 미리보기 환경에서 SignupData 주입
     }
 }

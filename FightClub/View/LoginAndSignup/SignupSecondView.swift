@@ -9,89 +9,79 @@
 import SwiftUI
 
 struct SignupSecondView: View {
-    @State private var selectedGender: String? = nil
-    @State private var navigateToThirdView = false // 상태 추가
+    @ObservedObject var signupData: SignupData
+    @Binding var path: [String] // 경로 상태를 바인딩
 
-    // 선택된 상태일 때 표시할 노란색
+    @State private var selectedGender: String? = nil
+    @State private var isButtonEnabled: Bool = false // 버튼 활성화 상태
+
     let selectedColor = Color(red: 0.89, green: 0.95, blue: 0.39)
-    // 선택되지 않은 상태일 때 표시할 (투명+테두리)
     let unselectedColor = Color.white.opacity(0.09)
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(red: 0.14, green: 0.14, blue: 0.14)
-                    .ignoresSafeArea()
+        ZStack {
+            Color(red: 0.14, green: 0.14, blue: 0.14)
+                .ignoresSafeArea()
 
-                VStack(spacing: 20) {
-                    // 상단 바 제거 (Back 버튼 중복 방지)
+            VStack(spacing: 20) {
+                Text("성별을 알려주세요")
+                    .font(Font.custom("Poppins", size: 25).weight(.bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
 
-                    Text("성별을 알려주세요")
-                        .font(Font.custom("Poppins", size: 25).weight(.bold))
-                        .foregroundColor(.white)
-                        .padding(.top, 10)
-
-                    ZStack {
-                        Rectangle()
-                            .fill(Color(red: 0.89, green: 0.07, blue: 0.09))
-                            .frame(height: 80)
-                        Text("올바른 정보를 입력하셔야만 가장 적합한\n파트너를 찾아서 함께 운동할 수 있습니다!")
-                            .font(Font.custom("League Spartan", size: 17).weight(.light))
-                            .foregroundColor(selectedColor)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(8)
-                            .padding(.horizontal, 16)
-                    }
-                    .padding(.horizontal)
-
-                    VStack(spacing: 40) {
-                        GenderSelectionButton(
-                            title: "Male",
-                            symbol: "♂",
-                            isSelected: selectedGender == "Male",
-                            color: selectedColor
-                        ) {
-                            selectedGender = "Male"
-                        }
-
-                        GenderSelectionButton(
-                            title: "Female",
-                            symbol: "♀",
-                            isSelected: selectedGender == "Female",
-                            color: selectedColor
-                        ) {
-                            selectedGender = "Female"
-                        }
-                    }
-                    .padding(.top, 8)
-
-                    Spacer()
-
-                    // Continue 버튼
-                    FCButton("Continue") {
-                        // 옵셔널 바인딩
-                        guard let gender = selectedGender else {
-                            print("성별이 선택되지 않았습니다.")
-                            return
-                        }
-                        
-                        // 성별이 존재하면 콘솔에 프린트
-                        print("Continue tapped with \(gender)")
-                        
-                        // 다음 화면 이동
-                        navigateToThirdView = true
-                    }
-                    .padding(.horizontal, 50)
-                    .padding(.bottom, 20)
+                ZStack {
+                    Rectangle()
+                        .fill(Color(red: 0.89, green: 0.07, blue: 0.09))
+                        .frame(height: 80)
+                    Text("올바른 정보를 입력하셔야만 가장 적합한\n파트너를 찾아서 함께 운동할 수 있습니다!")
+                        .font(Font.custom("League Spartan", size: 17).weight(.light))
+                        .foregroundColor(selectedColor)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(8)
+                        .padding(.horizontal, 16)
                 }
-            }
-            .navigationDestination(isPresented: $navigateToThirdView) {
-                SignupThirdView() // 세 번째 화면으로 이동
+                .padding(.horizontal)
+
+                VStack(spacing: 40) {
+                    GenderSelectionButton(
+                        title: "Male",
+                        symbol: "♂",
+                        isSelected: selectedGender == "Male",
+                        color: selectedColor
+                    ) {
+                        selectedGender = "Male"
+                        isButtonEnabled = true
+                        signupData.gender = "Male"
+                    }
+
+                    GenderSelectionButton(
+                        title: "Female",
+                        symbol: "♀",
+                        isSelected: selectedGender == "Female",
+                        color: selectedColor
+                    ) {
+                        selectedGender = "Female"
+                        isButtonEnabled = true
+                        signupData.gender = "Female"
+                    }
+                }
+                .padding(.top, 8)
+
+                Spacer()
+
+                FCButton("Continue", enabled: $isButtonEnabled) {
+                    if let gender = selectedGender {
+                        print("Selected Gender: \(gender)")
+                        path.append("SignupThirdView") // 다음 화면 경로 추가
+                        print("Path after Continue: \(path)") // 디버깅
+                    }
+                }
+                .padding(.horizontal, 50)
+                .padding(.bottom, 20)
             }
         }
     }
 }
-
 // 성별 선택 버튼
 struct GenderSelectionButton: View {
     let title: String
@@ -124,6 +114,13 @@ struct GenderSelectionButton: View {
 
 struct SignupSecondView_Previews: PreviewProvider {
     static var previews: some View {
-        SignupSecondView()
+        // 의미 있는 테스트 데이터 생성
+        let testSignupData = SignupData()
+        testSignupData.gender = "Female" // 초기 테스트 데이터 설정
+        
+        return SignupSecondView(
+            signupData: testSignupData,          // 미리 채운 데이터 전달
+            path: .constant(["SignupFirstView"]) // 이전 경로 포함
+        )
     }
 }
