@@ -9,8 +9,8 @@ import SwiftUI
 
 struct Tab2View: View {
     @State private var matchRequests: [MatchRequest] = [
-        MatchRequest(id: 1, nickname: "Boxer1", weight: 70, height: 175),
-        MatchRequest(id: 2, nickname: "Boxer2", weight: 65, height: 180),
+        MatchRequest(id: 1, nickname: "Boxer1"),
+        MatchRequest(id: 2, nickname: "Boxer2")
 //        MatchRequest(id: 3, nickname: "Boxer3", weight: 75, height: 170),
 //        MatchRequest(id: 4, nickname: "Boxer4", weight: 68, height: 178)
     ]
@@ -42,13 +42,6 @@ struct Tab2View: View {
             }
 }
 
-// MARK: - Models
-struct MatchRequest: Identifiable {
-    let id: Int
-    let nickname: String
-    let weight: Int
-    let height: Int
-}
 
 struct Chat: Identifiable {
     let id: Int
