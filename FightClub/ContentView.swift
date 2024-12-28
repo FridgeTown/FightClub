@@ -9,8 +9,13 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
+<<<<<<< HEAD
 //        MainTabView()
         GoogleLoginDemo()
+=======
+        //HomeView()
+        SignupFirstView()
+>>>>>>> feature/Signup-view
     }
 }
 
