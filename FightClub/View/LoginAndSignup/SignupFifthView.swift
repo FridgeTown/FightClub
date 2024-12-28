@@ -5,12 +5,13 @@
 //  Created by 김지훈 on 28/12/2024.
 //
 // 여기도 마찬가지로 UI 수정필요.
+// 위아래 범위 판정이 어색한 상태
 // 여유있으면 Ft, In 단위로도
 
 import SwiftUI
 
 struct SignupFifthView: View {
-    @State private var selectedHeight: Float = 165.0 // 선택된 키 (기본값)
+    @State private var selectedHeight: Float = 180.0 // 선택된 키 (기본값)
     let minHeight: Float = 100.0 // 최소 키
     let maxHeight: Float = 250.0 // 최대 키
     let step: Float = 0.5 // 조정 단위
@@ -29,8 +30,8 @@ struct SignupFifthView: View {
                         .font(Font.custom("Poppins", size: 35).weight(.bold))
                         .foregroundColor(.white)
 
-                    // 설명
-                    Text("이제 거의 다 끝났습니다. 즐거운 스파링 시간을 준비하세요!")
+                    // 자꾸만 
+                    Text("이제 거의 다 끝났습니다.\n 즐거운 스파링 시간을 준비하세요!")
                         .font(Font.custom("League Spartan", size: 14).weight(.light))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center) // 텍스트 중앙 정렬

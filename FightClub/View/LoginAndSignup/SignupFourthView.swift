@@ -4,6 +4,7 @@
 //
 //  Created by 김지훈 on 27/12/2024.
 //
+// 좌우 범위 판정이 어색한 상태
 // UI 수정 필요 (눈금 및 바늘침(Polygon) 다시 표현하기)
 
 import SwiftUI
