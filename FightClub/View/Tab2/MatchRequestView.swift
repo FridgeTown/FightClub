@@ -12,66 +12,69 @@ struct MatchRequestView: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            Text("스파링 요청")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(Color.mainRed)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            
             ForEach(matchRequests) { request in
-                HStack(spacing: 16) {
-                    // 프로필 이미지
-                    ZStack {
-                        Circle()
-                            .fill(Color.gray.opacity(0.1))
-                            .frame(width: 60, height: 60)
-                        
-                        Image("profile_placeholder") // 프로필 이미지
+                VStack {
+                    HStack(spacing: 20) {
+                        // 프로필 이미지
+                        Image("profile_placeholder")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 60, height: 60)
                             .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [Color.mainRed, Color.mainRed.opacity(0.7)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 2
+                                    )
+                            )
                             .shadow(radius: 3)
-                    }
-                    
-                    // 사용자 정보
-                    VStack(alignment: .leading, spacing: 4) {
+                        
+                        // 사용자 정보
                         Text(request.nickname)
-                            .font(.headline)
+                            .font(.title3)
+                            .fontWeight(.semibold)
                         
-                        HStack(spacing: 6) {
-                            Text("\(request.weight)kg")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            Divider()
-                                .frame(height: 14)
-                                .background(Color.secondary.opacity(0.4))
-                            Text("\(request.height)cm")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        Spacer()
+                        
+                        // 수락/거절 버튼
+                        HStack(spacing: 12) {
+                            ActionButton(
+                                action: { print("Declined \(request.nickname)") },
+                                icon: "xmark",
+                                color: Color.mainRed,
+                                size: 44
+                            )
+                            
+                            ActionButton(
+                                action: { print("Accepted \(request.nickname)") },
+                                icon: "checkmark",
+                                color: Color.mainRed,
+                                size: 44
+                            )
                         }
-                    }
-                    
-                    Spacer()
-                    
-                    // 수락/거절 버튼
-                    VStack(spacing: 8) {
-                        CircularIconButton(
-                            action: {
-                                print("Accepted \(request.nickname)")
-                            },
-                            icon: "checkmark.circle.fill",
-                            gradientColors: [Color.green, Color.teal]
-                        )
-                        
-                        CircularIconButton(
-                            action: {
-                                print("Declined \(request.nickname)")
-                            },
-                            icon: "xmark.circle.fill",
-                            gradientColors: [Color.red, Color.orange]
-                        )
                     }
                 }
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 16)
                         .fill(Color(.systemBackground))
-                        .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .shadow(color: Color.mainRed.opacity(0.05), radius: 10, x: 0, y: 5)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.mainRed.opacity(0.1), lineWidth: 1)
                 )
             }
         }
@@ -79,54 +82,52 @@ struct MatchRequestView: View {
     }
 }
 
-// MARK: - CircularIconButton
-struct CircularIconButton: View {
+// MARK: - ActionButton
+struct ActionButton: View {
     let action: () -> Void
     let icon: String
-    let gradientColors: [Color]
-
+    let color: Color
+    let size: CGFloat
+    
     @State private var isPressed = false
-
+    
     var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(gradient: Gradient(colors: gradientColors),
-                                       startPoint: .topLeading,
-                                       endPoint: .bottomTrailing)
-                    )
-                    .frame(width: 50, height: 50)
-                    .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
-                
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
+            Circle()
+                .fill(color.opacity(0.15))
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: size * 0.4, weight: .semibold))
+                        .foregroundColor(color)
+                )
+                .frame(width: size, height: size)
         }
-        .scaleEffect(isPressed ? 1.1 : 1.0)
-        .onLongPressGesture(
-            minimumDuration: 0.1,
-            pressing: { pressing in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isPressed = pressing
-                }
-            },
-            perform: {}
-        )
+        .buttonStyle(ScaleButtonStyle())
     }
 }
 
+// MARK: - ScaleButtonStyle
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.88 : 1)
+            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
 
-
+// MARK: - Models
+struct MatchRequest: Identifiable {
+    let id: Int
+    let nickname: String
+}
 
 // MARK: - Preview
 struct MatchRequestView_Previews: PreviewProvider {
     static var previews: some View {
         MatchRequestView(matchRequests: [
-            MatchRequest(id: 1, nickname: "Boxer1", weight: 70, height: 175),
-            MatchRequest(id: 2, nickname: "Boxer2", weight: 65, height: 180),
-            MatchRequest(id: 3, nickname: "Boxer3", weight: 75, height: 170)
+            MatchRequest(id: 1, nickname: "Boxer1"),
+            MatchRequest(id: 2, nickname: "Boxer2"),
+            MatchRequest(id: 3, nickname: "Boxer3")
         ])
         .background(Color(.systemGroupedBackground))
     }

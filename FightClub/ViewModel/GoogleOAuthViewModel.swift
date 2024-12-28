@@ -24,6 +24,7 @@ class GoogleOAuthViewModel: ObservableObject {
             }
             oauthUserData.oauthId = user.userID ?? ""
             oauthUserData.idToken = user.idToken?.tokenString ?? ""
+            print("토큰:", user.idToken?.tokenString ?? "")
         } else {
             self.errorMessage = "error: Not Logged In"
         }
