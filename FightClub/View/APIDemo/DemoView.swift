@@ -31,7 +31,7 @@ struct DemoView: View {
             Text(viewModel.errorMessage ?? "")
         }
         .task {
-            await viewModel.fetchItems()
+//            await viewModel.fetchItems()
         }
     }
 }

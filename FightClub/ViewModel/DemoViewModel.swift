@@ -18,15 +18,15 @@ class DemoViewModel: ObservableObject {
         self.networkManager = networkManager
     }
     
-    @MainActor
-    func fetchItems() async {
-        isLoading = true
-        do {
-            items = try await networkManager.request(.getItems)
-            print(items)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
+//    @MainActor
+//    func fetchItems() async {
+//        isLoading = true
+//        do {
+//            items = try await networkManager.request(.getItems)
+//            print(items)
+//        } catch {
+//            errorMessage = error.localizedDescription
+//        }
+//        isLoading = false
+//    }
 }

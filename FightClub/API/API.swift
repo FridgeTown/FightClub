@@ -8,28 +8,27 @@
 import Alamofire
 
 enum APIEndpoint {
-    case getItems
+    case logIn(email: String, provider: String, token: String)
     
     // 엔드 포인트
     var url: String {
         switch self {
-        case .getItems:
-            return "https://random-data-api.com/api/v2/beers?size=10"
+        case .logIn:
+            return "http://3.34.46.87:8080/login"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .getItems:
-            return .get
+        case .logIn:
+            return .post
         }
     }
     
-    // 나중 post 시 파라미터 쓸것 정의
     var parameters: Parameters? {
         switch self {
-        case .getItems:
-            return nil
+        case .logIn(let email, let provider, let idToken):
+            return ["email": email, "provider": provider, "idToken": idToken]
         }
     }
 }

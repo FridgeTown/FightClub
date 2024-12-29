@@ -22,17 +22,17 @@ class AppleSignInCoordinator: NSObject, ObservableObject {
         case registered
         case needsSignUp
     }
-    
-    func checkUserRegistration(email: String) async {
-        do {
-            let isRegistered = try await authService.checkUserExists(email: email)
-            if isRegistered {
-                self.authState = .registered
-            } else {
-                self.authState = .needsSignUp
-            }
-        } catch {
-            self.errorMessage = "사용자 확인 실패: \(error.localizedDescription)"
-        }
-    }
+    //임시공사
+//    func checkUserRegistration(email: String) async {
+//        do {
+//            let isRegistered = try await authService.checkUserExists(email: email)
+//            if isRegistered {
+//                self.authState = .registered
+//            } else {
+//                self.authState = .needsSignUp
+//            }
+//        } catch {
+//            self.errorMessage = "사용자 확인 실패: \(error.localizedDescription)"
+//        }
+//    }
 }

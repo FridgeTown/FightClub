@@ -33,6 +33,13 @@ struct MainTabView: View {
                     Image(systemName: "antenna.radiowaves.left.and.right").renderingMode(.template)
                                 }
             }
+          MyRecordView()
+              .tabItem {
+                  VStack {
+                      Text("기록")
+                      Image(systemName: "figure.boxing.circle.fill").renderingMode(.template)
+                  }
+              }
           
       }
       .font(.headline)

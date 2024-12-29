@@ -23,9 +23,9 @@ class GoogleOAuthViewModel: ObservableObject {
         case needsSignUp
     }
     
-    func checkUserRegistration(email: String) async {
+    func checkUserRegistration(email: String, provider: String, idToken: String) async {
             do {
-                let isRegistered = try await authService.checkUserExists(email: email)
+                let isRegistered = try await authService.checkUserExists(email: email, provider: provider, token: idToken)
                 await MainActor.run {
                     if isRegistered {
                         self.authState = .registered
@@ -46,10 +46,10 @@ class GoogleOAuthViewModel: ObservableObject {
             }
             if let email = user.profile?.email {
                 self.givenEmail = email
-                await checkUserRegistration(email: email)
             }
             oauthUserData.oauthId = user.userID ?? ""
             oauthUserData.idToken = user.idToken?.tokenString ?? ""
+            await checkUserRegistration(email: self.givenEmail ?? "", provider: "google", idToken: oauthUserData.idToken)
             print("토큰:", user.idToken?.tokenString ?? "")
         } else {
             self.errorMessage = "error: Not Logged In"

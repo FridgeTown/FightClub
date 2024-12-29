@@ -62,7 +62,7 @@ struct LoginView: View {
                                             appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
                                             
                                             Task {
-                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!)
+//                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!)
                                             }
                                         }
                                 }
@@ -87,7 +87,6 @@ struct LoginView: View {
         .onChange(of: viewModel.authState) { oldState, newState in
             switch newState {
             case .registered:
-                print("로그인 합시다 ! ")
                 showMainView = true // HomeView로 이동
             case .needsSignUp:
                 showSignupView = true // SignupFirstView로 이동
