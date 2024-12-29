@@ -54,8 +54,6 @@ struct LoginView: View {
                                     } else {
                                         appleSignInCoordinator.email = appleIDCredential.user
                                     }
-                                        
-                                        // 토큰 처리
                                         if let tokenData = appleIDCredential.identityToken,
                                            let token = String(data: tokenData, encoding: .utf8) {
                                             appleSignInCoordinator.oauthUserData.idToken = token
@@ -79,17 +77,17 @@ struct LoginView: View {
             .padding(.top, 80)
         }
         .fullScreenCover(isPresented: $showMainView) {
-            MainTabView() // HomeView로 전환
+            MainTabView()
         }
         .fullScreenCover(isPresented: $showSignupView) {
-            SignupFirstView() // SignupFirstView로 전환
+            SignupFirstView()
         }
         .onChange(of: viewModel.authState) { oldState, newState in
             switch newState {
             case .registered:
-                showMainView = true // HomeView로 이동
+                showMainView = true
             case .needsSignUp:
-                showSignupView = true // SignupFirstView로 이동
+                showSignupView = true
             case .none:
                 break
             }
@@ -97,10 +95,9 @@ struct LoginView: View {
         .onChange(of: appleSignInCoordinator.authState) { oldState, newState in
             switch newState {
             case .registered:
-                print("로그인 합시다 ! ")
-                showMainView = true // HomeView로 이동
+                showMainView = true
             case .needsSignUp:
-                showSignupView = true // SignupFirstView로 이동
+                showSignupView = true
             case .none:
                 break
             }

@@ -9,10 +9,15 @@ class AuthService {
         let endpoint = APIEndpoint.logIn(email: email, provider: provider, token: token)
         do {
             let response: APIResponse<UserData> = try await NetworkManager.shared.request(endpoint)
-            print("리스폰스:", response)
-            return response.status == 200 // 성공 여부 확인
+            if response.status == 200 {
+                if let token = response.data?.accessToken {
+                    try tokenManager.saveAccessToken(token)
+                }
+                return true
+            } else {
+                return false
+            }
         } catch {
-            print("API Error: \(error.localizedDescription)")
             throw AuthError.networkError
         }
     }

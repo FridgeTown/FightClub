@@ -53,7 +53,7 @@ struct SwipeView: View {
             HStack {
                 Spacer()
                 GradientOutlineButton(
-                    action: { swipeAction = .swipeLeft },
+                    action: { swipeAction = .swipeLeft},
                     iconName: "xmark.circle.fill",
                     colors: [Color.mainRed.opacity(0.8), Color.mainRed]
                 )
@@ -75,6 +75,12 @@ struct SwipeView: View {
     
     private func removeTopItem() {
         profiles.removeLast()
+        do {
+            try TokenManager.shared.deleteAccessToken()
+            print("deleteAccessToken() CALLED")
+        } catch {
+            print("failed to delete Token")
+        }
     }
 }
 
