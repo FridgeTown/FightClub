@@ -28,7 +28,7 @@ struct SplashView: View {
             checkAuthStatus()
         }
         .fullScreenCover(isPresented: $showMainView) {
-            HomeView()
+            MainTabView()
         }
         .fullScreenCover(isPresented: $showWelcomeView) {
             LoginView()
