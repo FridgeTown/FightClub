@@ -8,33 +8,31 @@
 import Foundation
 import AuthenticationServices
 
-class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ObservableObject {
+@MainActor
+class AppleSignInCoordinator: NSObject, ObservableObject {
+    @Published var oauthUserData = OAuthUserData()
+    @Published var errorMessage: String?
     @Published var email: String?
-    @Published var userIdentifier: String?
-    @Published var idToken: String?
+    @Published var authState: AuthState = .none
     
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            self.userIdentifier = appleIDCredential.user
-            self.email = appleIDCredential.email
-            
-            if let tokenData = appleIDCredential.identityToken,
-               let token = String(data: tokenData, encoding: .utf8) {
-                self.idToken = token
-            }
-            
-//            // TokenManager에 토큰 저장
-//            if let token = self.idToken {
-//                do {
-//                    try TokenManager.shared.saveAccessToken(token)
-//                } catch {
-//                    print("토큰 저장 실패: \(error.localizedDescription)")
-//                }
-//            }
-        }
+    private let authService = AuthService.shared
+    
+    enum AuthState {
+        case none
+        case registered
+        case needsSignUp
     }
-
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        print("Authorization failed: \(error.localizedDescription)")
+    
+    func checkUserRegistration(email: String) async {
+        do {
+            let isRegistered = try await authService.checkUserExists(email: email)
+            if isRegistered {
+                self.authState = .registered
+            } else {
+                self.authState = .needsSignUp
+            }
+        } catch {
+            self.errorMessage = "사용자 확인 실패: \(error.localizedDescription)"
+        }
     }
 }

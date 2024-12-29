@@ -6,34 +6,32 @@ struct SplashView: View {
     @State private var showWelcomeView = false
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // 배경
-                Color.background.ignoresSafeArea()
+        ZStack {
+            // 배경
+            Color.background.ignoresSafeArea()
+            
+            // 로고 및 로딩 인디케이터
+            VStack(spacing: 20) {
+                Image("title_logo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200)
                 
-                // 로고 및 로딩 인디케이터
-                VStack(spacing: 20) {
-                    Image("title_logo")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 200)
-                    
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                    }
+                if viewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
                 }
-            }
-            .navigationDestination(isPresented: $showMainView) {
-                HomeView()
-            }
-            .navigationDestination(isPresented: $showWelcomeView) {
-                LoginView()
             }
         }
         .onAppear {
             checkAuthStatus()
+        }
+        .fullScreenCover(isPresented: $showMainView) {
+            HomeView()
+        }
+        .fullScreenCover(isPresented: $showWelcomeView) {
+            LoginView()
         }
     }
     
@@ -77,4 +75,4 @@ class SplashViewModel: ObservableObject {
         
         return true
     }
-} 
+}

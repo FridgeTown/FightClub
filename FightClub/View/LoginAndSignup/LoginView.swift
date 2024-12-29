@@ -12,6 +12,8 @@ import AuthenticationServices
 struct LoginView: View {
     @StateObject private var viewModel = GoogleOAuthViewModel()
     @StateObject private var appleSignInCoordinator = AppleSignInCoordinator()
+    @State private var showMainView = false
+    @State private var showSignupView = false
     
     var body: some View {
         ZStack {
@@ -45,20 +47,27 @@ struct LoginView: View {
                         },
                         onCompletion: { result in
                             switch result {
-                            case .success(let authResults):
-                                if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                                    // 이메일과 유저 ID 저장
-                                    appleSignInCoordinator.email = appleIDCredential.email
-                                    appleSignInCoordinator.userIdentifier = appleIDCredential.user
-                                    
-                                    // 토큰 처리
-                                    if let tokenData = appleIDCredential.identityToken,
-                                       let token = String(data: tokenData, encoding: .utf8) {
-                                        appleSignInCoordinator.idToken = token
+                            case .success(let authorization):
+                                if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                                    if let email = appleIDCredential.email {
+                                        appleSignInCoordinator.email = email
+                                    } else {
+                                        appleSignInCoordinator.email = appleIDCredential.user
                                     }
+                                        
+                                        // 토큰 처리
+                                        if let tokenData = appleIDCredential.identityToken,
+                                           let token = String(data: tokenData, encoding: .utf8) {
+                                            appleSignInCoordinator.oauthUserData.idToken = token
+                                            appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
+                                            
+                                            Task {
+                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!)
+                                            }
+                                        }
                                 }
                             case .failure(let error):
-                                print("Authorization failed: \(error.localizedDescription)")
+                                appleSignInCoordinator.errorMessage = "로그인 실패: \(error.localizedDescription)"
                             }
                         }
                     )
@@ -68,6 +77,34 @@ struct LoginView: View {
                 .padding(.horizontal, 40)
             }
             .padding(.top, 80)
+        }
+        .fullScreenCover(isPresented: $showMainView) {
+            HomeView() // HomeView로 전환
+        }
+        .fullScreenCover(isPresented: $showSignupView) {
+            SignupFirstView() // SignupFirstView로 전환
+        }
+        .onChange(of: viewModel.authState) { oldState, newState in
+            switch newState {
+            case .registered:
+                print("로그인 합시다 ! ")
+                showMainView = true // HomeView로 이동
+            case .needsSignUp:
+                showSignupView = true // SignupFirstView로 이동
+            case .none:
+                break
+            }
+        }
+        .onChange(of: appleSignInCoordinator.authState) { oldState, newState in
+            switch newState {
+            case .registered:
+                print("로그인 합시다 ! ")
+                showMainView = true // HomeView로 이동
+            case .needsSignUp:
+                showSignupView = true // SignupFirstView로 이동
+            case .none:
+                break
+            }
         }
     }
 }

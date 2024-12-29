@@ -8,12 +8,37 @@
 import GoogleSignIn
 import SwiftUI
 
+@MainActor
 class GoogleOAuthViewModel: ObservableObject {
     @Published var oauthUserData = OAuthUserData()
     @Published var errorMessage: String?
     @Published var givenEmail: String?
+    @Published var authState: AuthState = .none
     
-    func checkUserInfo() {
+    private let authService = AuthService.shared
+    
+    enum AuthState {
+        case none
+        case registered
+        case needsSignUp
+    }
+    
+    func checkUserRegistration(email: String) async {
+            do {
+                let isRegistered = try await authService.checkUserExists(email: email)
+                await MainActor.run {
+                    if isRegistered {
+                        self.authState = .registered
+                    } else {
+                        self.authState = .needsSignUp
+                    }
+                }
+            } catch {
+                print("사용자 확인 실패: \(error.localizedDescription)")
+            }
+        }
+    
+    func checkUserInfo() async {
         if GIDSignIn.sharedInstance.currentUser != nil {
             let user = GIDSignIn.sharedInstance.currentUser
             guard let user = user else {
@@ -21,6 +46,7 @@ class GoogleOAuthViewModel: ObservableObject {
             }
             if let email = user.profile?.email {
                 self.givenEmail = email
+                await checkUserRegistration(email: email)
             }
             oauthUserData.oauthId = user.userID ?? ""
             oauthUserData.idToken = user.idToken?.tokenString ?? ""
@@ -31,20 +57,21 @@ class GoogleOAuthViewModel: ObservableObject {
     }
     
     func signIn() {
-            guard let presentingViewController = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else {
-                return
+        guard let presentingViewController = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else {
+            return
+        }
+        
+        GIDSignIn.sharedInstance.signIn(
+            withPresenting: presentingViewController)
+        { [weak self] _, error in
+            if let error = error {
+                self?.errorMessage = "error: \(error.localizedDescription)"
             }
-            
-            GIDSignIn.sharedInstance.signIn(
-                withPresenting: presentingViewController)
-            { _, error in
-                if let error = error {
-                    self.errorMessage = "error: \(error.localizedDescription)"
-                }
-                
-                self.checkUserInfo()
+            Task {
+                await self?.checkUserInfo()
             }
         }
+    }
         
         func signOut() {
             GIDSignIn.sharedInstance.signOut()
