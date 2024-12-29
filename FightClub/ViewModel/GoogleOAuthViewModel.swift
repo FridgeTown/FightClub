@@ -36,7 +36,7 @@ class GoogleOAuthViewModel: ObservableObject {
             } catch {
                 print("사용자 확인 실패: \(error.localizedDescription)")
             }
-        }
+    }
     
     func checkUserInfo() async {
         if GIDSignIn.sharedInstance.currentUser != nil {

@@ -28,6 +28,7 @@ enum APIEndpoint {
     var parameters: Parameters? {
         switch self {
         case .logIn(let email, let provider, let idToken):
+            print(["email": email, "provider": provider, "idToken": idToken])
             return ["email": email, "provider": provider, "idToken": idToken]
         }
     }

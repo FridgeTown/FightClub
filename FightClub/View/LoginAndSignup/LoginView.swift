@@ -62,7 +62,7 @@ struct LoginView: View {
                                             appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
                                             
                                             Task {
-//                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!)
+                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!, provider: "apple", idToken: token)
                                             }
                                         }
                                 }
@@ -79,7 +79,7 @@ struct LoginView: View {
             .padding(.top, 80)
         }
         .fullScreenCover(isPresented: $showMainView) {
-            HomeView() // HomeView로 전환
+            MainTabView() // HomeView로 전환
         }
         .fullScreenCover(isPresented: $showSignupView) {
             SignupFirstView() // SignupFirstView로 전환
