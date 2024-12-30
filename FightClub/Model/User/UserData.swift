@@ -24,5 +24,6 @@ struct UserData: Decodable {
     let weightClass: String?
     let role: String?
     let nickname: String?
-    let accessToken: String
+    let accessToken: String?
+    let chatToken: String?
 }

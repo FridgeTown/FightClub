@@ -75,12 +75,6 @@ struct SwipeView: View {
     
     private func removeTopItem() {
         profiles.removeLast()
-        do {
-            try TokenManager.shared.deleteAccessToken()
-            print("deleteAccessToken() CALLED")
-        } catch {
-            print("failed to delete Token")
-        }
     }
 }
 

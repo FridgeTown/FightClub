@@ -26,7 +26,15 @@ struct MainTabView: View {
                   Image(systemName: "message").renderingMode(.template)
                               }
           }
-          Text("라이브")
+          
+          Button("로그아웃(임시)") {
+              do {
+                  try TokenManager.shared.deleteAccessToken()
+                  print("deleteAccessToken() CALLED")
+              } catch {
+                  print("failed to delete Token")
+              }
+          }
             .tabItem {
                 VStack {
                     Text("LIVE")

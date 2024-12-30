@@ -59,21 +59,29 @@ struct SplashView: View {
 class SplashViewModel: ObservableObject {
     @Published var isLoading = false
     private let tokenManager = TokenManager.shared
+    private let authService = AuthService.shared
     
     func checkAuthentication() async throws -> Bool {
         isLoading = true
         defer { isLoading = false }
         
         // 토큰 존재 여부 확인
-        guard let token = try? tokenManager.getAccessToken() else {
-            print("로컬에 저장된 토큰 ")
+        guard let _ = try? tokenManager.getAccessToken() else {
+            print("token manager 에 토큰이 존재하지 않습니다. ")
             return false
         }
         
-        // TODO: 토큰 유효성 검증 API 호출
-        // let isValid = try await AuthService.validateToken(token)
-        // return isValid
-        
-        return true
+        do {
+            // 토큰 유효성 검증 API 호출
+            let isValid = try await authService.validateToken()
+            return isValid
+        } catch AuthError.invalidCredentials {
+            print("토큰이 유효하지 않음.")
+            try? tokenManager.clearAllTokens()
+            return false
+        } catch {
+            print("토큰 검증 중 오류 발생: \(error.localizedDescription)")
+            return false
+        }
     }
 }
