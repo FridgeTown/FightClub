@@ -11,6 +11,9 @@ enum APIEndpoint {
     case logIn(email: String, provider: String, token: String)
     case getUserInfo
     case getUserRecommend
+    case postMatchRequest(opponentID: String)
+    case postRejectRequest(matchID: String)
+    
     
     // 엔드 포인트
     var url: String {
@@ -21,16 +24,18 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/user/info"
         case .getUserRecommend:
             return "http://3.34.46.87:8080/user/recommendation"
+        case .postMatchRequest(let opponentID):
+            return "http://3.34.46.87:8080/match/\(opponentID)"
+        case .postRejectRequest(let matchID):
+            return "http://3.34.46.87:8080/match/\(matchID)"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn:
+        case .logIn, .postMatchRequest, .postRejectRequest:
             return .post
-        case .getUserInfo:
-            return .get
-        case .getUserRecommend:
+        case .getUserInfo, .getUserRecommend:
             return .get
         }
     }
@@ -42,7 +47,7 @@ enum APIEndpoint {
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
-        case .getUserRecommend:
+        case .getUserRecommend, .postMatchRequest, .postRejectRequest:
             return nil
         }
     }
@@ -51,7 +56,7 @@ enum APIEndpoint {
         switch self {
         case .logIn:
             return nil
-        case .getUserInfo, .getUserRecommend:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }

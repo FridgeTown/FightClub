@@ -12,9 +12,9 @@ class AuthService {
             let response: APIResponse<UserData> = try await NetworkManager.shared.request(endpoint)
             if response.status == 200 {
 //                print("---USER DATA 디버그 영역입니다---")
-//                print("id: ", response.data?.id)
+                print("id: ", response.data?.id)
 //                print("chatToken: ", response.data?.chatToken)
-//                print("accessToken: ", response.data?.accessToken)
+                print("accessToken: ", response.data?.accessToken)
 //                print("nickname: ", response.data?.nickname)
 //                print("email: ", response.data?.email)
 //                let chatid = String(response.data.id!)
@@ -59,6 +59,8 @@ class AuthService {
                 switch response.status {
                 case 200:
                     //싱글톤 패턴. 유저 정보 저장하기
+                    let token = try? TokenManager.shared.getAccessToken()
+                    print("ACCESS TOKEN: ", token)
                     return true
                 case 401:  // 토큰이 유효하지 않은 경우
                     throw AuthError.invalidCredentials
