@@ -1,5 +1,5 @@
 //
-//  HomeView.swift
+//  DemoView.swift
 //  FightClub
 //
 //  Created by Edward Lee on 12/25/24.
@@ -8,10 +8,10 @@
 import Foundation
 import SwiftUI
 
-struct HomeView: View {
-    @StateObject private var viewModel: HomeViewModel
+struct DemoView: View {
+    @StateObject private var viewModel: DemoViewModel
     
-    init(viewModel: HomeViewModel = DIContainer.shared.makeHomeViewModel()) {
+    init(viewModel: DemoViewModel = DIContainer.shared.makeDemoViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
@@ -31,17 +31,9 @@ struct HomeView: View {
             Text(viewModel.errorMessage ?? "")
         }
         .task {
-            await viewModel.fetchItems()
+//            await viewModel.fetchItems()
         }
     }
 }
-
-//#if DEBUG
-//struct HomeView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        HomeView(viewModel: HomeViewModel(networkManager: MockNetworkManager()))
-//    }
-//}
-//#endif
 
 

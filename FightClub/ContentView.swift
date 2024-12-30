@@ -7,13 +7,15 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
-        //HomeView()
-        SignupFirstView()
-    }
-}
+//        MainTabView()
+//        GoogleLoginDemo()
+//        SignupFirstView()
 
-#Preview {
-    ContentView()
+struct ContentView: View {
+    
+    var body: some View {
+//                MainTabView()
+            SplashView()
+//        GoogleLoginDemo()
+    }
 }
