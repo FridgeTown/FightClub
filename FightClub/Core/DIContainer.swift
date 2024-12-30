@@ -15,4 +15,9 @@ class DIContainer {
         let networkManager = NetworkManager.shared
         return DemoViewModel(networkManager: networkManager)
     }
+    
+    func makeHomeViewModel() -> HomeViewModel {
+        let networkManager = NetworkManager.shared
+        return HomeViewModel(networkManager: networkManager)
+    }
 }

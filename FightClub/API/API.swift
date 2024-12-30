@@ -10,6 +10,7 @@ import Alamofire
 enum APIEndpoint {
     case logIn(email: String, provider: String, token: String)
     case getUserInfo
+    case getUserRecommend
     
     // 엔드 포인트
     var url: String {
@@ -18,6 +19,8 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/login"
         case .getUserInfo:
             return "http://3.34.46.87:8080/user/info"
+        case .getUserRecommend:
+            return "http://3.34.46.87:8080/user/recommendation"
         }
     }
     
@@ -26,6 +29,8 @@ enum APIEndpoint {
         case .logIn:
             return .post
         case .getUserInfo:
+            return .get
+        case .getUserRecommend:
             return .get
         }
     }
@@ -37,6 +42,8 @@ enum APIEndpoint {
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
+        case .getUserRecommend:
+            return nil
         }
     }
     
@@ -44,7 +51,7 @@ enum APIEndpoint {
         switch self {
         case .logIn:
             return nil
-        case .getUserInfo:
+        case .getUserInfo, .getUserRecommend:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }

@@ -66,8 +66,8 @@ class SplashViewModel: ObservableObject {
         defer { isLoading = false }
         
         // 토큰 존재 여부 확인
-        guard let _ = try? tokenManager.getAccessToken() else {
-            print("token manager 에 토큰이 존재하지 않습니다. ")
+        guard let token = try? tokenManager.getAccessToken() else {
+            print("token manager 에 토큰이 존재하지 않습니다.")
             return false
         }
         
@@ -76,7 +76,7 @@ class SplashViewModel: ObservableObject {
             let isValid = try await authService.validateToken()
             return isValid
         } catch AuthError.invalidCredentials {
-            print("토큰이 유효하지 않음.")
+            print("토큰이 유효하지 않습니다.")
             try? tokenManager.clearAllTokens()
             return false
         } catch {
