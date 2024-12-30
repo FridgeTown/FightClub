@@ -33,7 +33,7 @@ struct MainTabView: View {
                     Image(systemName: "antenna.radiowaves.left.and.right").renderingMode(.template)
                                 }
             }
-          MyRecordView()
+          RecordListView()
               .tabItem {
                   VStack {
                       Text("기록")

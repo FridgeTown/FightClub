@@ -66,6 +66,7 @@ class SplashViewModel: ObservableObject {
         
         // 토큰 존재 여부 확인
         guard let token = try? tokenManager.getAccessToken() else {
+            print("로컬에 저장된 토큰 ")
             return false
         }
         

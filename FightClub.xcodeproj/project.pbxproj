@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 305E53A52D1B10A0002E4746 /* Alamofire */; };
+		30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 30B649462D2242DE00953529 /* FirebaseMessaging */; };
 		30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3ED2D1EEED50035E422 /* GoogleSignIn */; };
 		30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -71,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */,
 				30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */,
 				305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */,
 				30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */,
@@ -137,6 +139,7 @@
 				305E53A52D1B10A0002E4746 /* Alamofire */,
 				30BEF3ED2D1EEED50035E422 /* GoogleSignIn */,
 				30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */,
+				30B649462D2242DE00953529 /* FirebaseMessaging */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -223,6 +226,7 @@
 			packageReferences = (
 				305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -430,6 +434,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FightClub/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "스파링 영상 촬영을 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "스파링 영상의 오디오 녹음을 위해 마이크 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -462,6 +468,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FightClub/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "스파링 영상 촬영을 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "스파링 영상의 오디오 녹음을 위해 마이크 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -603,6 +611,14 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.6.0;
+			};
+		};
 		30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -618,6 +634,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		30B649462D2242DE00953529 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		30BEF3ED2D1EEED50035E422 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

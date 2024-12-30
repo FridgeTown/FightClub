@@ -11,6 +11,7 @@ class AuthService {
             let response: APIResponse<UserData> = try await NetworkManager.shared.request(endpoint)
             if response.status == 200 {
                 if let token = response.data?.accessToken {
+                    print(token)
                     try tokenManager.saveAccessToken(token)
                 }
                 return true

@@ -16,6 +16,7 @@ class TokenManager {
     
     // MARK: - Access Token
     func saveAccessToken(_ token: String) throws {
+        print("accessToken", token)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: accessTokenKey,
