@@ -10,6 +10,7 @@ import GoogleSignIn
 import CoreData
 import Firebase
 import UserNotifications
+import TalkPlus
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -33,7 +34,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             
             // 파이어베이스 Meesaging 설정
             Messaging.messaging().delegate = self
-            
+            TalkPlus.sharedInstance()?.initWithAppId("abc3aa8d-947b-4549-a793-7c79dcd57333")
             return true
         }
 }
