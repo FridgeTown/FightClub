@@ -22,7 +22,12 @@ class DIContainer {
     }
     
     func makeChatListViewModel() -> ChatListModel {
-        let networkManager = NetworkManager.shared
+        let _ = NetworkManager.shared
         return ChatListModel()
+    }
+    
+    func makeMatchRequestModel() -> MatchRequestModel {
+        let networkManager = NetworkManager.shared
+        return MatchRequestModel(networkManager: networkManager)
     }
 }

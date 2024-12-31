@@ -20,8 +20,15 @@ struct ChatChannel: Identifiable {
     init(from tpChannel: TPChannel) {
         self.id = tpChannel.getId()
         self.name = tpChannel.getName()
-        self.lastMessage = tpChannel.getLastMessage().getText()
-        self.lastMessageTime = tpChannel.getLastMessage().getCreatedAt()
+        
+        if let lastMessage = tpChannel.getLastMessage() {
+            self.lastMessage = lastMessage.getText() ?? "메시지 없음"
+            self.lastMessageTime = lastMessage.getCreatedAt()
+        } else {
+            self.lastMessage = "메시지 없음"
+            self.lastMessageTime = 0
+        }
+        
         self.unreadCount = Int(tpChannel.getUnreadCount())
         self.profileImageUrl = tpChannel.getImageUrl()
     }

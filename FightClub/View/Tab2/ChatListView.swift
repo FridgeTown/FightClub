@@ -18,23 +18,31 @@ struct ChatListView: View {
     
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading) {
-                if viewModel.channel.isEmpty {
-                    EmptyStateView()
-                } else {
-                    List {
-                        ForEach(viewModel.channel) { channel in
-                            ChatRowView(channel: channel)
-                                .onTapGesture {
-                                    selectedChannelId = channel.id
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                VStack(alignment: .leading, spacing: 20) {
+                    headerView
+                    
+                    if viewModel.channel.isEmpty {
+                        EmptyStateView()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(viewModel.channel) { channel in
+                                    ChatRowView(channel: channel)
+                                        .onTapGesture {
+                                            selectedChannelId = channel.id
+                                        }
                                 }
+                            }
+                            .padding(.horizontal)
                         }
                     }
-                    .listStyle(PlainListStyle())
                 }
             }
-            .navigationTitle("채팅")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
         .onAppear {
             Task {
@@ -47,10 +55,22 @@ struct ChatListView: View {
             }
         }
     }
+    
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("채팅")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.primary)
+            
+            Text("스파링 파트너와 대화를 나누어보세요")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal)
+        .padding(.top)
+    }
 }
 
-
-// ChatRowView 수정
 struct ChatRowView: View {
     let channel: ChatChannel
     
@@ -62,29 +82,43 @@ struct ChatRowView: View {
                 case .empty:
                     Image(systemName: "person.circle.fill")
                         .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.gray)
+                        .aspectRatio(contentMode: .fill)
+                        .foregroundColor(.gray.opacity(0.3))
                 case .success(let image):
                     image
                         .resizable()
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
+                        .aspectRatio(contentMode: .fill)
                 case .failure:
                     Image(systemName: "person.circle.fill")
                         .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.gray)
+                        .aspectRatio(contentMode: .fill)
+                        .foregroundColor(.gray.opacity(0.3))
                 @unknown default:
                     EmptyView()
                 }
             }
+            .frame(width: 56, height: 56)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.mainRed.opacity(0.7), Color.mainRed],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(channel.name)
-                    .font(.headline)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.primary)
                 
                 Text(channel.lastMessage)
-                    .font(.subheadline)
+                    .font(.system(size: 15))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
@@ -93,28 +127,42 @@ struct ChatRowView: View {
             
             if channel.unreadCount > 0 {
                 Text("\(channel.unreadCount)")
-                    .font(.caption2)
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.white)
-                    .padding(6)
+                    .frame(width: 24, height: 24)
                     .background(Color.mainRed)
                     .clipShape(Circle())
+                    .shadow(color: Color.mainRed.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
-        .contentShape(Rectangle())  // 전체 영역 탭 가능하도록
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+        .contentShape(Rectangle())
     }
 }
 
 struct EmptyStateView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "message.circle")
-                .font(.system(size: 60))
+        VStack(spacing: 20) {
+            Image(systemName: "message.circle.fill")
+                .font(.system(size: 80))
                 .foregroundColor(Color.mainRed.opacity(0.3))
+                .shadow(color: Color.mainRed.opacity(0.2), radius: 10, x: 0, y: 5)
             
-            Text("아직 매칭된 스파링 파트너가 없습니다")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 8) {
+                Text("아직 매칭된 스파링 파트너가 없습니다")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("새로운 파트너를 찾아보세요")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()

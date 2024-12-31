@@ -26,7 +26,7 @@ struct MainTabView: View {
                   Image(systemName: "message").renderingMode(.template)
                               }
           }
-          
+          Text(UserDataManager.shared.getUserData()?.nickname ?? "닉네임이 뭐더라 ~ " )
           Button("로그아웃(임시)") {
               do {
                   try TokenManager.shared.deleteAccessToken()

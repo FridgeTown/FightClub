@@ -28,6 +28,7 @@ struct HomeView: View {
                 let strId = profile.userId.toString()
                     if hasLiked {
                         Task {
+                            print("Swipe userID", strId)
                             await viewModel.postRequest(id: strId)
                         }
                     } else {
