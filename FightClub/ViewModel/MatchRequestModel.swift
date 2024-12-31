@@ -14,6 +14,12 @@ class MatchRequestModel: ObservableObject {
         message: "",
         data: []
     )
+    
+    @Published private(set) var response: APIResponse<String?> = APIResponse(
+        status: 0,
+        message: "",
+        data: nil)
+    
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
     
@@ -39,7 +45,8 @@ class MatchRequestModel: ObservableObject {
     func acceptMatch(matchId: Int) async {
         isLoading = true
         do {
-            try await networkManager.request(.postMatchRequest(opponentID: matchId))
+            let id = matchId.toString()
+            response = try await networkManager.request(.postAcceptRequest(matchID: id))
             print("Match accepted")
         } catch {
             errorMessage = error.localizedDescription

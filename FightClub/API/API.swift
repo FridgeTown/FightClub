@@ -12,6 +12,7 @@ enum APIEndpoint {
     case getUserInfo
     case getUserRecommend
     case postMatchRequest(opponentID: String)
+    case postAcceptRequest(matchID: String)
     case postRejectRequest(matchID: String)
     case getPendingMatch
     
@@ -28,7 +29,9 @@ enum APIEndpoint {
         case .postMatchRequest(let opponentID):
             return "http://3.34.46.87:8080/match/\(opponentID)"
         case .postRejectRequest(let matchID):
-            return "http://3.34.46.87:8080/match/\(matchID)"
+            return "http://3.34.46.87:8080/match/reject/\(matchID)"
+        case .postAcceptRequest(let matchID):
+            return "http://3.34.46.87:8080/match/accept/\(matchID)"
         case .getPendingMatch:
             return "http://3.34.46.87:8080/match/pending"
         }
@@ -36,7 +39,7 @@ enum APIEndpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .postMatchRequest, .postRejectRequest:
+        case .logIn, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch:
             return .get
@@ -50,7 +53,7 @@ enum APIEndpoint {
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
-        case .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch:
+        case .getUserRecommend, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .getPendingMatch:
             return nil
         }
     }
@@ -59,7 +62,7 @@ enum APIEndpoint {
         switch self {
         case .logIn:
             return nil
-        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }

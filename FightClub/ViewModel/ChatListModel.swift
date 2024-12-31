@@ -19,28 +19,48 @@ struct ChatChannel: Identifiable {
     
     init(from tpChannel: TPChannel) {
         self.id = tpChannel.getId()
-        self.name = tpChannel.getName()
         
-        if let lastMessage = tpChannel.getLastMessage() {
-            self.lastMessage = lastMessage.getText() ?? "메시지 없음"
-            self.lastMessageTime = lastMessage.getCreatedAt()
+        // 현재 사용자 ID
+        let currentUserId = UserDataManager.shared.getUserData()?.id.toString()
+        
+        // 멤버 정보 디버깅
+        if let members = tpChannel.getMembers() as? [TPMember] {
+            print("Channel members count: \(members.count)")
+            for member in members {
+                print("Member ID: \(member.getId())")
+                print("Member Profile URL: \(member.getProfileImageUrl() ?? "nil")")
+            }
+            
+            // 상대방 찾기
+            if let otherMember = members.first(where: { $0.getId() != currentUserId }) {
+                self.name = otherMember.getUsername() ?? tpChannel.getName() ?? ""
+                self.profileImageUrl = otherMember.getProfileImageUrl()
+                print("Other member found - Name: \(self.name), Profile URL: \(self.profileImageUrl ?? "nil")")
+            } else {
+                self.name = tpChannel.getName() ?? ""
+                self.profileImageUrl = nil
+                print("No other member found")
+            }
         } else {
-            self.lastMessage = "메시지 없음"
-            self.lastMessageTime = 0
+            self.name = tpChannel.getName() ?? ""
+            self.profileImageUrl = nil
+            print("No members found in channel")
         }
         
+        self.lastMessage = tpChannel.getLastMessage()?.getText() ?? ""
+        self.lastMessageTime = tpChannel.getLastMessage()?.getCreatedAt() ?? 0
         self.unreadCount = Int(tpChannel.getUnreadCount())
-        self.profileImageUrl = tpChannel.getImageUrl()
     }
 }
 
+
+
 class ChatListModel: ObservableObject {
-    @Published var channel = [ChatChannel]()
-    @Published var tpChannels = [TPChannel]()
+    @Published private(set) var channel: [ChatChannel] = []
+    private var tpChannels: [TPChannel] = []
     
     private var channelMap: [String: TPChannel] = [:]
     
-    @MainActor
     func getChatList() async {
         TalkPlus.sharedInstance()?.getChannels(nil,
             success: { tpChannels, hasNext in
@@ -53,11 +73,11 @@ class ChatListModel: ObservableObject {
             self.channel = chatChannels
         }, failure: { (errorCode, error) in
             print("getChatList failed", errorCode, error ?? "")
-        })
+        }
+                                               )
     }
     
-    // ID로 TPChannel 찾기
-    func getTPChannel(for id: String) -> TPChannel? {
-        return channelMap[id]
+    func getTPChannel(for channelId: String) -> TPChannel? {
+        return tpChannels.first { $0.getId() == channelId }
     }
 }

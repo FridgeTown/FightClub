@@ -76,28 +76,33 @@ struct ChatRowView: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // 프로필 이미지
-            AsyncImage(url: URL(string: channel.profileImageUrl ?? "")) { phase in
+            // URL 디버깅 출력
+            let urlString = channel.profileImageUrl ?? ""
+            let _ = print("Profile URL for \(channel.name): \(urlString)")
+            
+            AsyncImage(url: URL(string: urlString)) { phase in
                 switch phase {
                 case .empty:
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .foregroundColor(.gray.opacity(0.3))
+                    ProgressView()
+                        .frame(width: 56, height: 56)
                 case .success(let image):
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                case .failure:
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
+                case .failure(let error):
+                    // 에러 디버깅 추가
+                    let _ = print("Image loading failed: \(error.localizedDescription)")
                     Image(systemName: "person.circle.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
                         .foregroundColor(.gray.opacity(0.3))
                 @unknown default:
                     EmptyView()
                 }
             }
-            .frame(width: 56, height: 56)
             .clipShape(Circle())
             .overlay(
                 Circle()

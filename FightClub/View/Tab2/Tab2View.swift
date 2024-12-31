@@ -121,7 +121,11 @@ struct LimitedMatchRequestView: View {
         return ForEach(limitedRequests) { request in
             MatchRequestCard(
                 request: request,
-                onAccept: { handleAccept(request) },
+                onAccept: {
+                    Task {
+                        await handleAccept(request)
+                    }
+                },
                 onDecline: { handleDecline(request) }
             )
         }
@@ -133,8 +137,8 @@ struct LimitedMatchRequestView: View {
     }
     
     // MARK: - Actions
-    private func handleAccept(_ request: MatchRequest) {
-        // TODO: 수락 로직 구현
+    private func handleAccept(_ request: MatchRequest) async {
+        await viewModel.acceptMatch(matchId: request.id)
     }
     
     private func handleDecline(_ request: MatchRequest) {
