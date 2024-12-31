@@ -6,33 +6,45 @@
 //
 
 import SwiftUI
+import TalkPlus
 
 struct ChatListView: View {
-    let activeChats: [Chat]
+    @StateObject private var viewModel: ChatListModel
+    @State private var channel: [TPChannel] = []
+//    let activeChats: [Chat]
+    
     @State private var selectedChat: Chat?
+    
+    init(viewModel: ChatListModel = DIContainer.shared.makeChatListViewModel()) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("매칭된 스파링 파트너")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(Color.mainRed)
-                .padding(.horizontal)
+//            Text("")
+//                .font(.title2)
+//                .fontWeight(.bold)
+//                .foregroundColor(Color.mainRed)
+//                .padding(.horizontal)
             
-            if activeChats.isEmpty {
-                EmptyStateView()
-            } else {
-                ForEach(activeChats) { chat in
-                    ChatRowView(chat: chat)
-                        .onTapGesture {
-                            selectedChat = chat
-                        }
-                }
+//            if activeChats.isEmpty {
+//                EmptyStateView()
+//            } else {
+//                ForEach(activeChats) { chat in
+//                    ChatRowView(chat: chat)
+//                        .onTapGesture {
+//                            selectedChat = chat
+//                        }
+//                }
+//            }
+        }.onAppear{
+            Task {
+                await viewModel.getChatList()
             }
+//        .sheet(item: $selectedChat) { chat in
+//            ChatRoomView(chat: chat)
         }
-        .sheet(item: $selectedChat) { chat in
-            ChatRoomView(chat: chat)
-        }
+        
     }
 }
 
@@ -98,13 +110,13 @@ struct EmptyStateView: View {
     }
 }
 
-// MARK: - Preview
-struct ChatListView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChatListView(activeChats: [
-            Chat(id: 1, userName: "Boxer Kim", lastMessage: "오늘 스파링 어떠셨나요?"),
-            Chat(id: 2, userName: "Fighter Lee", lastMessage: "다음 스파링 일정 잡아요!"),
-            Chat(id: 3, userName: "Champion Park", lastMessage: "좋은 경기였습니다!")
-        ])
-    }
-}
+//// MARK: - Preview
+//struct ChatListView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ChatListView(activeChats: [
+//            Chat(id: 1, userName: "Boxer Kim", lastMessage: "오늘 스파링 어떠셨나요?"),
+//            Chat(id: 2, userName: "Fighter Lee", lastMessage: "다음 스파링 일정 잡아요!"),
+//            Chat(id: 3, userName: "Champion Park", lastMessage: "좋은 경기였습니다!")
+//        ])
+//    }
+//}

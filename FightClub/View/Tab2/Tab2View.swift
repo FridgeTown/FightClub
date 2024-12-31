@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct Tab2View: View {
     @State private var matchRequests: [MatchRequest] = [
         MatchRequest(id: 1, nickname: "Boxer1"),
@@ -27,14 +28,14 @@ struct Tab2View: View {
                         MatchRequestView(matchRequests: Array(matchRequests.prefix(3))) // 최대 3개만 표시
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
-                            .padding(.horizontal)
+//                            .padding(.horizontal)
                         
                         // Divider
                         Divider()
                             .padding(.horizontal)
                         
                         // ChatListView
-                        ChatListView(activeChats: activeChats)
+                        ChatListView()
                     }
                     .padding(.vertical)
                 }

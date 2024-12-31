@@ -4,6 +4,7 @@ import TalkPlus
 class AuthService {
     static let shared = AuthService()
     private let tokenManager = TokenManager.shared
+    private let userDataManager = UserDataManager.shared
     private init() {}
     
     func checkUserExists(email: String, provider: String, token: String) async throws -> Bool {
@@ -11,29 +12,32 @@ class AuthService {
         do {
             let response: APIResponse<UserData> = try await NetworkManager.shared.request(endpoint)
             if response.status == 200 {
-//                print("---USER DATA 디버그 영역입니다---")
-                print("id: ", response.data?.id)
-//                print("chatToken: ", response.data?.chatToken)
-                print("accessToken: ", response.data?.accessToken)
-//                print("nickname: ", response.data?.nickname)
-//                print("email: ", response.data?.email)
-//                let chatid = String(response.data.id!)
-//                print("---USER DATA 디버그 끝---")
-//                let params = TPLoginParams(loginType: TPLoginType.token, userId: String(response.data.id!))
-//                params?.loginToken = loginToken
-//                params?.userName = userName
-//                params?.profileImageUrl = profileImageUrl
-//                params?.metaData = metaData
-//                params?.translationLanguage = translationLanguage
-//
-//                TalkPlus.sharedInstance()?.login(params,success: { tpUser in
-//                    // SUCCESS
-//                }, failure: { [weak self] (errorCode, error) in
-//                    // FAILURE
-//                })
+                if let user = response.data {
+                    userDataManager.setUserData(user)
+                    let params = TPLoginParams(loginType: TPLoginType.token, userId: user.id.toString())
+                    params?.loginToken = user.chatToken
+                    params?.userName = user.nickname
+    
+                    TalkPlus.sharedInstance()?.login(params,success: { tpUser in
+                        // SUCCESS
+                        print("채팅 login 성공 ! ")
+                        // 로그인 성공 노티피케이션 발송
+                                            DispatchQueue.main.async {
+                                                NotificationCenter.default.post(name: Notification.Name("UserDidLogin"), object: nil)
+                                            }
+                        TalkPlus.sharedInstance().enablePushNotification { tpUser in
+                            print("enablePushNotification")
+                        } failure: { (errorCode, error) in }
+                    }, failure: { [weak self] (errorCode, error) in
+                        // FAILURE
+                        print("채팅 errorCode: \(errorCode)", "채팅 error: \(error?.localizedDescription)")
+                    })
+                    
+                }
                 if let token = response.data?.accessToken {
                     try tokenManager.saveAccessToken(token)
                 }
+                
                 return true
             } else {
                 return false
@@ -59,8 +63,27 @@ class AuthService {
                 switch response.status {
                 case 200:
                     //싱글톤 패턴. 유저 정보 저장하기
-                    let token = try? TokenManager.shared.getAccessToken()
-                    print("ACCESS TOKEN: ", token)
+                    if let user = response.data {
+                        userDataManager.setUserData(user)
+                        let params = TPLoginParams(loginType: TPLoginType.token, userId: user.id.toString())
+                        params?.loginToken = user.chatToken
+                        params?.userName = user.nickname
+        
+                        TalkPlus.sharedInstance()?.login(params,success: { tpUser in
+                            // SUCCESS
+                            print("채팅 login 성공 ! ")
+                            // 로그인 성공 노티피케이션 발송
+                                                DispatchQueue.main.async {
+                                                    NotificationCenter.default.post(name: Notification.Name("UserDidLogin"), object: nil)
+                                                }
+                            TalkPlus.sharedInstance().enablePushNotification { tpUser in
+                                print("enablePushNotification")
+                            } failure: { (errorCode, error) in }
+                        }, failure: { [weak self] (errorCode, error) in
+                            // FAILURE
+                            print("채팅 errorCode: \(errorCode)", "채팅 error: \(error?.localizedDescription)")
+                        })
+                    }
                     return true
                 case 401:  // 토큰이 유효하지 않은 경우
                     throw AuthError.invalidCredentials

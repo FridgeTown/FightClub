@@ -66,7 +66,7 @@ class SplashViewModel: ObservableObject {
         defer { isLoading = false }
         
         // 토큰 존재 여부 확인
-        guard let token = try? tokenManager.getAccessToken() else {
+        guard let _ = try? tokenManager.getAccessToken() else {
             print("token manager 에 토큰이 존재하지 않습니다.")
             return false
         }
