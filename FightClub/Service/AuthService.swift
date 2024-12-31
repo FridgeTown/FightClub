@@ -65,6 +65,7 @@ class AuthService {
                     //싱글톤 패턴. 유저 정보 저장하기
                     if let user = response.data {
                         userDataManager.setUserData(user)
+                        print("ACCESS TOKEN", try TokenManager.shared.getAccessToken())
                         let params = TPLoginParams(loginType: TPLoginType.token, userId: user.id.toString())
                         params?.loginToken = user.chatToken
                         params?.userName = user.nickname

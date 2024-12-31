@@ -12,6 +12,10 @@ struct ChatListView: View {
     @StateObject private var viewModel: ChatListModel
     @State private var selectedChannelId: String?
     
+    init(viewModel: ChatListModel = DIContainer.shared.makeChatListViewModel()) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+    
     var body: some View {
         NavigationView {
             VStack(alignment: .leading) {

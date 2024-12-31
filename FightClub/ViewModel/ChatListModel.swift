@@ -29,9 +29,8 @@ struct ChatChannel: Identifiable {
 
 class ChatListModel: ObservableObject {
     @Published var channel = [ChatChannel]()
-    @Published var tpChannels = [TPChannel]()  // TPChannel 저장용
+    @Published var tpChannels = [TPChannel]()
     
-    // TPChannel을 ID로 찾을 수 있는 Dictionary 추가
     private var channelMap: [String: TPChannel] = [:]
     
     @MainActor
@@ -39,16 +38,10 @@ class ChatListModel: ObservableObject {
         TalkPlus.sharedInstance()?.getChannels(nil,
             success: { tpChannels, hasNext in
             guard let tpChannels = tpChannels else { return }
-            
-            // TPChannel 저장
             self.tpChannels = tpChannels
-            
-            // Dictionary 업데이트
             self.channelMap = Dictionary(uniqueKeysWithValues:
                 tpChannels.map { ($0.getId(), $0) }
             )
-            
-            // UI용 ChatChannel 변환
             let chatChannels = tpChannels.map { ChatChannel(from: $0) }
             self.channel = chatChannels
         }, failure: { (errorCode, error) in

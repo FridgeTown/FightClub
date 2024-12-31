@@ -23,6 +23,6 @@ class DIContainer {
     
     func makeChatListViewModel() -> ChatListModel {
         let networkManager = NetworkManager.shared
-        return ChatListModel(networkManager: networkManager)
+        return ChatListModel()
     }
 }

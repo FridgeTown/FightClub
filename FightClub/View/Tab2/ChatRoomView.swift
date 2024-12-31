@@ -1,24 +1,167 @@
 import SwiftUI
 import TalkPlus
 
+// MARK: - Main View
 struct ChatRoomView: View {
-    let tpChannel: TPChannel  // TPChannel로 변경
+    // MARK: - Properties
+    let tpChannel: TPChannel
     @Environment(\.dismiss) private var dismiss
     @State private var messageText = ""
-    @State private var messages: [ChatMessage] = []
+    @StateObject private var delegate: ChatRoomDelegate
+    @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var lastMessageId: String? = nil
+    @State private var keyboardHeight: CGFloat = 0
     
+    // MARK: - Initialization
+    init(tpChannel: TPChannel) {
+        self.tpChannel = tpChannel
+        _delegate = StateObject(wrappedValue: ChatRoomDelegate(channelId: tpChannel.getId()))
+        // List 스타일 초기화
+        UITableView.appearance().backgroundColor = .clear
+        UITableView.appearance().separatorStyle = .none
+    }
+    
+    // MARK: - Body
     var body: some View {
         VStack(spacing: 0) {
-            ChatNavigationBar(userName: tpChannel.getName(), onClose: { dismiss() })
+            ChatNavigationBar(
+                userName: tpChannel.getName() ?? "",
+                onClose: { dismiss() }
+            )
             
-            ScrollView {
-                // 메시지 표시 로직
+            messageList
+                .safeAreaInset(edge: .bottom) {
+                    VStack(spacing: 0) {
+                        Divider()
+                        MessageInputField(text: $messageText, onSend: sendMessage)
+                    }
+                    .background(Color(.systemBackground))
+                    .padding(.bottom, 0)
+                }
+        }
+        .background(Color(.systemBackground))
+        .onAppear {
+            setupKeyboardNotifications()
+            setupChat()
+        }
+        .onDisappear {
+            cleanupKeyboardNotifications()
+            cleanupChat()
+        }
+    }
+    
+    // SafeAreaInsets를 저장하기 위한 PreferenceKey 추가
+    private struct SafeAreaInsetsKey: PreferenceKey {
+        static var defaultValue: EdgeInsets = .init()
+        
+        static func reduce(value: inout EdgeInsets, nextValue: () -> EdgeInsets) {
+            value = nextValue()
+        }
+    }
+    
+    // MARK: - UI Components
+    private var messageList: some View {
+        ScrollViewReader { proxy in
+            List {
+                ForEach(delegate.messages, id: \.self) { message in
+                    MessageBubble(message: message)
+                        .id(message.getId())
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .padding(.horizontal)
+                }
+                // 스크롤 앵커용 빈 뷰 최소화
+                Color.clear
+                    .frame(height: 0)
+                    .id("bottom")
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowSeparator(.hidden)
             }
-            
-            MessageInputField(text: $messageText) {
-                sendMessage()
+            .listStyle(PlainListStyle())
+            // 모든 방향의 패딩 제거
+            .padding(0)
+            // contentInset 조정
+            .environment(\.defaultMinListRowHeight, 0)
+            .onAppear {
+                scrollProxy = proxy
+                scrollToBottom()
+            }
+            .onChange(of: delegate.messages) { _ in
+                scrollToLastMessage()
+            }
+            // 키보드 알림 구독
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                scrollToLastMessage()
+            }
+            // 새 메시지 알림 구독
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("NewMessageReceived"))) { _ in
+                scrollToLastMessage()
             }
         }
+    }
+    
+    // MARK: - Methods
+    private func scrollToLastMessage() {
+        guard let lastMessage = delegate.messages.last else { return }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring()) {
+                scrollProxy?.scrollTo("bottom", anchor: .bottom)
+            }
+        }
+    }
+    
+    private func scrollToBottom(force: Bool = false) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring()) {
+                scrollProxy?.scrollTo("bottom", anchor: .bottom)
+            }
+        }
+    }
+    
+    private func setupChat() {
+        TalkPlus.sharedInstance()?.add(delegate, tag: "ChatRoom")
+        getMessages()
+    }
+    
+    private func cleanupChat() {
+        TalkPlus.sharedInstance()?.removeChannelDelegate("ChatRoom")
+    }
+    
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+               let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double {
+                withAnimation(.easeOut(duration: duration)) {
+                    self.keyboardHeight = keyboardFrame.height
+                    // 키보드 애니메이션 완료 후 스크롤
+                    DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                        self.scrollToBottom(force: true)
+                    }
+                }
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double {
+                withAnimation(.easeOut(duration: duration)) {
+                    self.keyboardHeight = 0
+                }
+            }
+        }
+    }
+    
+    private func cleanupKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self)
     }
     
     private func sendMessage() {
@@ -28,29 +171,78 @@ struct ChatRoomView: View {
                                        messageType: .text,
                                        channel: tpChannel)
         params?.textMessage = messageText
+        let currentText = messageText
+        messageText = ""
         
-        TalkPlus.sharedInstance()?.sendMessage(params) { tpMessage in
+        TalkPlus.sharedInstance()?.sendMessage(params) { message in
             print("메시지 전송 성공")
-            messageText = ""
+            DispatchQueue.main.async {
+                if let message = message {
+                    self.delegate.messages.append(message)
+                    self.scrollToLastMessage()
+                }
+            }
         } failure: { (errorCode, error) in
             print("메시지 전송 실패: \(errorCode), \(String(describing: error))")
+            messageText = currentText
         }
     }
+    
+    private func getMessages() {
+            let params = TPMessageRetrievalParams(channel: tpChannel)
+            params?.orderby = .orderByLatest
+            
+            TalkPlus.sharedInstance()?.getMessages(params, success: { tpMessages, hasNext in
+                guard let tpMessages = tpMessages else { return }
+                
+                DispatchQueue.main.async {
+                    delegate.messages = Array(tpMessages.reversed())
+                    // 메시지 로드 후 스크롤
+                    if let _ = delegate.messages.last {
+                        lastMessageId = tpChannel.getLastMessage().getId()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation {
+                                scrollToBottom()
+                            }
+                        }
+                    }
+                }
+            }, failure: { (errorCode, error) in
+                print("메시지 가져오기 실패: \(errorCode), \(String(describing: error))")
+            })
+        }
 }
 
+// MARK: - Navigation Bar Component
 struct ChatNavigationBar: View {
+    // MARK: - Properties
     let userName: String
     let onClose: () -> Void
     
+    // MARK: - Body
     var body: some View {
         HStack {
-            Button(action: onClose) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color.mainRed)
-            }
-            .padding(.leading)
-            
+            backButton
+            userInfo
+            Spacer()
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .shadow(color: Color.black.opacity(0.05), radius: 8, y: 2)
+    }
+    
+    // MARK: - UI Components
+    private var backButton: some View {
+        Button(action: onClose) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color.mainRed)
+        }
+        .padding(.leading)
+    }
+    
+    private var userInfo: some View {
+        HStack {
             Image("profile_placeholder")
                 .resizable()
                 .frame(width: 36, height: 36)
@@ -58,25 +250,31 @@ struct ChatNavigationBar: View {
             
             Text(userName)
                 .font(.headline)
-            
-            Spacer()
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, y: 2)
     }
 }
 
+// MARK: - Message Input Component
 struct MessageInputField: View {
     @Binding var text: String
     let onSend: () -> Void
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         HStack(spacing: 12) {
             TextField("메시지를 입력하세요", text: $text)
-                .padding(12)
+                .padding(10) // 패딩 감소
                 .background(Color(.systemGray6))
                 .cornerRadius(20)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused($isFocused)
+                .submitLabel(.send)
+                .onSubmit {
+                    if !text.isEmpty {
+                        onSend()
+                    }
+                }
             
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
@@ -85,54 +283,80 @@ struct MessageInputField: View {
             }
             .disabled(text.isEmpty)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, y: -2)
+        .padding(.horizontal)
+        .padding(.vertical, 2) // 상하 패딩 최소화
     }
 }
 
+// MARK: - Message Bubble Component
 struct MessageBubble: View {
-    let message: ChatMessage
+    // MARK: - Properties
+    let message: TPMessage
     
+    private var isMe: Bool {
+        message.getUserId() == UserDataManager.shared.getUserData()?.id.toString()
+    }
+    
+    // MARK: - Body
     var body: some View {
         HStack {
-            if message.isMe {
-                Spacer()
-            }
+            if isMe { Spacer() }
             
-            Text(message.content)
+            Text(message.getText() ?? "")
                 .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(message.isMe ? Color.mainRed : Color(.systemGray6))
-                .foregroundColor(message.isMe ? .white : .primary)
+                .padding(.vertical, 8) // 수직 패딩 감소
+                .background(isMe ? Color.mainRed : Color(.systemGray6))
+                .foregroundColor(isMe ? .white : .primary)
                 .cornerRadius(20)
             
-            if !message.isMe {
-                Spacer()
-            }
+            if !isMe { Spacer() }
         }
+        .padding(.vertical, 1) // 메시지 간 간격 최소화
     }
 }
 
-// MARK: - Models
-struct ChatMessage: Identifiable {
-    let id = UUID()
-    let content: String
-    let isMe: Bool
-    let timestamp: Date
+// MARK: - Chat Room Delegate
+class ChatRoomDelegate: NSObject, TPChannelDelegate, ObservableObject {
+    // MARK: - Properties
+    private var channelId: String
+    @Published var messages: [TPMessage] = []
+    
+    // MARK: - Initialization
+    init(channelId: String) {
+        self.channelId = channelId
+        super.init()
+    }
+    
+    // MARK: - TPChannelDelegate Methods
+    func messageReceived(_ tpChannel: TPChannel, message: TPMessage) {
+        guard tpChannel.getId() == channelId else { return }
+        
+        DispatchQueue.main.async {
+            self.messages.append(message)
+            // 새 메시지가 추가된 후 스크롤
+            NotificationCenter.default.post(
+                name: Notification.Name("NewMessageReceived"),
+                object: nil
+            )
+        }
+    }
+    
+    // Required delegate methods
+    func memberAdded(_ tpChannel: TPChannel, users: [TPMember]) {}
+    func memberLeft(_ tpChannel: TPChannel, users: [TPMember]) {}
+    func messageDeleted(_ tpChannel: TPChannel, message: TPMessage) {}
+    func channelAdded(_ tpChannel: TPChannel) {}
+    func channelChanged(_ tpChannel: TPChannel) {}
+    func channelRemoved(_ tpChannel: TPChannel) {}
+    func memberMuted(_ tpChannel: TPChannel, users: [TPMember]) {}
+    func memberUnmuted(_ tpChannel: TPChannel, users: [TPMember]) {}
+    func memberBanned(_ tpChannel: TPChannel, users: [TPMember]) {}
+    func memberUnbanned(_ tpChannel: TPChannel, users: [TPMember]) {}
+    
+    // Public channel methods
+    func publicMemberAdded(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func publicMemberLeft(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func publicChannelAdded(_ tpChannel: TPChannel!) {}
+    func publicChannelChanged(_ tpChannel: TPChannel!) {}
+    func publicChannelRemoved(_ tpChannel: TPChannel!) {}
 }
-
-// MARK: - Sample Data
-//let sampleMessages = [
-//    ChatMessage(content: "안녕하세요! 오늘 스파링 어떠셨나요?", isMe: false, timestamp: Date()),
-//    ChatMessage(content: "정말 좋은 경기였습니다!", isMe: true, timestamp: Date()),
-//    ChatMessage(content: "다음에 또 스파링 하시죠!", isMe: false, timestamp: Date()),
-//    ChatMessage(content: "네, 좋습니다! 다음 주에 시간 되시나요?", isMe: true, timestamp: Date())
-//]
-
-//// MARK: - Preview
-//struct ChatRoomView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ChatRoomView(chat: Chat(id: 1, userName: "Boxer Kim", lastMessage: "안녕하세요!"))
-//    }
-//} 
