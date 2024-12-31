@@ -10,67 +10,76 @@ import TalkPlus
 
 struct ChatListView: View {
     @StateObject private var viewModel: ChatListModel
-    @State private var channel: [TPChannel] = []
-//    let activeChats: [Chat]
-    
-    @State private var selectedChat: Chat?
-    
-    init(viewModel: ChatListModel = DIContainer.shared.makeChatListViewModel()) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-    }
+    @State private var selectedChannelId: String?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-//            Text("")
-//                .font(.title2)
-//                .fontWeight(.bold)
-//                .foregroundColor(Color.mainRed)
-//                .padding(.horizontal)
-            
-//            if activeChats.isEmpty {
-//                EmptyStateView()
-//            } else {
-//                ForEach(activeChats) { chat in
-//                    ChatRowView(chat: chat)
-//                        .onTapGesture {
-//                            selectedChat = chat
-//                        }
-//                }
-//            }
-        }.onAppear{
+        NavigationView {
+            VStack(alignment: .leading) {
+                if viewModel.channel.isEmpty {
+                    EmptyStateView()
+                } else {
+                    List {
+                        ForEach(viewModel.channel) { channel in
+                            ChatRowView(channel: channel)
+                                .onTapGesture {
+                                    selectedChannelId = channel.id
+                                }
+                        }
+                    }
+                    .listStyle(PlainListStyle())
+                }
+            }
+            .navigationTitle("채팅")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .onAppear {
             Task {
                 await viewModel.getChatList()
             }
-//        .sheet(item: $selectedChat) { chat in
-//            ChatRoomView(chat: chat)
         }
-        
+        .sheet(item: $selectedChannelId) { channelId in
+            if let tpChannel = viewModel.getTPChannel(for: channelId) {
+                ChatRoomView(tpChannel: tpChannel)
+            }
+        }
     }
 }
 
+
+// ChatRowView 수정
 struct ChatRowView: View {
-    let chat: Chat
+    let channel: ChatChannel
     
     var body: some View {
         HStack(spacing: 16) {
             // 프로필 이미지
-            Image("profile_placeholder")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 50, height: 50)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.mainRed.opacity(0.2), lineWidth: 2)
-                )
+            AsyncImage(url: URL(string: channel.profileImageUrl ?? "")) { phase in
+                switch phase {
+                case .empty:
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.gray)
+                case .success(let image):
+                    image
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .clipShape(Circle())
+                case .failure:
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.gray)
+                @unknown default:
+                    EmptyView()
+                }
+            }
             
-            // 채팅 정보
             VStack(alignment: .leading, spacing: 4) {
-                Text(chat.userName)
+                Text(channel.name)
                     .font(.headline)
-                    .foregroundColor(.primary)
                 
-                Text(chat.lastMessage)
+                Text(channel.lastMessage)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -78,18 +87,16 @@ struct ChatRowView: View {
             
             Spacer()
             
-            // 시간 표시 (나중에 추가 예정)
-            // Text(chat.lastMessageTime)
-            //     .font(.caption)
-            //     .foregroundColor(.secondary)
+            if channel.unreadCount > 0 {
+                Text("\(channel.unreadCount)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                    .padding(6)
+                    .background(Color.mainRed)
+                    .clipShape(Circle())
+            }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.mainRed.opacity(0.05), radius: 8, x: 0, y: 4)
-        )
-        .padding(.horizontal)
+        .contentShape(Rectangle())  // 전체 영역 탭 가능하도록
     }
 }
 

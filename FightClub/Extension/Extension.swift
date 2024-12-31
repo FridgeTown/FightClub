@@ -72,3 +72,9 @@ extension Int {
     }
 }
 
+
+// String을 Identifiable로 만들기 위한 extension
+extension String: Identifiable {
+    public var id: String { self }
+}
+

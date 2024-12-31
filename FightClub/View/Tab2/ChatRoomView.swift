@@ -1,40 +1,40 @@
 import SwiftUI
+import TalkPlus
 
 struct ChatRoomView: View {
-    let chat: Chat
+    let tpChannel: TPChannel  // TPChannel로 변경
     @Environment(\.dismiss) private var dismiss
     @State private var messageText = ""
     @State private var messages: [ChatMessage] = []
     
     var body: some View {
         VStack(spacing: 0) {
-            // 네비게이션 바
-            ChatNavigationBar(userName: chat.userName, onClose: { dismiss() })
+            ChatNavigationBar(userName: tpChannel.getName(), onClose: { dismiss() })
             
-            // 메시지 목록
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(sampleMessages) { message in
-                        MessageBubble(message: message)
-                    }
-                }
-                .padding()
+                // 메시지 표시 로직
             }
             
-            // 메시지 입력
             MessageInputField(text: $messageText) {
                 sendMessage()
             }
-        }
-        .onAppear {
-            // SendBird 연결 및 메시지 로드 로직 추가 예정
         }
     }
     
     private func sendMessage() {
         guard !messageText.isEmpty else { return }
-        // SendBird 메시지 전송 로직 추가 예정
-        messageText = ""
+        
+        let params = TPMessageSendParams(contentType: .text,
+                                       messageType: .text,
+                                       channel: tpChannel)
+        params?.textMessage = messageText
+        
+        TalkPlus.sharedInstance()?.sendMessage(params) { tpMessage in
+            print("메시지 전송 성공")
+            messageText = ""
+        } failure: { (errorCode, error) in
+            print("메시지 전송 실패: \(errorCode), \(String(describing: error))")
+        }
     }
 }
 
@@ -123,16 +123,16 @@ struct ChatMessage: Identifiable {
 }
 
 // MARK: - Sample Data
-let sampleMessages = [
-    ChatMessage(content: "안녕하세요! 오늘 스파링 어떠셨나요?", isMe: false, timestamp: Date()),
-    ChatMessage(content: "정말 좋은 경기였습니다!", isMe: true, timestamp: Date()),
-    ChatMessage(content: "다음에 또 스파링 하시죠!", isMe: false, timestamp: Date()),
-    ChatMessage(content: "네, 좋습니다! 다음 주에 시간 되시나요?", isMe: true, timestamp: Date())
-]
+//let sampleMessages = [
+//    ChatMessage(content: "안녕하세요! 오늘 스파링 어떠셨나요?", isMe: false, timestamp: Date()),
+//    ChatMessage(content: "정말 좋은 경기였습니다!", isMe: true, timestamp: Date()),
+//    ChatMessage(content: "다음에 또 스파링 하시죠!", isMe: false, timestamp: Date()),
+//    ChatMessage(content: "네, 좋습니다! 다음 주에 시간 되시나요?", isMe: true, timestamp: Date())
+//]
 
-// MARK: - Preview
-struct ChatRoomView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChatRoomView(chat: Chat(id: 1, userName: "Boxer Kim", lastMessage: "안녕하세요!"))
-    }
-} 
+//// MARK: - Preview
+//struct ChatRoomView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ChatRoomView(chat: Chat(id: 1, userName: "Boxer Kim", lastMessage: "안녕하세요!"))
+//    }
+//} 
