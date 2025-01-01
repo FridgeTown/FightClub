@@ -15,6 +15,7 @@ enum APIEndpoint {
     case postAcceptRequest(matchID: String)
     case postRejectRequest(matchID: String)
     case getPendingMatch
+    case getNotificationSubscribe
     
     
     // 엔드 포인트
@@ -34,6 +35,8 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/match/accept/\(matchID)"
         case .getPendingMatch:
             return "http://3.34.46.87:8080/match/pending"
+        case .getNotificationSubscribe:
+            return "http://3.34.46.87:8080/notification/subscribe"
         }
     }
     
@@ -41,7 +44,7 @@ enum APIEndpoint {
         switch self {
         case .logIn, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
             return .post
-        case .getUserInfo, .getUserRecommend, .getPendingMatch:
+        case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe:
             return .get
         }
     }
@@ -53,7 +56,7 @@ enum APIEndpoint {
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
-        case .getUserRecommend, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .getPendingMatch:
+        case .getUserRecommend, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .getPendingMatch, .getNotificationSubscribe:
             return nil
         }
     }
@@ -62,7 +65,7 @@ enum APIEndpoint {
         switch self {
         case .logIn:
             return nil
-        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }
