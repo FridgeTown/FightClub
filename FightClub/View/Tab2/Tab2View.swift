@@ -16,10 +16,12 @@ struct Tab2View: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                matchRequestSection
-                
-                Divider()
-                    .padding(.horizontal)
+                if let requests = viewModel.matchs.data, !requests.isEmpty {
+                    matchRequestSection
+                    
+                    Divider()
+                        .padding(.horizontal)
+                }
                 
                 ChatListView()
             }
@@ -53,13 +55,6 @@ struct Tab2View: View {
             
             Spacer()
             
-            moreButton
-        }
-        .padding(.horizontal)
-    }
-    
-    private var moreButton: some View {
-        Group {
             if let requests = viewModel.matchs.data, requests.count > 3 {
                 Button(action: { showFullList = true }) {
                     HStack(spacing: 4) {
@@ -72,6 +67,7 @@ struct Tab2View: View {
                 }
             }
         }
+        .padding(.horizontal)
     }
     
     private var fullListSheet: some View {

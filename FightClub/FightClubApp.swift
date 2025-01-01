@@ -138,9 +138,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct FightClubApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let persistenceController = PersistenceController.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -159,12 +161,29 @@ class PersistenceController {
         
         container.loadPersistentStores { description, error in
             if let error = error {
-                fatalError("CoreData store failed to load: \(error.localizedDescription)")
+                print("CoreData store failed to load: \(error.localizedDescription)")
+                // fatalError 대신 에러 로깅으로 변경
+            }
+            
+            // 컨테이너 설정 추가
+            self.container.viewContext.automaticallyMergesChangesFromParent = true
+            self.container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            
+            // 저장 시 에러 처리를 위한 설정
+            self.container.viewContext.shouldDeleteInaccessibleFaults = true
+        }
+    }
+    
+    // 컨텍스트 저장 헬퍼 메서드
+    func save() {
+        let context = container.viewContext
+        
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                print("Error saving context: \(error)")
             }
         }
-        
-        // 자동 저장 설정
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 }
