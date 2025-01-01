@@ -7,11 +7,10 @@ import UIKit
 // MARK: - Recording Manager
 class RecordingManager: NSObject, ObservableObject {
     // MARK: - Published Properties
-    @Published var isRecording = false
-    @Published var punchCount = 0
-    @Published var elapsedTime: TimeInterval = 0
-    @Published var previewImage: UIImage?
     @Published var isCameraAuthorized = false
+    @Published var isRecording = false
+    @Published var elapsedTime: TimeInterval = 0
+    @Published var punchCount = 0
     
     // MARK: - Video Processing
     private var videoProcessingChain: VideoProcessingChain?
@@ -20,152 +19,98 @@ class RecordingManager: NSObject, ObservableObject {
     
     // MARK: - Recording Properties
     private var captureSession: AVCaptureSession?
-    private var videoOutput: AVCaptureVideoDataOutput?
-    private var movieOutput: AVCaptureMovieFileOutput?
+    private var videoDataOutput: AVCaptureVideoDataOutput?
+    private var videoOutput: AVCaptureMovieFileOutput?
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    
-    // MARK: - Timer
     private var timer: Timer?
     private var startTime: Date?
     
     override init() {
         super.init()
-        checkCameraPermission()
+        checkCameraAuthorization()
     }
     
     deinit {
+        print("RecordingManager deinit")
         stopCamera()
+        stopRecording(completion: nil)
     }
     
-    // MARK: - Camera Control
     func startCamera() {
-        guard isCameraAuthorized else { 
-            print("Camera not authorized")
-            return 
-        }
+        guard isCameraAuthorized else { return }
         
-        if captureSession == nil {
-            print("Setting up new capture session")
-            setupCaptureSession()
-            setupVideoProcessing()
-        }
+        let session = AVCaptureSession()
+        self.captureSession = session
         
-        guard let session = captureSession else {
-            print("Capture session is nil")
+        // 카메라 설정
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
+              let videoInput = try? AVCaptureDeviceInput(device: videoDevice) else {
             return
         }
         
-        // 백그라운드 스레드에서 세션 시작
-        DispatchQueue.global(qos: .userInitiated).async {
-            if !session.isRunning {
-                session.startRunning()
-                print("Camera session started running")
+        guard session.canAddInput(videoInput) else { return }
+        session.addInput(videoInput)
+        
+        // 비디오 데이터 출력 설정 (펀치 감지용)
+        let videoDataOutput = AVCaptureVideoDataOutput()
+        videoDataOutput.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
+        ]
+        videoDataOutput.alwaysDiscardsLateVideoFrames = true
+        let videoQueue = DispatchQueue(label: "videoQueue", qos: .userInteractive)
+        videoDataOutput.setSampleBufferDelegate(self, queue: videoQueue)
+        
+        if session.canAddOutput(videoDataOutput) {
+            session.addOutput(videoDataOutput)
+            if let connection = videoDataOutput.connection(with: .video) {
+                connection.videoOrientation = .portrait
+                connection.isVideoMirrored = true
             }
+        }
+        self.videoDataOutput = videoDataOutput
+        
+        // 비디오 녹화 출력 설정
+        let videoOutput = AVCaptureMovieFileOutput()
+        self.videoOutput = videoOutput
+        
+        guard session.canAddOutput(videoOutput) else { return }
+        session.addOutput(videoOutput)
+        
+        // 프리뷰 레이어 설정
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.videoGravity = .resizeAspectFill
+        self.previewLayer = previewLayer
+        
+        // 비디오 처리 체인 설정
+        setupVideoProcessing()
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.captureSession?.startRunning()
         }
     }
     
     func stopCamera() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self, let session = self.captureSession else { return }
-            if session.isRunning {
-                session.stopRunning()
-                print("Camera session stopped")
-            }
-        }
-    }
-    
-    // MARK: - Camera Permission
-    private func checkCameraPermission() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            self.isCameraAuthorized = true
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-                DispatchQueue.main.async {
-                    self?.isCameraAuthorized = granted
+        // 현재 세션 참조 저장
+        let currentSession = captureSession
+        
+        // 먼저 참조 제거
+        self.previewLayer = nil
+        self.videoOutput = nil
+        self.videoDataOutput = nil
+        self.videoProcessingChain = nil
+        self.captureSession = nil
+        
+        // 백그라운드 큐에서 세션 중지
+        if let session = currentSession {
+            DispatchQueue.global(qos: .userInitiated).async {
+                if session.isRunning {
+                    session.stopRunning()
                 }
             }
-        case .denied, .restricted:
-            self.isCameraAuthorized = false
-        @unknown default:
-            self.isCameraAuthorized = false
-        }
-    }
-    
-    // MARK: - Setup Methods
-    private func setupCaptureSession() {
-        print("Setting up capture session...")
-        let session = AVCaptureSession()
-        session.sessionPreset = .high
-        
-        // 카메라 설정
-        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
-            print("Failed to get front camera")
-            return
-        }
-        
-        do {
-            session.beginConfiguration()
-            
-            // 입력 설정
-            let input = try AVCaptureDeviceInput(device: camera)
-            if session.canAddInput(input) {
-                session.addInput(input)
-                print("Camera input added successfully")
-            } else {
-                print("Could not add camera input")
-                return
-            }
-            
-            // 비디오 출력 설정
-            let videoOutput = AVCaptureVideoDataOutput()
-            videoOutput.videoSettings = [
-                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
-            ]
-            videoOutput.alwaysDiscardsLateVideoFrames = true
-            let videoQueue = DispatchQueue(label: "videoQueue", qos: .userInteractive)
-            videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
-            
-            if session.canAddOutput(videoOutput) {
-                session.addOutput(videoOutput)
-                if let connection = videoOutput.connection(with: .video) {
-                    connection.videoOrientation = .portrait
-                    connection.isVideoMirrored = true
-                }
-                print("Video output added successfully")
-            }
-            self.videoOutput = videoOutput
-            
-            // 동영상 녹화 출력 설정
-            let movieOutput = AVCaptureMovieFileOutput()
-            if session.canAddOutput(movieOutput) {
-                session.addOutput(movieOutput)
-                print("Movie output added successfully")
-            }
-            self.movieOutput = movieOutput
-            
-            session.commitConfiguration()
-            self.captureSession = session
-            
-            // 프리뷰 레이어 설정
-            DispatchQueue.main.async { [weak self] in
-                let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-                previewLayer.videoGravity = .resizeAspectFill
-                previewLayer.connection?.videoOrientation = .portrait
-                self?.previewLayer = previewLayer
-                print("Preview layer configured")
-            }
-            
-            print("Capture session setup completed")
-            
-        } catch {
-            print("Failed to setup camera: \(error)")
-            return
         }
     }
     
     private func setupVideoProcessing() {
-        print("Setting up video processing...")
         videoProcessingChain = VideoProcessingChain()
         videoProcessingChain?.delegate = self
         
@@ -177,53 +122,76 @@ class RecordingManager: NSObject, ObservableObject {
             .eraseToAnyPublisher()
         
         videoProcessingChain?.upstreamFramePublisher = genericPublisher
-        print("Video processing setup completed")
-    }
-    
-    // MARK: - Public Methods
-    func startRecording() {
-        guard let captureSession = captureSession else { return }
-        
-        if !captureSession.isRunning {
-            startCamera()
-        }
-        
-        isRecording = true
-        startTime = Date()
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let startTime = self.startTime else { return }
-            self.elapsedTime = Date().timeIntervalSince(startTime)
-        }
-        
-        // 동영상 파일 저장 경로
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let videoPath = documentsPath.appendingPathComponent("boxing_session_\(Date().timeIntervalSince1970).mov")
-        movieOutput?.startRecording(to: videoPath, recordingDelegate: self)
-    }
-    
-    func stopRecording(completion: @escaping (URL?) -> Void) {
-        guard let movieOutput = movieOutput else {
-            completion(nil)
-            return
-        }
-        
-        // 현재 녹화 중인 파일의 URL을 저장
-        let currentRecordingURL = movieOutput.outputFileURL
-        
-        movieOutput.stopRecording()
-        stopCamera()
-        
-        isRecording = false
-        timer?.invalidate()
-        timer = nil
-        
-        completion(currentRecordingURL)
     }
     
     func getPreviewLayer() -> AVCaptureVideoPreviewLayer? {
-        print("Getting preview layer: \(previewLayer != nil)")
         return previewLayer
+    }
+    
+    func startRecording() {
+        guard let output = videoOutput, !isRecording else { return }
+        
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let tempFileName = "temp_recording_\(Date().timeIntervalSince1970).mov"
+        let fileURL = documentsPath.appendingPathComponent(tempFileName)
+        
+        output.startRecording(to: fileURL, recordingDelegate: self)
+        isRecording = true
+        startTime = Date()
+        
+        // 타이머 시작
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self, let startTime = self.startTime else { return }
+            self.elapsedTime = -startTime.timeIntervalSinceNow
+        }
+    }
+    
+    func stopRecording(completion: ((URL?) -> Void)?) {
+        guard isRecording, let output = videoOutput else {
+            completion?(nil)
+            return
+        }
+        
+        output.stopRecording()
+        isRecording = false
+        startTime = nil
+        
+        // 타이머 정지
+        timer?.invalidate()
+        timer = nil
+        
+        // 완료 콜백은 fileOutput(_:didFinishRecordingTo:from:error:)에서 호출됨
+        self.recordingCompletionHandler = completion
+    }
+    
+    private func checkCameraAuthorization() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            isCameraAuthorized = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                DispatchQueue.main.async {
+                    self?.isCameraAuthorized = granted
+                }
+            }
+        default:
+            isCameraAuthorized = false
+        }
+    }
+    
+    private var recordingCompletionHandler: ((URL?) -> Void)?
+}
+
+extension RecordingManager: AVCaptureFileOutputRecordingDelegate {
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        DispatchQueue.main.async { [weak self] in
+            if error != nil {
+                self?.recordingCompletionHandler?(nil)
+            } else {
+                self?.recordingCompletionHandler?(outputFileURL)
+            }
+            self?.recordingCompletionHandler = nil
+        }
     }
 }
 
@@ -233,40 +201,16 @@ extension RecordingManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         // 프레임 퍼블리셔에 전달
         framePublisher.send(sampleBuffer)
         
-        // 프치 감지
+        // 펀치 감지
         if isRecording {
             punchDetector.detectPunch(in: sampleBuffer) { [weak self] isPunch in
                 if isPunch {
                     DispatchQueue.main.async {
                         self?.punchCount += 1
-                        print("Punch detected! Count: \(self?.punchCount ?? 0)")
                     }
                 }
             }
         }
-        
-        // 프리뷰 이미지 업데이트
-        if let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
-            let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-            let context = CIContext()
-            if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
-                DispatchQueue.main.async {
-                    self.previewImage = UIImage(cgImage: cgImage)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - AVCaptureFileOutputRecordingDelegate
-extension RecordingManager: AVCaptureFileOutputRecordingDelegate {
-    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
-        if let error = error {
-            print("Recording error: \(error)")
-            return
-        }
-        
-        print("Recording finished: \(outputFileURL)")
     }
 }
 
@@ -278,8 +222,8 @@ extension RecordingManager: VideoProcessingChainDelegate {
     
     func videoProcessingChain(_ chain: VideoProcessingChain, didDetectAction action: String) {
         // 펀치 동작 감지 시 처리
-        DispatchQueue.main.async {
-            self.punchCount += 1
+        DispatchQueue.main.async { [weak self] in
+            self?.punchCount += 1
         }
     }
     
