@@ -28,7 +28,10 @@ struct MainTabView: View {
                 .tag(1)
             
             profileSection
+                .tag(2)
+                
             recordSection
+                .tag(3)
         }
         .tint(.red)
         .onAppear {

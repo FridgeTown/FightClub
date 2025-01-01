@@ -9,107 +9,160 @@ import SwiftUI
 import AVFoundation
 
 struct RecordingView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.managedObjectContext) private var viewContext
     
-    @StateObject private var recorder = VideoRecorder()
-    @State private var isRecording = false
+    @ObservedObject var recordingManager: RecordingManager
     @State private var showingConfirmation = false
+    @State private var memo: String = ""
     
     var body: some View {
         ZStack {
-            // 카메라 프리뷰
-            CameraPreviewView(session: recorder.session)
-                .edgesIgnoringSafeArea(.all)
-            
-            // 사용자 감지 상태 메시지
-            if !recorder.userDetected {
-                Text("사용자를 인식할 수 없습니다.")
-                    .font(.headline)
+            if recordingManager.isCameraAuthorized {
+                // 카메라 프리뷰
+                CameraPreviewView(previewLayer: recordingManager.getPreviewLayer())
+                    .edgesIgnoringSafeArea(.all)
+                
+                // 오버레이 UI
+                VStack {
+                    // 상단 정보
+                    HStack {
+                        Text(timeString(from: recordingManager.elapsedTime))
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Text("\(recordingManager.punchCount) 펀치")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                    }
                     .padding()
-                    .background(Color.black.opacity(0.7))
+                    .background(Color.black.opacity(0.5))
+                    
+                    Spacer()
+                    
+                    // 하단 컨트롤
+                    VStack(spacing: 20) {
+                        // 메모 입력
+                        TextField("메모 입력...", text: $memo)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+                        
+                        // 녹화 컨트롤
+                        HStack(spacing: 40) {
+                            // 취소 버튼
+                            Button(action: {
+                                showingConfirmation = true
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .resizable()
+                                    .frame(width: 60, height: 60)
+                                    .foregroundColor(.red)
+                            }
+                            
+                            // 녹화 버튼
+                            Button(action: {
+                                if recordingManager.isRecording {
+                                    stopRecording()
+                                } else {
+                                    startRecording()
+                                }
+                            }) {
+                                Circle()
+                                    .fill(recordingManager.isRecording ? Color.red : Color.white)
+                                    .frame(width: 80, height: 80)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 4)
+                                    )
+                            }
+                        }
+                        .padding(.bottom, 30)
+                    }
+                    .background(Color.black.opacity(0.5))
+                }
+            } else {
+                // 카메라 권한이 없는 경우
+                VStack {
+                    Text("카메라 접근 권한이 필요합니다")
+                        .font(.headline)
+                    Text("설정 앱에서 카메라 권한을 허용해주세요")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Button("설정으로 이동") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
-            }
-            
-            // 펀치 카운트
-            VStack {
-                if isRecording {
-                    Text("펀치 횟수: \(recorder.punchCount)")
-                        .font(.title)
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                    .padding(.top)
                 }
-                Spacer()
-                
-                // 녹화 컨트롤
-                HStack {
-                    Spacer()
-                    Button(action: toggleRecording) {
-                        Image(systemName: isRecording ? "stop.circle.fill" : "record.circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(isRecording ? .red : .white)
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 30)
+                .padding()
             }
         }
-        .navigationBarTitle("녹화", displayMode: .inline)
-        .navigationBarBackButtonHidden(isRecording)
-        .sheet(isPresented: $showingConfirmation) {
-            ConfirmationView(
-                videoURL: recorder.videoURL,
-                punchCount: recorder.punchCount,
-                highlights: recorder.highlights
+        .alert(isPresented: $showingConfirmation) {
+            Alert(
+                title: Text("녹화 종료"),
+                message: Text("녹화를 종료하시겠습니까?"),
+                primaryButton: .destructive(Text("종료")) {
+                    stopRecording()
+                    presentationMode.wrappedValue.dismiss()
+                },
+                secondaryButton: .cancel(Text("취소"))
             )
-        }
-        .onAppear {
-            DispatchQueue.main.async {
-                recorder.checkPermissions()
-                if recorder.isAuthorized {
-                    recorder.startSession()
-                }
-            }
-        }
-        .onDisappear {
-            DispatchQueue.main.async {
-                recorder.stopSession()
-            }
         }
     }
     
-    private func toggleRecording() {
-        if isRecording {
-            recorder.stopRecording()
-            isRecording = false
-            showingConfirmation = true
-        } else {
-            recorder.startRecording()
-            isRecording = true
+    private func startRecording() {
+        recordingManager.startRecording()
+    }
+    
+    private func stopRecording() {
+        recordingManager.stopRecording()
+        
+        // CoreData에 세션 저장
+        let newSession = BoxingSession(context: viewContext)
+        newSession.date = Date()
+        newSession.duration = recordingManager.elapsedTime
+        newSession.punchCount = Int32(recordingManager.punchCount)
+        newSession.memo = memo.isEmpty ? nil : memo
+        
+        do {
+            try viewContext.save()
+        } catch {
+            print("Error saving session: \(error)")
         }
+    }
+    
+    private func timeString(from timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
 
-
+// MARK: - Camera Preview
 struct CameraPreviewView: UIViewRepresentable {
-    let session: AVCaptureSession
+    let previewLayer: AVCaptureVideoPreviewLayer?
     
     func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: UIScreen.main.bounds)
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
         view.backgroundColor = .black
         
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.connection?.videoOrientation = .portrait
+        guard let previewLayer = previewLayer else { 
+            print("No preview layer available")
+            return view 
+        }
         
-        // 메인 스레드에서 레이어 추가
+        // 메인 스레드에서 레이어 설정
         DispatchQueue.main.async {
+            previewLayer.frame = view.bounds
+            previewLayer.videoGravity = .resizeAspectFill
+            previewLayer.connection?.videoOrientation = .portrait
             view.layer.addSublayer(previewLayer)
         }
         
@@ -117,30 +170,38 @@ struct CameraPreviewView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
+        guard let previewLayer = previewLayer else { return }
+        
+        // 메인 스레드에서 업데이트
         DispatchQueue.main.async {
-            if let previewLayer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
-                previewLayer.frame = uiView.bounds
+            CATransaction.begin()
+            CATransaction.setAnimationDuration(0)
+            
+            previewLayer.frame = uiView.bounds
+            
+            if let connection = previewLayer.connection {
+                let orientation = UIDevice.current.orientation
+                let videoOrientation: AVCaptureVideoOrientation
                 
-                if let connection = previewLayer.connection {
-                    let currentDevice = UIDevice.current
-                    let orientation = currentDevice.orientation
-                    
-                    if connection.isVideoOrientationSupported {
-                        switch orientation {
-                        case .portrait:
-                            connection.videoOrientation = .portrait
-                        case .landscapeRight:
-                            connection.videoOrientation = .landscapeLeft
-                        case .landscapeLeft:
-                            connection.videoOrientation = .landscapeRight
-                        case .portraitUpsideDown:
-                            connection.videoOrientation = .portraitUpsideDown
-                        default:
-                            connection.videoOrientation = .portrait
-                        }
-                    }
+                switch orientation {
+                case .portrait:
+                    videoOrientation = .portrait
+                case .landscapeLeft:
+                    videoOrientation = .landscapeRight
+                case .landscapeRight:
+                    videoOrientation = .landscapeLeft
+                case .portraitUpsideDown:
+                    videoOrientation = .portraitUpsideDown
+                default:
+                    videoOrientation = .portrait
+                }
+                
+                if connection.isVideoOrientationSupported {
+                    connection.videoOrientation = videoOrientation
                 }
             }
+            
+            CATransaction.commit()
         }
     }
 }

@@ -83,8 +83,13 @@ struct ChatRowView: View {
             AsyncImage(url: URL(string: urlString)) { phase in
                 switch phase {
                 case .empty:
-                    ProgressView()
+//                    ProgressView()
+//                        .frame(width: 56, height: 56)
+                    Image(systemName: "profile_placeholder")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: 56, height: 56)
+                        .foregroundColor(.gray.opacity(0.3))
                 case .success(let image):
                     image
                         .resizable()
@@ -94,7 +99,7 @@ struct ChatRowView: View {
                 case .failure(let error):
                     // 에러 디버깅 추가
                     let _ = print("Image loading failed: \(error.localizedDescription)")
-                    Image(systemName: "person.circle.fill")
+                    Image(systemName: "profile_placeholder")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 56, height: 56)

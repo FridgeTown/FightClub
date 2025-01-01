@@ -8,7 +8,8 @@
 import Foundation
 import CoreData
 
-class BoxingSession: NSManagedObject, Identifiable {
+@objc(BoxingSession)
+public class BoxingSession: NSManagedObject, Identifiable {
     @NSManaged public var id: UUID
     @NSManaged public var date: Date
     @NSManaged public var duration: Double
@@ -17,7 +18,6 @@ class BoxingSession: NSManagedObject, Identifiable {
     @NSManaged public var videoURL: URL?
     @NSManaged public var highlightsData: Data?
     
-    // 배열을 가져오고 설정하기 위한 계산 프로퍼티
     var highlights: [TimeInterval] {
         get {
             if let data = highlightsData {
@@ -39,7 +39,7 @@ class BoxingSession: NSManagedObject, Identifiable {
 }
 
 extension BoxingSession {
-    static func fetchRequest() -> NSFetchRequest<BoxingSession> {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<BoxingSession> {
         return NSFetchRequest<BoxingSession>(entityName: "BoxingSession")
     }
 }

@@ -26,6 +26,7 @@ struct SwipeView: View {
                         .fontWeight(.medium)
                         .foregroundColor(Color(UIColor.systemGray))
                         .multilineTextAlignment(.center)
+                        .opacity(profiles.isEmpty ? 1 : 0)
                     
                     ForEach(profiles.indices, id: \.self) { index in
                         let model: MatchUser = profiles[index]
@@ -39,21 +40,24 @@ struct SwipeView: View {
                 }
             }.padding()
             Spacer()
-            HStack {
-                Spacer()
-                GradientOutlineButton(
-                    action: { swipeAction = .swipeLeft},
-                    iconName: "xmark.circle.fill",
-                    colors: [Color.mainRed.opacity(0.8), Color.mainRed]
-                )
-                Spacer()
-                GradientOutlineButton(
-                    action: { swipeAction = .swipeRight },
-                    iconName: "figure.boxing",
-                    colors: [Color.mainRed.opacity(0.8), Color.mainRed]
-                )
-                Spacer()
-            }.padding(.bottom)
+            
+            if !profiles.isEmpty {
+                HStack {
+                    Spacer()
+                    GradientOutlineButton(
+                        action: { swipeAction = .swipeLeft},
+                        iconName: "xmark.circle.fill",
+                        colors: [Color.mainRed.opacity(0.8), Color.mainRed]
+                    )
+                    Spacer()
+                    GradientOutlineButton(
+                        action: { swipeAction = .swipeRight },
+                        iconName: "figure.boxing",
+                        colors: [Color.mainRed.opacity(0.8), Color.mainRed]
+                    )
+                    Spacer()
+                }.padding(.bottom)
+            }
         }
     }
     

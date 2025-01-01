@@ -19,6 +19,8 @@ struct ConfirmationView: View {
     @State private var memo: String = ""
     @State private var showingPlayer = false
     @State private var selectedHighlight: TimeInterval?
+    @State private var showAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -70,6 +72,11 @@ struct ConfirmationView: View {
                     saveSession()
                 }
             )
+            .alert("저장 실패", isPresented: $showAlert) {
+                Button("확인", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
             .sheet(isPresented: $showingPlayer) {
                 if let url = videoURL {
                     VideoPlayer(player: AVPlayer(url: url))
@@ -95,17 +102,30 @@ struct ConfirmationView: View {
     
     private func saveSession() {
         let session = BoxingSession(context: viewContext)
+        
+        // 필수 데이터 설정
+        session.id = UUID()
+        session.date = Date()
         session.punchCount = Int32(punchCount)
-        session.memo = memo
-        session.videoURL = videoURL
-        session.highlights = highlights
         session.duration = highlights.last ?? 0
         
+        // 선택적 데이터 설정
+        session.memo = memo.isEmpty ? nil : memo
+        session.videoURL = videoURL
+        session.highlightsData = try? JSONEncoder().encode(highlights)
+        
         do {
-            try viewContext.save()
-            presentationMode.wrappedValue.dismiss()
+            if viewContext.hasChanges {
+                try viewContext.save()
+                print("Session saved successfully")
+                presentationMode.wrappedValue.dismiss()
+            } else {
+                print("No changes to save")
+            }
         } catch {
-            print("Error saving session: \(error)")
+            print("Error saving context: \(error)")
+            errorMessage = error.localizedDescription
+            showAlert = true
         }
     }
 }
