@@ -10,75 +10,56 @@ import AVKit
 
 struct SessionDetailView: View {
     let session: BoxingSession
-    @State private var player: AVPlayer?
-    @State private var isPlaying = false
     
     var body: some View {
-        List {
-            Section(header: Text("세션 정보")) {
-                HStack {
-                    Text("날짜")
-                    Spacer()
-                    Text(session.date, style: .date)
-                }
+        ScrollView {
+            VStack(spacing: 20) {
+                // 날짜
+                Text(session.date, style: .date)
+                    .font(.title2)
+                    .fontWeight(.bold)
                 
-                HStack {
-                    Text("총 펀치 횟수")
-                    Spacer()
-                    Text("\(session.punchCount)회")
-                }
-                
-                HStack {
-                    Text("운동 시간")
-                    Spacer()
-                    Text(String(format: "%.1f분", session.duration / 60))
-                }
-            }
-            
-            if let memo = session.memo, !memo.isEmpty {
-                Section(header: Text("메모")) {
-                    Text(memo)
-                }
-            }
-            
-            if let url = session.videoURL {
-                Section(header: Text("영상")) {
-                    VideoPlayer(player: AVPlayer(url: url))
-                        .frame(height: 200)
+                // 운동 통계
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Image(systemName: "clock")
+                        Text("운동 시간: \(formatDuration(session.duration))")
+                    }
                     
-                    if !session.highlights.isEmpty {
-                        ForEach(session.highlights, id: \.self) { timestamp in
-                            Button(action: {
-                                seekToHighlight(timestamp)
-                            }) {
-                                HStack {
-                                    Image(systemName: "star.fill")
-                                    Text("하이라이트 \(formatTime(timestamp))")
-                                }
-                            }
-                        }
+                    HStack {
+                        Image(systemName: "hand.raised.fill")
+                        Text("총 펀치 횟수: \(session.punchCount)회")
                     }
                 }
+                .font(.headline)
+                
+                // 비디오 재생
+                if let _ = session.videoURL,
+                   let videoURL = session.videoURL {
+                    VideoPlayer(url: videoURL)
+                        .frame(height: 200)
+                        .cornerRadius(10)
+                }
+                
+                // 메모
+                if let memo = session.memo {
+                    VStack(alignment: .leading) {
+                        Text("메모")
+                            .font(.headline)
+                        Text(memo)
+                            .font(.body)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
+            .padding()
         }
-        .navigationTitle("세션 상세")
+        .navigationTitle("운동 기록")
     }
     
-    private func formatTime(_ time: TimeInterval) -> String {
-        let minutes = Int(time) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-    
-    private func seekToHighlight(_ time: TimeInterval) {
-        guard let url = session.videoURL else { return }
-        
-        if player == nil {
-            player = AVPlayer(url: url)
-        }
-        
-        player?.seek(to: CMTime(seconds: time, preferredTimescale: 600))
-        player?.play()
-        isPlaying = true
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return "\(minutes)분 \(seconds)초"
     }
 }

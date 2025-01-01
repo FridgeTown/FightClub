@@ -65,6 +65,7 @@ class SplashViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         
+//        try? tokenManager.saveAccessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvbmVAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTczNTc1NjczMCwiZXhwIjoxNzM2MzYxNTMwfQ.xd7I-qBe0bzuMXKLGebUfXFxCnP7F-FA6pEgVP66Co8")
         // 토큰 존재 여부 확인
         guard let _ = try? tokenManager.getAccessToken() else {
             print("token manager 에 토큰이 존재하지 않습니다.")

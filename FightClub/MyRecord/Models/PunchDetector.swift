@@ -6,11 +6,6 @@ class PunchDetector {
     // MARK: - Properties
     private var lastPunchTime: TimeInterval = 0
     private let minimumPunchInterval: TimeInterval = 0.2
-    private var previousPositions: [PosePositions] = []
-    private var punchCount: Int = 0
-    
-    /// 펀치 감지 콜백
-    var onPunchDetected: ((Int) -> Void)?
     
     // MARK: - Constants
     private enum Constants {
@@ -36,52 +31,63 @@ class PunchDetector {
         static let frontAngleThreshold: CGFloat = 30
     }
     
-    // MARK: - Stance Direction
-    private enum StanceDirection {
-        case front
-        case left
-        case right
-    }
-    
-    // MARK: - Public Methods
-    func detectPunch(from observation: VNHumanBodyPoseObservation) -> Bool {
-        // 1. 키포인트 추출 및 검증
-        guard let keypoints = try? observation.recognizedPoints(.all),
-              let positions = extractValidPositions(from: keypoints) else {
-            return false
+    func detectPunch(in sampleBuffer: CMSampleBuffer, completion: @escaping (Bool) -> Void) {
+        let currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
+        
+        // 최소 시간 간격 체크
+        guard currentTime - lastPunchTime >= minimumPunchInterval else {
+            completion(false)
+            return
         }
         
-        // 2. 시간 간격 체크
-        let currentTime = CACurrentMediaTime()
-        let timeSinceLastPunch = currentTime - lastPunchTime
-        guard timeSinceLastPunch >= minimumPunchInterval else { return false }
+        // 포즈 추정 요청 설정
+        let request = VNDetectHumanBodyPoseRequest()
+        let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, orientation: .up)
         
-        // 3. 가드 자세 체크
-        if isGuardPosition(positions) {
-            return false
+        do {
+            try handler.perform([request])
+            guard let observation = request.results?.first else {
+                completion(false)
+                return
+            }
+            
+            // 키포인트 추출 및 검증
+            guard let keypoints = try? observation.recognizedPoints(.all),
+                  let positions = extractValidPositions(from: keypoints) else {
+                completion(false)
+                return
+            }
+            
+            // 가드 자세 체크
+            if isGuardPosition(positions) {
+                completion(false)
+                return
+            }
+            
+            // 상체 회전 각도 계산
+            let torsoAngle = calculateTorsoAngle(positions)
+            
+            // 방향에 따른 펀치 감지
+            var isPunch = false
+            if abs(torsoAngle) < Constants.frontAngleThreshold {
+                isPunch = detectFrontPunch(positions)
+            } else if torsoAngle > Constants.frontAngleThreshold {
+                isPunch = detectSidePunch(positions, isLeftSide: true)
+            } else {
+                isPunch = detectSidePunch(positions, isLeftSide: false)
+            }
+            
+            if isPunch {
+                lastPunchTime = currentTime
+                print("Punch detected!")
+            }
+            
+            completion(isPunch)
+            
+        } catch {
+            print("Failed to perform pose detection: \(error)")
+            completion(false)
         }
-        
-        // 4. 상체 회전 각도 계산
-        let torsoAngle = calculateTorsoAngle(positions)
-        
-        // 5. 방향에 따른 펀치 감지
-        var isPunch = false
-        if abs(torsoAngle) < Constants.frontAngleThreshold {
-            isPunch = detectFrontPunch(positions)
-        } else if torsoAngle > Constants.frontAngleThreshold {
-            isPunch = detectSidePunch(positions, isLeftSide: true)
-        } else {
-            isPunch = detectSidePunch(positions, isLeftSide: false)
-        }
-        
-        if isPunch {
-            lastPunchTime = currentTime
-            punchCount += 1
-            print("펀치 감지! 현재 카운트: \(punchCount)")
-            onPunchDetected?(punchCount)
-        }
-        
-        return isPunch
     }
     
     // MARK: - Private Methods
@@ -91,23 +97,14 @@ class PunchDetector {
                                  positions.rightWrist.y < positions.rightShoulder.y
         
         // 양손이 얼굴 근처에 있는지 확인
-        let handsNearFace = abs(positions.leftWrist.x - positions.nose.x) < 0.25 &&
-                           abs(positions.rightWrist.x - positions.nose.x) < 0.25
+        let handsNearFace = abs(positions.leftWrist.x - positions.nose.x) < Constants.guardDistanceThreshold &&
+                           abs(positions.rightWrist.x - positions.nose.x) < Constants.guardDistanceThreshold
         
         // 팔꿈치가 구부러져 있는지 확인
         let elbowsBent = calculateElbowAngle(positions.leftShoulder, positions.leftElbow, positions.leftWrist) < 120 &&
                         calculateElbowAngle(positions.rightShoulder, positions.rightElbow, positions.rightWrist) < 120
         
         return handsAboveShoulders && handsNearFace && elbowsBent
-    }
-    
-    private func calculateTorsoAngle(_ positions: PosePositions) -> CGFloat {
-        let shoulderVector = CGPoint(
-            x: positions.rightShoulder.x - positions.leftShoulder.x,
-            y: positions.rightShoulder.y - positions.leftShoulder.y
-        )
-        
-        return atan2(shoulderVector.y, shoulderVector.x) * 180 / .pi
     }
     
     private func detectFrontPunch(_ positions: PosePositions) -> Bool {
@@ -138,6 +135,21 @@ class PunchDetector {
         )
         
         return isJab || leftPunch || rightPunch
+    }
+    
+    private func detectSidePunch(_ positions: PosePositions, isLeftSide: Bool) -> Bool {
+        let (wrist, elbow, shoulder) = isLeftSide ?
+            (positions.leftWrist, positions.leftElbow, positions.leftShoulder) :
+            (positions.rightWrist, positions.rightElbow, positions.rightShoulder)
+        
+        // 측면 펀치는 더 엄격한 조건 적용
+        let punchExtension = abs(wrist.x - shoulder.x)
+        let isPunchingForward = punchExtension > Constants.sidePunchExtensionThreshold
+        
+        let elbowAngle = calculateElbowAngle(shoulder, elbow, wrist)
+        let isProperElbowAngle = elbowAngle > Constants.sidePunchElbowAngle
+        
+        return isPunchingForward && isProperElbowAngle
     }
     
     private func checkJabConditions(
@@ -187,19 +199,13 @@ class PunchDetector {
         return isPunchingForward && isProperElbowAngle && isProperHeight
     }
     
-    private func detectSidePunch(_ positions: PosePositions, isLeftSide: Bool) -> Bool {
-        let (wrist, elbow, shoulder) = isLeftSide ?
-            (positions.leftWrist, positions.leftElbow, positions.leftShoulder) :
-            (positions.rightWrist, positions.rightElbow, positions.rightShoulder)
+    private func calculateTorsoAngle(_ positions: PosePositions) -> CGFloat {
+        let shoulderVector = CGPoint(
+            x: positions.rightShoulder.x - positions.leftShoulder.x,
+            y: positions.rightShoulder.y - positions.leftShoulder.y
+        )
         
-        // 측면 펀치는 더 엄격한 조건 적용
-        let punchExtension = abs(wrist.x - shoulder.x)
-        let isPunchingForward = punchExtension > Constants.sidePunchExtensionThreshold
-        
-        let elbowAngle = calculateElbowAngle(shoulder, elbow, wrist)
-        let isProperElbowAngle = elbowAngle > Constants.sidePunchElbowAngle
-        
-        return isPunchingForward && isProperElbowAngle
+        return atan2(shoulderVector.y, shoulderVector.x) * 180 / .pi
     }
     
     private func calculateElbowAngle(_ shoulder: CGPoint, _ elbow: CGPoint, _ wrist: CGPoint) -> CGFloat {

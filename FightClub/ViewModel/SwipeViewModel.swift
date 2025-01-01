@@ -27,7 +27,7 @@ class SwipeViewModel: ObservableObject {
         isLoading = true
         do {
             response = try await networkManager.request(.postMatchRequest(opponentID: id))
-            print(response.status)
+            print("postRequest", response.status)
         } catch {
             errorMessage = error.localizedDescription
         }

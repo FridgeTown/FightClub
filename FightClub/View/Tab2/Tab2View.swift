@@ -6,43 +6,174 @@
 //
 
 import SwiftUI
+import TalkPlus
+
+// MARK: - TalkPlus Channel Delegate Handler
+class TalkPlusChannelHandler: NSObject, TPChannelDelegate {
+    // MARK: - Properties
+    var onChannelCreated: (() -> Void)?
+    var onChannelUpdated: (() -> Void)?
+    var onMessageReceived: ((TPChannel, TPMessage) -> Void)?
+    
+    // MARK: - Channel Events
+    func channelAdded(_ tpChannel: TPChannel!) {
+        DispatchQueue.main.async { [weak self] in
+            self?.onChannelCreated?()
+        }
+    }
+    
+    func channelChanged(_ tpChannel: TPChannel!) {
+        DispatchQueue.main.async { [weak self] in
+            self?.onChannelUpdated?()
+        }
+    }
+    
+    func messageReceived(_ tpChannel: TPChannel!, message tpMessage: TPMessage!) {
+        DispatchQueue.main.async { [weak self] in
+            if let channel = tpChannel, let message = tpMessage {
+                self?.onMessageReceived?(channel, message)
+            }
+        }
+    }
+    
+    // MARK: - Required Protocol Methods
+    func memberAdded(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func memberLeft(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func messageDeleted(_ tpChannel: TPChannel!, message tpMessage: TPMessage!) {}
+    func channelRemoved(_ tpChannel: TPChannel!) {}
+    func publicMemberAdded(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func publicMemberLeft(_ tpChannel: TPChannel!, users: [TPMember]!) {}
+    func publicChannelAdded(_ tpChannel: TPChannel!) {}
+    func publicChannelChanged(_ tpChannel: TPChannel!) {}
+    func publicChannelRemoved(_ tpChannel: TPChannel!) {}
+}
 
 struct Tab2View: View {
     // MARK: - Properties
-    @StateObject private var viewModel: MatchRequestModel = DIContainer.shared.makeMatchRequestModel()
+    @StateObject private var matchViewModel: MatchRequestModel = DIContainer.shared.makeMatchRequestModel()
+    @StateObject private var chatViewModel: ChatListModel = DIContainer.shared.makeChatListViewModel()
     @State private var showFullList = false
+    @State private var showChatRoom = false
+    @State private var selectedChannel: TPChannel?
+    private let talkPlusHandler = TalkPlusChannelHandler()
     
     // MARK: - Body
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                if let requests = viewModel.matchs.data, !requests.isEmpty {
+            VStack(spacing: 0) {
+                // 스파링 요청 섹션 (있을 경우에만)
+                if let requests = matchViewModel.matchs.data, !requests.isEmpty {
                     matchRequestSection
+                        .padding(.top)
                     
                     Divider()
                         .padding(.horizontal)
                 }
                 
-                ChatListView()
+                // 채팅 섹션
+                VStack(spacing: 20) {
+                    headerView
+                    
+                    if chatViewModel.channel.isEmpty {
+                        EmptyStateView()
+                    } else {
+                        LazyVStack(spacing: 16) {
+                            ForEach(chatViewModel.sortedChannels) { channel in
+                                ChatRowView(channel: channel)
+                                    .onTapGesture {
+                                        if let tpChannel = chatViewModel.getTPChannel(for: channel.id) {
+                                            presentChatRoom(tpChannel)
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.top)
             }
-            .padding(.vertical)
         }
         .background(Color(.systemGroupedBackground))
         .sheet(isPresented: $showFullList) {
             fullListSheet
         }
+        .sheet(isPresented: $showChatRoom, onDismiss: {
+            Task {
+                await chatViewModel.getChatList()  // 채팅방에서 나올 때 목록 갱신
+            }
+        }) {
+            if let channel = selectedChannel {
+                ChatRoomView(tpChannel: channel)
+            }
+        }
         .onAppear {
             Task {
-                await viewModel.getPendingList()
+                await matchViewModel.getPendingList()
+                await chatViewModel.getChatList()
+                setupTalkPlusDelegate()
             }
+        }
+        .onDisappear {
+            TalkPlus.sharedInstance()?.removeChannelDelegate("ChatRoom")
+        }
+    }
+    
+    // MARK: - TalkPlus Setup
+    private func setupTalkPlusDelegate() {
+        talkPlusHandler.onChannelCreated = {
+            Task {
+                await chatViewModel.getChatList()
+            }
+        }
+        
+        talkPlusHandler.onChannelUpdated = {
+            Task {
+                await chatViewModel.getChatList()
+            }
+        }
+        
+        talkPlusHandler.onMessageReceived = { channel, message in
+            Task {
+                await chatViewModel.getChatList()
+            }
+        }
+        
+        TalkPlus.sharedInstance()?.add(talkPlusHandler, tag: "ChatRoom")
+    }
+    
+    // MARK: - Actions
+    private func presentChatRoom(_ tpChannel: TPChannel) {
+        selectedChannel = tpChannel
+        showChatRoom = true
+    }
+    
+    private func handleMatchAccepted() {
+        Task {
+            // 약간의 딜레이 후 채팅 목록 갱신
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1초
+            await chatViewModel.getChatList()
         }
     }
     
     // MARK: - Subviews
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("채팅")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.primary)
+            
+            Text("매칭된 상대와 대화를 나누어보세요")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
+    }
+    
     private var matchRequestSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             headerRow
-            LimitedMatchRequestView(limit: 3, viewModel: viewModel)
+            LimitedMatchRequestView(limit: 3, viewModel: matchViewModel, onMatchStatusChanged: handleMatchAccepted)
         }
     }
     
@@ -55,7 +186,7 @@ struct Tab2View: View {
             
             Spacer()
             
-            if let requests = viewModel.matchs.data, requests.count > 3 {
+            if let requests = matchViewModel.matchs.data, requests.count > 3 {
                 Button(action: { showFullList = true }) {
                     HStack(spacing: 4) {
                         Text("더보기")
@@ -72,7 +203,7 @@ struct Tab2View: View {
     
     private var fullListSheet: some View {
         NavigationView {
-            MatchRequestView(viewModel: viewModel)
+            MatchRequestView(viewModel: matchViewModel)
                 .navigationBarItems(
                     trailing: Button("닫기") { showFullList = false }
                 )
@@ -85,11 +216,13 @@ struct LimitedMatchRequestView: View {
     // MARK: - Properties
     @StateObject private var viewModel: MatchRequestModel
     let limit: Int
+    let onMatchStatusChanged: () -> Void
     
     // MARK: - Initialization
-    init(limit: Int, viewModel: MatchRequestModel) {
+    init(limit: Int, viewModel: MatchRequestModel, onMatchStatusChanged: @escaping () -> Void) {
         self.limit = limit
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onMatchStatusChanged = onMatchStatusChanged
     }
     
     // MARK: - Body
@@ -134,11 +267,18 @@ struct LimitedMatchRequestView: View {
     
     // MARK: - Actions
     private func handleAccept(_ request: MatchRequest) async {
-        await viewModel.acceptMatch(matchId: request.id)
+        do {
+            await viewModel.acceptMatch(matchId: request.id)
+            await viewModel.getPendingList()
+            onMatchStatusChanged()
+        } catch {
+            print("매칭 수락 실패: \(error)")
+        }
     }
     
     private func handleDecline(_ request: MatchRequest) {
         // TODO: 거절 로직 구현
+        onMatchStatusChanged()
     }
 }
 

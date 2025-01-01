@@ -45,10 +45,7 @@ struct MainTabView: View {
     
     // MARK: - Views
     private var profileSection: some View {
-        VStack {
-            Text(UserDataManager.shared.getUserData()?.nickname ?? "닉네임이 뭐더라 ~ ")
-            logoutButton
-        }
+        LiveListView()
         .tabItem {
             Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
         }
@@ -59,22 +56,6 @@ struct MainTabView: View {
             .tabItem {
                 Label("기록", systemImage: "figure.boxing.circle.fill")
             }
-    }
-    
-    private var logoutButton: some View {
-        Button("로그아웃(임시)") {
-            handleLogout()
-        }
-    }
-    
-    // MARK: - Methods
-    private func handleLogout() {
-        do {
-            try TokenManager.shared.deleteAccessToken()
-            print("deleteAccessToken() CALLED")
-        } catch {
-            print("failed to delete Token")
-        }
     }
 }
 

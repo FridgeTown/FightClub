@@ -235,9 +235,9 @@ struct SwipeCardView: View {
                         Text(model.nickname)
                             .font(.title)
                             .fontWeight(.bold)
-                        Text("나이")
-                            .font(.title2)
-                            .fontWeight(.medium)
+//                        Text("나이")
+//                            .font(.title2)
+//                            .fontWeight(.medium)
                         Spacer()
                     }
                     

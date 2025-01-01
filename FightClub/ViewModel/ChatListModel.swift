@@ -61,6 +61,13 @@ class ChatListModel: ObservableObject {
     
     private var channelMap: [String: TPChannel] = [:]
     
+    var sortedChannels: [ChatChannel] {
+        channel.sorted { channel1, channel2 in
+            // 최신 메시지 시간 기준으로 정렬
+            channel1.lastMessageTime > channel2.lastMessageTime
+        }
+    }
+    
     func getChatList() async {
         TalkPlus.sharedInstance()?.getChannels(nil,
             success: { tpChannels, hasNext in
@@ -70,11 +77,12 @@ class ChatListModel: ObservableObject {
                 tpChannels.map { ($0.getId(), $0) }
             )
             let chatChannels = tpChannels.map { ChatChannel(from: $0) }
-            self.channel = chatChannels
+            DispatchQueue.main.async {
+                self.channel = chatChannels
+            }
         }, failure: { (errorCode, error) in
             print("getChatList failed", errorCode, error ?? "")
-        }
-                                               )
+        })
     }
     
     func getTPChannel(for channelId: String) -> TPChannel? {
