@@ -15,8 +15,8 @@ struct ChatRowView: View {
         HStack(spacing: 16) {
             AsyncImage(url: URL(string: channel.profileImageUrl ?? "")) { phase in
                 switch phase {
-                case .empty:
-                    Image(systemName: "profile_placeholder")
+                case .empty, .failure:
+                    Image("profile_placeholder")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 56, height: 56)
@@ -27,12 +27,6 @@ struct ChatRowView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 56, height: 56)
                         .clipShape(Circle())
-                case .failure:
-                    Image(systemName: "profile_placeholder")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 56, height: 56)
-                        .foregroundColor(.gray.opacity(0.3))
                 @unknown default:
                     EmptyView()
                 }
@@ -56,28 +50,22 @@ struct ChatRowView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.primary)
                 
-                HStack {
-                    Text(channel.lastMessage)
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                .id("\(channel.lastMessage)_\(channel.lastMessageTime)")
+                Text(channel.lastMessage)
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
             
             Spacer()
             
             if channel.unreadCount > 0 {
-                HStack {
-                    Text("\(channel.unreadCount)")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 24, height: 24)
-                        .background(Color.mainRed)
-                        .clipShape(Circle())
-                        .shadow(color: Color.mainRed.opacity(0.3), radius: 4, x: 0, y: 2)
-                }
-                .id(channel.unreadCount)
+                Text("\(channel.unreadCount)")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 24, height: 24)
+                    .background(Color.mainRed)
+                    .clipShape(Circle())
+                    .shadow(color: Color.mainRed.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
         .padding()
@@ -90,26 +78,77 @@ struct ChatRowView: View {
     }
 }
 
+struct ChatListView: View {
+    @StateObject private var viewModel = ChatListViewModel()
+    @State private var selectedChannel: TPChannel?
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("채팅")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("매칭된 상대와 대화를 나누어보세요")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                
+                // Chat List
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        if viewModel.channels.isEmpty && !viewModel.isLoading {
+                            EmptyStateView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 100)
+                        } else {
+                            ForEach(viewModel.channels) { channel in
+                                NavigationLink(
+                                    destination: ChatRoomView(tpChannel: viewModel.getTPChannel(for: channel.id)!)
+                                        .navigationBarHidden(true)
+                                        .onDisappear {
+                                            Task {
+                                                await viewModel.getChannels()
+                                            }
+                                        }
+                                ) {
+                                    ChatRowView(channel: channel)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .overlay {
+                    if viewModel.isLoading && viewModel.channels.isEmpty {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+        .onAppear {
+            if viewModel.channels.isEmpty {
+                viewModel.getChannels()
+            }
+        }
+    }
+}
+
 struct EmptyStateView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "message.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(Color.mainRed.opacity(0.3))
-                .shadow(color: Color.mainRed.opacity(0.2), radius: 10, x: 0, y: 5)
-            
-            VStack(spacing: 8) {
-                Text("아직 매칭된 스파링 파트너가 없습니다")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Text("새로운 파트너를 찾아보세요")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .multilineTextAlignment(.center)
+        VStack(spacing: 16) {
+            Image(systemName: "message.circle")
+                .font(.system(size: 50))
+                .foregroundColor(.gray)
+            Text("채팅방이 없습니다")
+                .font(.headline)
+                .foregroundColor(.gray)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 }

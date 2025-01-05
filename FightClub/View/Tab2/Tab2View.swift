@@ -53,160 +53,72 @@ struct Tab2View: View {
     @StateObject private var matchViewModel: MatchRequestModel = DIContainer.shared.makeMatchRequestModel()
     @StateObject private var chatViewModel: ChatListModel = DIContainer.shared.makeChatListViewModel()
     @State private var showFullList = false
-    @State private var showChatRoom = false
-    @State private var selectedChannel: TPChannel?
-    private let talkPlusHandler = TalkPlusChannelHandler()
     
     // MARK: - Body
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // 스파링 요청 섹션 (있을 경우에만)
-                if let requests = matchViewModel.matchs.data, !requests.isEmpty {
-                    matchRequestSection
-                        .padding(.top)
-                    
-                    Divider()
-                        .padding(.horizontal)
-                }
+        VStack(spacing: 0) {
+            // 스파링 요청 섹션 (있을 경우에만)
+            if let requests = matchViewModel.matchs.data, !requests.isEmpty {
+                matchRequestSection
+                    .padding(.top)
                 
-                // 채팅 섹션
-                VStack(spacing: 20) {
-                    headerView
-                    
-                    if chatViewModel.channel.isEmpty {
-                        EmptyStateView()
-                    } else {
-                        LazyVStack(spacing: 16) {
-                            ForEach(chatViewModel.sortedChannels) { channel in
-                                ChatRowView(channel: channel)
-                                    .onTapGesture {
-                                        if let tpChannel = chatViewModel.getTPChannel(for: channel.id) {
-                                            presentChatRoom(tpChannel)
-                                        }
-                                    }
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
-                .padding(.top)
+                Divider()
+                    .padding(.horizontal)
             }
+            
+            // 채팅 섹션
+            ChatListView()
         }
         .background(Color(.systemGroupedBackground))
         .sheet(isPresented: $showFullList) {
-            fullListSheet
-        }
-        .sheet(isPresented: $showChatRoom, onDismiss: {
-            Task {
-                await chatViewModel.getChatList()  // 채팅방에서 나올 때 목록 갱신
-            }
-        }) {
-            if let channel = selectedChannel {
-                ChatRoomView(tpChannel: channel)
+            NavigationView {
+                MatchRequestView(viewModel: matchViewModel)
+                    .navigationBarItems(
+                        trailing: Button("닫기") { showFullList = false }
+                    )
             }
         }
-        .onAppear {
-            Task {
-                await matchViewModel.getPendingList()
-                await chatViewModel.getChatList()
-                setupTalkPlusDelegate()
-            }
-        }
-        .onDisappear {
-            TalkPlus.sharedInstance()?.removeChannelDelegate("ChatRoom")
-        }
-    }
-    
-    // MARK: - TalkPlus Setup
-    private func setupTalkPlusDelegate() {
-        talkPlusHandler.onChannelCreated = {
-            Task {
-                await chatViewModel.getChatList()
-            }
-        }
-        
-        talkPlusHandler.onChannelUpdated = {
-            Task {
-                await chatViewModel.getChatList()
-            }
-        }
-        
-        talkPlusHandler.onMessageReceived = { channel, message in
-            Task {
-                await chatViewModel.getChatList()
-            }
-        }
-        
-        TalkPlus.sharedInstance()?.add(talkPlusHandler, tag: "ChatRoom")
-    }
-    
-    // MARK: - Actions
-    private func presentChatRoom(_ tpChannel: TPChannel) {
-        selectedChannel = tpChannel
-        showChatRoom = true
-    }
-    
-    private func handleMatchAccepted() {
-        Task {
-            // 약간의 딜레이 후 채팅 목록 갱신
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1초
+        .task {
+            await matchViewModel.getPendingList()
             await chatViewModel.getChatList()
         }
     }
     
     // MARK: - Subviews
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("채팅")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.primary)
-            
-            Text("매칭된 상대와 대화를 나누어보세요")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal)
-    }
-    
     private var matchRequestSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            headerRow
-            LimitedMatchRequestView(limit: 3, viewModel: matchViewModel, onMatchStatusChanged: handleMatchAccepted)
-        }
-    }
-    
-    private var headerRow: some View {
-        HStack {
-            Text("스파링 요청")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(Color.mainRed)
-            
-            Spacer()
-            
-            if let requests = matchViewModel.matchs.data, requests.count > 3 {
-                Button(action: { showFullList = true }) {
-                    HStack(spacing: 4) {
-                        Text("더보기")
-                            .font(.subheadline)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
+            HStack {
+                Text("스파링 요청")
+                    .font(.title2)
+                    .fontWeight(.bold)
                     .foregroundColor(Color.mainRed)
+                
+                Spacer()
+                
+                if let requests = matchViewModel.matchs.data, requests.count > 3 {
+                    Button(action: { showFullList = true }) {
+                        HStack(spacing: 4) {
+                            Text("더보기")
+                                .font(.subheadline)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(Color.mainRed)
+                    }
                 }
             }
-        }
-        .padding(.horizontal)
-    }
-    
-    private var fullListSheet: some View {
-        NavigationView {
-            MatchRequestView(viewModel: matchViewModel)
-                .navigationBarItems(
-                    trailing: Button("닫기") { showFullList = false }
-                )
+            .padding(.horizontal)
+             
+            LimitedMatchRequestView(
+                limit: 3,
+                viewModel: matchViewModel,
+                onMatchStatusChanged: {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 1_000_000_000)
+                        await chatViewModel.getChatList()
+                    }
+                }
+            )
         }
     }
 }
