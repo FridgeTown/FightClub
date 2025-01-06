@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		302842432D2BC4AD004CDD9E /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = 302842422D2BC4AD004CDD9E /* LiveKit */; };
+		3028424C2D2BCA8A004CDD9E /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 3028424B2D2BCA8A004CDD9E /* KeychainAccess */; };
 		305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 305E53A52D1B10A0002E4746 /* Alamofire */; };
 		30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 30B649462D2242DE00953529 /* FirebaseMessaging */; };
 		30B64A4B2D2269E900953529 /* spm-talkplus-framework in Frameworks */ = {isa = PBXBuildFile; productRef = 30B64A4A2D2269E900953529 /* spm-talkplus-framework */; };
@@ -75,7 +77,9 @@
 			files = (
 				30B64A4B2D2269E900953529 /* spm-talkplus-framework in Frameworks */,
 				30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */,
+				3028424C2D2BCA8A004CDD9E /* KeychainAccess in Frameworks */,
 				30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */,
+				302842432D2BC4AD004CDD9E /* LiveKit in Frameworks */,
 				305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */,
 				30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */,
 			);
@@ -143,6 +147,8 @@
 				30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */,
 				30B649462D2242DE00953529 /* FirebaseMessaging */,
 				30B64A4A2D2269E900953529 /* spm-talkplus-framework */,
+				302842422D2BC4AD004CDD9E /* LiveKit */,
+				3028424B2D2BCA8A004CDD9E /* KeychainAccess */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -231,6 +237,8 @@
 				30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				30B64A492D2269E900953529 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */,
+				302842412D2BC4AD004CDD9E /* XCRemoteSwiftPackageReference "client-sdk-swift" */,
+				3028424A2D2BCA8A004CDD9E /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -607,6 +615,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		302842412D2BC4AD004CDD9E /* XCRemoteSwiftPackageReference "client-sdk-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/livekit/client-sdk-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.19;
+			};
+		};
+		3028424A2D2BCA8A004CDD9E /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess?tab=readme-ov-file";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
@@ -642,6 +666,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		302842422D2BC4AD004CDD9E /* LiveKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 302842412D2BC4AD004CDD9E /* XCRemoteSwiftPackageReference "client-sdk-swift" */;
+			productName = LiveKit;
+		};
+		3028424B2D2BCA8A004CDD9E /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3028424A2D2BCA8A004CDD9E /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
 		305E53A52D1B10A0002E4746 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */;

@@ -45,7 +45,7 @@ struct MainTabView: View {
     
     // MARK: - Views
     private var profileSection: some View {
-        LiveListView()
+        LiveListViewDemo()
         .tabItem {
             Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
         }

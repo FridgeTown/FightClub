@@ -81,6 +81,7 @@ struct ChatRowView: View {
 struct ChatListView: View {
     @StateObject private var viewModel = ChatListViewModel()
     @State private var selectedChannel: TPChannel?
+    @State private var showChatRoom = false
     
     var body: some View {
         NavigationView {
@@ -107,17 +108,20 @@ struct ChatListView: View {
                                 .padding(.top, 100)
                         } else {
                             ForEach(viewModel.channels) { channel in
-                                NavigationLink(
-                                    destination: ChatRoomView(tpChannel: viewModel.getTPChannel(for: channel.id)!)
-                                        .navigationBarHidden(true)
-                                        .onDisappear {
-                                            Task {
-                                                await viewModel.getChannels()
+                                ChatRowView(channel: channel)
+                                    .onTapGesture {
+                                        if let tpChannel = viewModel.getTPChannel(for: channel.id) {
+                                            DispatchQueue.main.async {
+                                                selectedChannel = tpChannel
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                    showChatRoom = true
+                                                }
                                             }
+                                        } else {
+                                            // 채널을 찾지 못했을때
+                                            print("Cannot Find Channel")
                                         }
-                                ) {
-                                    ChatRowView(channel: channel)
-                                }
+                                    }
                             }
                         }
                     }
@@ -132,7 +136,38 @@ struct ChatListView: View {
             }
             .navigationBarHidden(true)
         }
+        .fullScreenCover(isPresented: $showChatRoom) {
+            ZStack {
+                if let channel = selectedChannel {
+                    ChatRoomView(tpChannel: channel)
+                        .onAppear {
+                            print("ChatListView - ChatRoomView appeared")
+                        }
+                        .onDisappear {
+                            print("ChatListView - ChatRoomView disappeared")
+                            selectedChannel = nil
+                            Task {
+                                print("ChatListView - Refreshing chat list")
+                                await viewModel.getChannels()
+                            }
+                        }
+                } else {
+                    Color.clear
+                }
+            }
+            .onAppear {
+                print("ChatListView - Attempting to present ChatRoomView")
+                print("ChatListView - selectedChannel: \(selectedChannel?.getId() ?? "nil")")
+            }
+        }
+        .onChange(of: showChatRoom) { newValue in
+            print("ChatListView - showChatRoom changed to: \(newValue)")
+            if newValue {
+                print("ChatListView - selectedChannel: \(selectedChannel?.getId() ?? "nil")")
+            }
+        }
         .onAppear {
+            print("ChatListView - View appeared")
             if viewModel.channels.isEmpty {
                 viewModel.getChannels()
             }
