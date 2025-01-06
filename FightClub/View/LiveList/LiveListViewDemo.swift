@@ -39,7 +39,6 @@ struct LiveListViewDemo: View {
                         .environmentObject(roomContext)
                         .environmentObject(appContext)
                         .environmentObject(roomContext.room)
-                        .transformIntoLandscape()
                 }
                 Button("방송 시청 하기 ") {
                     
@@ -48,13 +47,6 @@ struct LiveListViewDemo: View {
             .navigationTitle("실시간 매치")
             .navigationBarTitleDisplayMode(.large)
         }
-    }
-}
-
-extension View {
-    func transformIntoLandscape() -> some View {
-        StreamingViewRepresentable(content: self)
-            .ignoresSafeArea()
     }
 }
 

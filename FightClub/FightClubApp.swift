@@ -12,6 +12,15 @@ import Firebase
 import UserNotifications
 import TalkPlus
 
+// AppUtility를 클래스 외부로 이동
+struct AppUtility {
+    static func lockOrientation(_ orientation: UIInterfaceOrientationMask) {
+        if let delegate = UIApplication.shared.delegate as? AppDelegate {
+            delegate.orientationLock = orientation
+        }
+    }
+}
+
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     private var pendingFCMToken: String?
     private var apnsTokenReceived = false
@@ -134,9 +143,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             }
         }
     
-    // 화면 방향 제어를 위한 메서드 추가
+    // 화면 방향 제어를 위한 메서드
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        return orientationLock
+        return self.orientationLock
     }
 }
 

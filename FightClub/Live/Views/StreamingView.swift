@@ -9,342 +9,251 @@ import SwiftUI
 import LiveKit
 import AVFoundation
 
-struct StreamingViewRepresentable<Content: View>: UIViewControllerRepresentable {
-    let content: Content
+struct StreamingView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var roomCtx: RoomContext
+    @EnvironmentObject var appCtx: AppContext
+    @EnvironmentObject var room: Room
     
-    func makeUIViewController(context: Context) -> UIViewController {
-        let hostingController = LandscapeHostingController(rootView: content)
-        hostingController.modalPresentationStyle = .fullScreen
-        return hostingController
+    var body: some View {
+        StreamingViewControllerRepresentable(dismiss: dismiss)
+            .ignoresSafeArea()
     }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
-class LandscapeHostingController<Content: View>: UIHostingController<Content> {
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        .landscape
+struct StreamingViewControllerRepresentable: UIViewControllerRepresentable {
+    let dismiss: DismissAction
+    
+    func makeUIViewController(context: Context) -> StreamingViewController {
+        StreamingViewController(dismiss: dismiss)
     }
     
-    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-        .landscapeRight
+    func updateUIViewController(_ uiViewController: StreamingViewController, context: Context) {}
+}
+
+class StreamingViewController: UIViewController {
+    private let dismiss: DismissAction
+    private var cameraManager: CameraManager!
+    private var previewLayer: AVCaptureVideoPreviewLayer!
+    
+    // UI Elements
+    private lazy var closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.setTitle("CLOSE", for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var guideLineView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.layer.borderColor = UIColor.systemPink.cgColor
+        view.layer.borderWidth = 2
+        return view
+    }()
+    
+    init(dismiss: DismissAction) {
+        self.dismiss = dismiss
+        super.init(nibName: nil, bundle: nil)
+        self.modalPresentationStyle = .fullScreen
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupCamera()
+        setupUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            if #available(iOS 16.0, *) {
+                let geometryPreferences = UIWindowScene.GeometryPreferences.iOS(
+                    interfaceOrientations: .landscapeRight
+                )
+                windowScene.requestGeometryUpdate(geometryPreferences) { _ in
+                    // 에러가 발생하더라도 계속 진행
+                }
+            }
+        }
+        
+        AppUtility.lockOrientation(.landscapeRight)
+        
+        // 카메라 시작
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.cameraManager?.startSession()
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            if #available(iOS 16.0, *) {
+                let geometryPreferences = UIWindowScene.GeometryPreferences.iOS(
+                    interfaceOrientations: .portrait
+                )
+                windowScene.requestGeometryUpdate(geometryPreferences) { _ in
+                    // 에러가 발생하더라도 계속 진행
+                }
+            }
+        }
+        
+        AppUtility.lockOrientation(.portrait)
+        
+        // 카메라 정지
+        cameraManager?.stopSession()
     }
     
     override var shouldAutorotate: Bool {
         false
     }
     
-    override var prefersStatusBarHidden: Bool {
-        true
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .landscapeRight
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setNeedsStatusBarAppearanceUpdate()
-        setNeedsUpdateOfSupportedInterfaceOrientations()
-        
-        // 강제로 가로 방향으로 전환
-        let value = UIInterfaceOrientation.landscapeRight.rawValue
-        UIDevice.current.setValue(value, forKey: "orientation")
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        .landscapeRight
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        AppDelegate.AppUtility.lockOrientation(.landscape)
-        
-        // 가로 방향 강제
-        let value = UIInterfaceOrientation.landscapeRight.rawValue
-        UIDevice.current.setValue(value, forKey: "orientation")
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        AppDelegate.AppUtility.lockOrientation(.portrait)
-        
-        // 세로 방향으로 복귀
-        let value = UIInterfaceOrientation.portrait.rawValue
-        UIDevice.current.setValue(value, forKey: "orientation")
-    }
-}
-
-extension AppDelegate {
-    struct AppUtility {
-        static func lockOrientation(_ orientation: UIInterfaceOrientationMask) {
-            if let delegate = UIApplication.shared.delegate as? AppDelegate {
-                delegate.orientationLock = orientation
+    private func setupCamera() {
+        cameraManager = CameraManager()
+        cameraManager.requestAccess { [weak self] granted in
+            guard granted else { return }
+            
+            DispatchQueue.main.async {
+                self?.setupPreviewLayer()
             }
         }
     }
+    
+    private func setupPreviewLayer() {
+        guard let session = cameraManager?.session else { return }
+        
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.connection?.videoOrientation = .landscapeRight
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.previewLayer.frame = self.view.bounds
+            self.view.layer.insertSublayer(self.previewLayer, at: 0)
+        }
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .black
+        
+        // Add UI elements
+        view.addSubview(closeButton)
+        view.addSubview(guideLineView)
+        
+        // Setup constraints
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        guideLineView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            
+            guideLineView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            guideLineView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            guideLineView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            guideLineView.heightAnchor.constraint(equalToConstant: 2)
+        ])
+    }
+    
+    @objc private func closeTapped() {
+        dismiss()
+    }
 }
 
-//#Preview {
-//    StreamingView()
-//        .environmentObject(RoomContext())
-//        .environmentObject(AppContext())
-//        .environmentObject(Room())
-//}
-
-struct StreamingView: View {
-    @EnvironmentObject var roomCtx: RoomContext
-    @EnvironmentObject var appCtx: AppContext
-    @EnvironmentObject var room: Room
-    @Environment(\.dismiss) private var dismiss
+class CameraManager {
+    var session: AVCaptureSession
+    private var currentPosition: AVCaptureDevice.Position = .back
     
-    @State private var isLiveStreaming = false
-    @State private var isRoundActive = false
-    @State private var remainingTime: TimeInterval = 180 // 3 minutes
-    @State private var timer: Timer?
-    @State private var messages: [ChatMessage] = []
-    @State private var newMessage = ""
-    @State private var orientation = UIDevice.current.orientation
+    init() {
+        self.session = AVCaptureSession()
+        self.session.sessionPreset = .hd1920x1080
+    }
     
-    var httpService = HTTPClient()
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Camera Preview (Background)
-                CameraPreview()
-                    .ignoresSafeArea()
-                
-                // Main Content
-                HStack(spacing: 0) {
-                    // Left Controls
-                    VStack(spacing: 20) {
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.white)
-                                .background(Color.black.opacity(0.5))
-                                .clipShape(Circle())
-                        }
-                        
-                        if isRoundActive {
-                            Text(timeString(from: remainingTime))
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
-                                .background(Color.black.opacity(0.5))
-                                .cornerRadius(12)
-                        }
-                        
-                        Spacer()
-                        
-                        // Round Control Button
-                        Button(action: {
-                            if isRoundActive {
-                                stopRound()
-                            } else {
-                                startRound()
-                            }
-                        }) {
-                            Text(isRoundActive ? "라운드 종료" : "라운드 시작")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 140)
-                                .padding(.vertical, 12)
-                                .background(Color.mainRed)
-                                .cornerRadius(25)
-                        }
-                    }
-                    .frame(width: geometry.size.width * 0.2)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                    .background(Color.black.opacity(0.2))
-                    
-                    // Center Space (Camera View)
-                    Spacer()
-                    
-                    // Right Side (Chat & Controls)
-                    VStack(spacing: 16) {
-                        // Live Streaming Button
-                        Button(action: toggleLiveStreaming) {
-                            Text(isLiveStreaming ? "방송 종료" : "방송 시작")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(isLiveStreaming ? Color.red : Color.mainRed)
-                                .cornerRadius(25)
-                        }
-                        
-                        // Chat Area
-                        ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 8) {
-                                ForEach(messages) { message in
-                                    ChatBubble(message: message)
-                                }
-                            }
-                            .padding()
-                        }
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(16)
-                        
-                        // Message Input
-                        HStack(spacing: 12) {
-                            TextField("메시지 입력...", text: $newMessage)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .foregroundColor(.white)
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(20)
-                            
-                            Button(action: sendMessage) {
-                                Image(systemName: "paperplane.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.white)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color.mainRed)
-                                    .clipShape(Circle())
-                            }
-                            .disabled(newMessage.isEmpty)
-                        }
-                        .padding(12)
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(16)
-                    }
-                    .frame(width: geometry.size.width * 0.25)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                    .background(Color.black.opacity(0.2))
+    func requestAccess(completion: @escaping (Bool) -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            setupCamera()
+            completion(true)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                if granted {
+                    self?.setupCamera()
                 }
+                completion(granted)
             }
-        }
-        .edgesIgnoringSafeArea(.all)
-        .onAppear {
-            let value = UIInterfaceOrientation.landscapeRight.rawValue
-            UIDevice.current.setValue(value, forKey: "orientation")
-            AppDelegate.AppUtility.lockOrientation(.landscape)
-        }
-        .onDisappear {
-            stopRound()
-            let value = UIInterfaceOrientation.portrait.rawValue
-            UIDevice.current.setValue(value, forKey: "orientation")
-            AppDelegate.AppUtility.lockOrientation(.portrait)
+        default:
+            completion(false)
         }
     }
     
-    private func toggleLiveStreaming() {
-        isLiveStreaming.toggle()
-        if isLiveStreaming {
-            Task {
-                await connectToRoom()
-            }
-        } else {
-            Task {
-                await roomCtx.disconnect()
-            }
-        }
-    }
-    
-    private func startRound() {
-        isRoundActive = true
-        remainingTime = 180
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if remainingTime > 0 {
-                remainingTime -= 1
-            } else {
-                stopRound()
-            }
-        }
-    }
-    
-    private func stopRound() {
-        isRoundActive = false
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    private func timeString(from timeInterval: TimeInterval) -> String {
-        let minutes = Int(timeInterval) / 60
-        let seconds = Int(timeInterval) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-    
-    private func sendMessage() {
-        guard !newMessage.isEmpty else { return }
-        let message = ChatMessage(id: UUID(), text: newMessage, isMe: true)
-        messages.append(message)
-        newMessage = ""
-    }
-    
-    func connectToRoom() async {
-        let livekitUrl = "wss://openvidufightclubsubdomain.click"
-        let roomName = "myroom"
-        let participantName = "powerades"
-        let applicationServerUrl = "http://3.35.169.28:6080"
-
-        guard !livekitUrl.isEmpty, !roomName.isEmpty else {
-            print("LiveKit URL or room name is empty")
+    private func setupCamera() {
+        session.beginConfiguration()
+        
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentPosition) else {
             return
         }
-
+        
         do {
-            let token = try await httpService.getToken(
-                applicationServerUrl: applicationServerUrl, roomName: roomName,
-                participantName: participantName)
-
-            if token.isEmpty {
-                print("Received empty token")
-                return
+            let input = try AVCaptureDeviceInput(device: device)
+            if session.canAddInput(input) {
+                session.addInput(input)
             }
-
-            roomCtx.token = token
-            roomCtx.livekitUrl = livekitUrl
-            roomCtx.name = roomName
-            print("Connecting to room...")
-            try await roomCtx.connect()
-            print("Room connected")
         } catch {
-            print("Failed to connect to room: \(error)")
-        }
-    }
-}
-
-struct CameraPreview: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: UIScreen.main.bounds)
-        
-        let captureSession = AVCaptureSession()
-        
-        guard let backCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: backCamera) else {
-            return view
+            print("카메라 설정 오류: \(error)")
         }
         
-        captureSession.addInput(input)
-        
-        let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.frame = view.frame
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(previewLayer)
-        
-        DispatchQueue.global(qos: .background).async {
-            captureSession.startRunning()
-        }
-        
-        return view
+        session.commitConfiguration()
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) {}
-}
-
-struct ChatMessage: Identifiable {
-    let id: UUID
-    let text: String
-    let isMe: Bool
-}
-
-struct ChatBubble: View {
-    let message: ChatMessage
+    func startSession() {
+        if !session.isRunning {
+            session.startRunning()
+        }
+    }
     
-    var body: some View {
-        Text(message.text)
-            .padding(8)
-            .foregroundColor(.white)
-            .background(Color.black.opacity(0.5))
-            .cornerRadius(12)
+    func stopSession() {
+        if session.isRunning {
+            session.stopRunning()
+        }
+    }
+    
+    func switchCamera() {
+        session.beginConfiguration()
+        session.inputs.forEach { session.removeInput($0) }
+        
+        currentPosition = currentPosition == .back ? .front : .back
+        
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentPosition) else {
+            return
+        }
+        
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+            if session.canAddInput(input) {
+                session.addInput(input)
+            }
+        } catch {
+            print("카메라 전환 오류: \(error)")
+        }
+        
+        session.commitConfiguration()
     }
 }
