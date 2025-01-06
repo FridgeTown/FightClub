@@ -44,25 +44,25 @@ struct SignupSecondView: View {
 
                 VStack(spacing: 40) {
                     GenderSelectionButton(
-                        title: "Male",
+                        title: "MALE",
                         symbol: "♂",
-                        isSelected: selectedGender == "Male",
+                        isSelected: selectedGender == "MALE",
                         color: selectedColor
                     ) {
-                        selectedGender = "Male"
+                        selectedGender = "MALE"
                         isButtonEnabled = true
-                        signupData.gender = "Male"
+                        signupData.gender = "MALE"
                     }
 
                     GenderSelectionButton(
-                        title: "Female",
+                        title: "FEMALE",
                         symbol: "♀",
-                        isSelected: selectedGender == "Female",
+                        isSelected: selectedGender == "FEMALE",
                         color: selectedColor
                     ) {
-                        selectedGender = "Female"
+                        selectedGender = "FEMALE"
                         isButtonEnabled = true
-                        signupData.gender = "Female"
+                        signupData.gender = "FEMALE"
                     }
                 }
                 .padding(.top, 8)

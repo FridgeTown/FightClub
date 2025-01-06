@@ -16,7 +16,7 @@ enum APIEndpoint {
     case postRejectRequest(matchID: String)
     case getPendingMatch
     case getNotificationSubscribe
-    
+    case signup(email: String, provider: String, token: String) // signup 추가
     
     // 엔드 포인트
     var url: String {
@@ -37,6 +37,8 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/match/pending"
         case .getNotificationSubscribe:
             return "http://3.34.46.87:8080/notification/subscribe"
+        case .signup:
+            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
         }
     }
     
@@ -52,7 +54,11 @@ enum APIEndpoint {
     var parameters: Parameters? {
         switch self {
         case .logIn(let email, let provider, let idToken):
-            print(["email": email, "provider": provider, "idToken": idToken])
+            print("Sending logIn parameters:", ["email": email, "provider": provider, "idToken": idToken])
+            return ["email": email, "provider": provider, "idToken": idToken]
+            
+        case .signup(let email, let provider, let idToken): // signup의 매개변수 추가
+            print("Sending register parameters:", ["email": email, "provider": provider, "idToken": idToken])
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
@@ -73,4 +79,3 @@ enum APIEndpoint {
         }
     }
 }
-
