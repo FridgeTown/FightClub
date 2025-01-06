@@ -38,7 +38,6 @@ struct LiveListViewDemo: View {
                     StreamingView()
                         .environmentObject(roomContext)
                         .environmentObject(appContext)
-                        .environmentObject(roomContext.room)
                 }
                 Button("방송 시청 하기 ") {
                     
@@ -50,6 +49,6 @@ struct LiveListViewDemo: View {
     }
 }
 
-//#Preview {
-//    LiveListView()
-//}
+#Preview {
+    LiveListViewDemo()
+}

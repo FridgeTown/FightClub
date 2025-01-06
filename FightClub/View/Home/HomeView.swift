@@ -40,7 +40,9 @@ struct HomeView: View {
         .onAppear {
             Task {
                 await viewModel.getUsers()
-                profiles = viewModel.users.data!
+                if let profile = viewModel.users.data {
+                    profiles = profile
+                }
             }
         }
     }
