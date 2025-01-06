@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 305E53A52D1B10A0002E4746 /* Alamofire */; };
 		30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 30B649462D2242DE00953529 /* FirebaseMessaging */; };
+		30B64A4B2D2269E900953529 /* spm-talkplus-framework in Frameworks */ = {isa = PBXBuildFile; productRef = 30B64A4A2D2269E900953529 /* spm-talkplus-framework */; };
 		30BEF3EE2D1EEED50035E422 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3ED2D1EEED50035E422 /* GoogleSignIn */; };
 		30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -72,6 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30B64A4B2D2269E900953529 /* spm-talkplus-framework in Frameworks */,
 				30B649472D2242DE00953529 /* FirebaseMessaging in Frameworks */,
 				30BEF3F02D1EEED50035E422 /* GoogleSignInSwift in Frameworks */,
 				305E53A62D1B10A0002E4746 /* Alamofire in Frameworks */,
@@ -140,6 +142,7 @@
 				30BEF3ED2D1EEED50035E422 /* GoogleSignIn */,
 				30BEF3EF2D1EEED50035E422 /* GoogleSignInSwift */,
 				30B649462D2242DE00953529 /* FirebaseMessaging */,
+				30B64A4A2D2269E900953529 /* spm-talkplus-framework */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -227,6 +230,7 @@
 				305E53872D1B09C4002E4746 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				30B64A492D2269E900953529 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -629,6 +633,14 @@
 				minimumVersion = 11.6.0;
 			};
 		};
+		30B64A492D2269E900953529 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adxcorp/talkplus-ios-release.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.4;
+			};
+		};
 		30BEF3EC2D1EEED50035E422 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -649,6 +661,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 30B649452D2242DE00953529 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		30B64A4A2D2269E900953529 /* spm-talkplus-framework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 30B64A492D2269E900953529 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */;
+			productName = "spm-talkplus-framework";
 		};
 		30BEF3ED2D1EEED50035E422 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

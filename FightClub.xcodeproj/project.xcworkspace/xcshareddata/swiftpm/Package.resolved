@@ -1,5 +1,5 @@
 {
-  "originHash" : "615d11d892f67e60440076a19a94bc1cf6af3d4d4f6e2f48ce8c2458ed0c8124",
+  "originHash" : "466749f3b1d8dd26a180ed26e73cc1a4aa3b2932136d19c3cc4ec48bcb1852da",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -152,6 +152,15 @@
       "state" : {
         "revision" : "ebc7251dd5b37f627c93698e4374084d98409633",
         "version" : "1.28.2"
+      }
+    },
+    {
+      "identity" : "talkplus-ios-release",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/adxcorp/talkplus-ios-release.git",
+      "state" : {
+        "revision" : "726d2ab3d6b5d758fa11425977133e11b2431c54",
+        "version" : "0.6.4"
       }
     }
   ],

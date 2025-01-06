@@ -55,3 +55,26 @@ extension View {
     }
 }
 
+extension Optional where Wrapped == Int {
+    func toString(defaultValue: String = "N/A") -> String {
+        switch self {
+        case .some(let value):
+            return String(value)
+        case .none:
+            return defaultValue
+        }
+    }
+}
+
+extension Int {
+    func toString() -> String {
+        return String(self)
+    }
+}
+
+
+// String을 Identifiable로 만들기 위한 extension
+extension String: Identifiable {
+    public var id: String { self }
+}
+

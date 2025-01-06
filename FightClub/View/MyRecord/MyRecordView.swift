@@ -8,13 +8,18 @@
 import SwiftUI
 
 struct MyRecordView: View {
+    private let mainRed = Color("mainRed")
+    private let backgroundColor = Color("background")
+    
     var body: some View {
         NavigationView {
-            List() {
-                Text("아아")
-                Text("aa")
-            }.navigationTitle("기록").navigationBarTitleDisplayMode(.inline)
+            ZStack {
+                backgroundColor.edgesIgnoringSafeArea(.all)
+                
+                RecordListView()
+            }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

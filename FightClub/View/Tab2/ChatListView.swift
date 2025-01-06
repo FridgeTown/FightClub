@@ -6,78 +6,137 @@
 //
 
 import SwiftUI
-
-struct ChatListView: View {
-    let activeChats: [Chat]
-    @State private var selectedChat: Chat?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("매칭된 스파링 파트너")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(Color.mainRed)
-                .padding(.horizontal)
-            
-            if activeChats.isEmpty {
-                EmptyStateView()
-            } else {
-                ForEach(activeChats) { chat in
-                    ChatRowView(chat: chat)
-                        .onTapGesture {
-                            selectedChat = chat
-                        }
-                }
-            }
-        }
-        .sheet(item: $selectedChat) { chat in
-            ChatRoomView(chat: chat)
-        }
-    }
-}
+import TalkPlus
 
 struct ChatRowView: View {
-    let chat: Chat
+    let channel: ChatChannel
     
     var body: some View {
         HStack(spacing: 16) {
-            // 프로필 이미지
-            Image("profile_placeholder")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 50, height: 50)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.mainRed.opacity(0.2), lineWidth: 2)
-                )
+            AsyncImage(url: URL(string: channel.profileImageUrl ?? "")) { phase in
+                switch phase {
+                case .empty, .failure:
+                    Image("profile_placeholder")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
+                        .foregroundColor(.gray.opacity(0.3))
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
+                @unknown default:
+                    EmptyView()
+                }
+            }
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.mainRed.opacity(0.7), Color.mainRed],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             
-            // 채팅 정보
-            VStack(alignment: .leading, spacing: 4) {
-                Text(chat.userName)
-                    .font(.headline)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(channel.name)
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.primary)
                 
-                Text(chat.lastMessage)
-                    .font(.subheadline)
+                Text(channel.lastMessage)
+                    .font(.system(size: 15))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
             
             Spacer()
             
-            // 시간 표시 (나중에 추가 예정)
-            // Text(chat.lastMessageTime)
-            //     .font(.caption)
-            //     .foregroundColor(.secondary)
+            if channel.unreadCount > 0 {
+                Text("\(channel.unreadCount)")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 24, height: 24)
+                    .background(Color.mainRed)
+                    .clipShape(Circle())
+                    .shadow(color: Color.mainRed.opacity(0.3), radius: 4, x: 0, y: 2)
+            }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
-                .shadow(color: Color.mainRed.opacity(0.05), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         )
-        .padding(.horizontal)
+        .contentShape(Rectangle())
+    }
+}
+
+struct ChatListView: View {
+    @StateObject private var viewModel = ChatListViewModel()
+    @State private var selectedChannel: TPChannel?
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("채팅")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("매칭된 상대와 대화를 나누어보세요")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                
+                // Chat List
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        if viewModel.channels.isEmpty && !viewModel.isLoading {
+                            EmptyStateView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 100)
+                        } else {
+                            ForEach(viewModel.channels) { channel in
+                                NavigationLink(
+                                    destination: ChatRoomView(tpChannel: viewModel.getTPChannel(for: channel.id)!)
+                                        .navigationBarHidden(true)
+                                        .onDisappear {
+                                            Task {
+                                                await viewModel.getChannels()
+                                            }
+                                        }
+                                ) {
+                                    ChatRowView(channel: channel)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .overlay {
+                    if viewModel.isLoading && viewModel.channels.isEmpty {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+        .onAppear {
+            if viewModel.channels.isEmpty {
+                viewModel.getChannels()
+            }
+        }
     }
 }
 
@@ -85,26 +144,11 @@ struct EmptyStateView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "message.circle")
-                .font(.system(size: 60))
-                .foregroundColor(Color.mainRed.opacity(0.3))
-            
-            Text("아직 매칭된 스파링 파트너가 없습니다")
+                .font(.system(size: 50))
+                .foregroundColor(.gray)
+            Text("채팅방이 없습니다")
                 .font(.headline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+                .foregroundColor(.gray)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
-    }
-}
-
-// MARK: - Preview
-struct ChatListView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChatListView(activeChats: [
-            Chat(id: 1, userName: "Boxer Kim", lastMessage: "오늘 스파링 어떠셨나요?"),
-            Chat(id: 2, userName: "Fighter Lee", lastMessage: "다음 스파링 일정 잡아요!"),
-            Chat(id: 3, userName: "Champion Park", lastMessage: "좋은 경기였습니다!")
-        ])
     }
 }
