@@ -10,6 +10,7 @@ import Alamofire
 
 struct ProfileView: View {
     @ObservedObject var signupData: SignupData
+    @State private var navigateToSplashView = false
     @State private var nickname: String = "" // 닉네임 입력 상태
     @State private var isSubmitting: Bool = false
     @State private var errorMessage: String = ""
@@ -109,7 +110,9 @@ struct ProfileView: View {
             .padding()
         }
         .alert("성공", isPresented: $showSuccessAlert) {
-            Button("확인", role: .cancel) {}
+            Button("확인") {
+                navigateToSplashView = true // SplashView로 이동 트리거
+            }
         } message: {
             Text("프로필 데이터가 성공적으로 저장되었습니다.")
         }
@@ -118,73 +121,17 @@ struct ProfileView: View {
         } message: {
             Text(errorMessage)
         }
+        .fullScreenCover(isPresented: $navigateToSplashView) {
+            SplashView()
+                .onAppear {
+                    print("SplashView appeared!")
+                }
+        }
         .onAppear {
             // onAppear에서 데이터 확인
             print("ProfileView appeared with email: \(signupData.email ?? "nil")")
         }
     }
-
-    // MARK: - 서버로 프로필 데이터 전송
-    /*
-    private func submitProfileData() {
-        guard !nickname.isEmpty else {
-            errorMessage = "닉네임을 입력하세요."
-            showErrorAlert = true
-            return
-        }
-
-        isSubmitting = true
-
-        // UserDefaults에서 idToken 가져오기
-        let idToken = UserDefaults.standard.string(forKey: "idToken") ?? ""
-        print("ProfileView에서 불러온 idToken: \(idToken)")
-
-        guard !idToken.isEmpty else {
-            errorMessage = "로그인이 만료되었습니다. 다시 로그인해주세요."
-            showErrorAlert = true
-            isSubmitting = false
-            return
-        }
-
-        // APIEndpoint 사용
-        guard let email = signupData.email, !email.isEmpty else {
-            errorMessage = "이메일 정보가 없습니다. 다시 로그인해주세요."
-            showErrorAlert = true
-            isSubmitting = false
-            return
-        }
-
-        let registerEndpoint = APIEndpoint.register(email: "example@gmail.com", provider: "google", token: "sample_token")
-        AF.request(
-            registerEndpoint.url,
-            method: registerEndpoint.method,
-            parameters: registerEndpoint.parameters,
-            encoding: JSONEncoding.default
-        ).response { response in
-            print(response)
-        }
-
-        // Alamofire 요청
-        AF.request(apiEndpoint.url, method: apiEndpoint.method, parameters: apiEndpoint.parameters, encoding: JSONEncoding.default)
-            .validate()
-            .response { response in
-                self.isSubmitting = false
-
-                switch response.result {
-                case .success:
-                    print("프로필 데이터 전송 성공")
-                    self.showSuccessAlert = true
-
-                case .failure(let error):
-                    print("프로필 데이터 전송 실패: \(error.localizedDescription)")
-                    if let statusCode = response.response?.statusCode {
-                        print("HTTP 상태 코드: \(statusCode)")
-                    }
-                    self.errorMessage = "프로필 데이터 저장 중 오류가 발생했습니다."
-                    self.showErrorAlert = true
-                }
-            }
-    }*/
     
     private func submitProfileData() {
         guard !nickname.isEmpty else {
@@ -197,8 +144,6 @@ struct ProfileView: View {
 
         // UserDefaults에서 idToken 가져오기
         let idToken = UserDefaults.standard.string(forKey: "idToken") ?? ""
-        print("ProfileView에서 불러온 idToken: \(idToken)")
-
         guard !idToken.isEmpty else {
             errorMessage = "로그인이 만료되었습니다. 다시 로그인해주세요."
             showErrorAlert = true
@@ -206,7 +151,6 @@ struct ProfileView: View {
             return
         }
 
-        // APIEndpoint 사용
         guard let email = signupData.email, !email.isEmpty else {
             errorMessage = "이메일 정보가 없습니다. 다시 로그인해주세요."
             showErrorAlert = true
@@ -214,84 +158,54 @@ struct ProfileView: View {
             return
         }
 
-        // 요청 데이터 구성
         let parameters: [String: Any] = [
             "email": email,
             "provider": "google",
-            "profileImage": "", // 기본값 하드코딩
-            "gender": signupData.gender ?? "MALE", // 기본값 하드코딩
-            "age": signupData.age ?? 0, // 없으면 기본값 0
-            "weight": signupData.weight ?? 0.0, // 없으면 기본값 0.0
-            "height": signupData.height ?? 0.0, // 없으면 기본값 0.0
-            "bio": "기본 bio", // 기본값 하드코딩
-            "weightClass": "FLY", // 기본값 하드코딩
-            "role": "ROLE_USER", // 기본값 하드코딩
-            "nickname": nickname, // 사용자가 입력한 닉네임
-            "idToken": idToken // UserDefaults에서 가져온 idToken
+            "profileImage": "",
+            "gender": signupData.gender ?? "MALE",
+            "age": signupData.age ?? 0,
+            "weight": signupData.weight ?? 0.0,
+            "height": signupData.height ?? 0.0,
+            "bio": "기본 bio",
+            "weightClass": "FLY",
+            "role": "ROLE_USER",
+            "nickname": nickname,
+            "idToken": idToken
         ]
 
-        // 디버깅 로그 추가
-        print("Sending to URL: http://3.34.46.87:8080/signup")
-        print("Parameters: \(parameters)")
-
-        // Alamofire 요청
         AF.request(
             "http://3.34.46.87:8080/signup",
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default
         )
-        .responseJSON { response in
-            self.isSubmitting = false
-
-            switch response.result {
-            case .success(let value):
-                // value는 Any 타입이므로 [String: Any]로 캐스팅 가능
-                if let data = value as? [String: Any],
-                   let accessToken = data["accessToken"] as? String {
-                    
-                    // Access Token을 UserDefaults에 저장
-                    UserDefaults.standard.setValue(accessToken, forKey: "accessToken")
-                    UserDefaults.standard.synchronize()
-                    
-                    // 이후 로직
-                    self.showSuccessAlert = true
-                } else {
-                    self.errorMessage = "Access Token이 존재하지 않습니다."
-                    self.showErrorAlert = true
-                }
-                
-            case .failure(let error):
-                self.errorMessage = "네트워크 요청 중 오류가 발생했습니다: \(error.localizedDescription)"
-                self.showErrorAlert = true
-            }
-        }
         .validate()
-        .response { response in
+        .responseDecodable(of: APIResponse<UserData>.self) { response in
             self.isSubmitting = false
-
-            // 서버 응답(Response)에서 받아온 JSON 예시
-            // 예시: {"accessToken": "...", "refreshToken": "..."}
             switch response.result {
-            case .success(let value):
-                if let data = value as? [String: Any],
-                   let accessToken = data["accessToken"] as? String {
-                    
-                    // Access Token을 UserDefaults에 저장
-                    UserDefaults.standard.setValue(accessToken, forKey: "accessToken")
-                    UserDefaults.standard.synchronize()
-                    
-                    // 이후 로직(성공 Alert 노출, 화면 전환 등)
+            case .success(let apiResponse):
+                guard let userData = apiResponse.data else {
+                    self.errorMessage = "유효하지 않은 응답입니다."
+                    self.showErrorAlert = true
+                    return
+                }
+                guard let accessToken = userData.accessToken else {
+                    self.errorMessage = "유효하지 않은 Access Token입니다."
+                    self.showErrorAlert = true
+                    return
+                }
+                
+                do {
+                    try TokenManager.shared.saveAccessToken(accessToken)
                     self.showSuccessAlert = true
-                } else {
-                    // 토큰이 없으면 에러 처리
-                    self.errorMessage = "Access Token이 존재하지 않습니다."
+                } catch {
+                    self.errorMessage = "토큰 저장 중 오류가 발생했습니다: \(error.localizedDescription)"
                     self.showErrorAlert = true
                 }
                 
             case .failure(let error):
-                // 에러 처리
-                self.errorMessage = "네트워크 요청 중 오류가 발생했습니다: \(error.localizedDescription)"
+                print("네트워크 요청 실패: \(error.localizedDescription)")
+                self.errorMessage = "프로필 데이터 저장 중 오류가 발생했습니다."
                 self.showErrorAlert = true
             }
         }

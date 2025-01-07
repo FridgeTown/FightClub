@@ -9,7 +9,7 @@ import Alamofire
 
 enum APIEndpoint {
     case logIn(email: String, provider: String, token: String)
-    case signup(email: String, provider: String, token: String) // signup 추가
+    case signup(email: String, provider: String, token: String)
     case getUserInfo
     case getUserRecommend
     case postMatchRequest(opponentID: String)
@@ -17,6 +17,7 @@ enum APIEndpoint {
     case postRejectRequest(matchID: String)
     case getPendingMatch
     case getNotificationSubscribe
+
     
     
     // 엔드 포인트
@@ -45,7 +46,7 @@ enum APIEndpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe:
             return .get
@@ -70,7 +71,7 @@ enum APIEndpoint {
     
     var header: HTTPHeaders? {
         switch self {
-        case .logIn:
+        case .logIn, .signup:
             return nil
         case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe:
             if let token = try? TokenManager.shared.getAccessToken() {

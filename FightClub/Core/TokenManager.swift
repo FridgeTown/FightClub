@@ -1,3 +1,10 @@
+//
+//  TokenManager.swift
+//  FightClub
+//
+//  Created by JiHoon Kim
+//
+
 import Foundation
 import Security
 
