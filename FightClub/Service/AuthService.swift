@@ -1,3 +1,10 @@
+//
+//  AuthService.swift
+//  FightClub
+//
+//  Created by JiHoon Kim
+//
+
 import Foundation
 import TalkPlus
 
@@ -47,13 +54,30 @@ class AuthService {
         }
     }
     
-//    func signUp(userData: UserSignUpData) async throws {
-        // TODO: API 구현
-        // let response = try await NetworkManager.shared.request(
-        //     .signUp(userData: userData)
-        // )
-        // try tokenManager.saveAccessToken(response.token)
-//    }
+    
+    func signUp(email: String, password: String) async throws -> [String: Any] {
+        // API 호출 엔드포인트 설정
+        let endpoint = APIEndpoint.signup(email: email, provider: "email", token: password)
+        
+        do {
+            // 비동기 네트워크 호출
+            let response: APIResponse<UserData> = try await NetworkManager.shared.request(endpoint)
+            
+            // 응답 처리
+            if response.status == 200 {
+                if let data = response.data {
+                    // 필요한 데이터 반환
+                    return ["userData": data]
+                } else {
+                    throw AuthError.unknown
+                }
+            } else {
+                throw AuthError.networkError
+            }
+        } catch {
+            throw error
+        }
+    }
     
     func validateToken() async throws -> Bool {
             let endPoint = APIEndpoint.getUserInfo
@@ -66,7 +90,7 @@ class AuthService {
                     if let user = response.data {
                         userDataManager.setUserData(user)
                         print("유저 데이터", user)
-                        print("ACCESS TOKEN", try TokenManager.shared.getAccessToken())
+                        print("ACCESS TOKEN", try TokenManager.shared.getAccessToken() ?? "NO TOKEN!!")
                         let params = TPLoginParams(loginType: TPLoginType.token, userId: user.id.toString())
                         params?.loginToken = user.chatToken
                         params?.userName = user.nickname

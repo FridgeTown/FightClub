@@ -106,7 +106,7 @@ class GoogleOAuthViewModel: ObservableObject {
             return
         }
 
-        let signInConfig = GIDConfiguration(clientID: "YOUR_CLIENT_ID")
+        _ = GIDConfiguration(clientID: "YOUR_CLIENT_ID")
 
         GIDSignIn.sharedInstance.signIn(
             withPresenting: presentingViewController
