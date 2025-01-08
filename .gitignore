@@ -20,16 +20,21 @@ playground.xcworkspace
 # Swift Package Manager
 #
 # Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
 
+# Xcode workspace
+*.xcworkspace/xcshareddata/
+*.xcworkspace/xcuserdata/
+
+# Build and DerivedData
+DerivedData/
 .build/
+build/
 
 # CocoaPods
 #
@@ -65,3 +70,18 @@ fastlane/test_output
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+*/build/*
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData/
+.idea/
