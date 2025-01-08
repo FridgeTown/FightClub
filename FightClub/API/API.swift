@@ -9,6 +9,7 @@ import Alamofire
 
 enum APIEndpoint {
     case logIn(email: String, provider: String, token: String)
+    case signup(email: String, provider: String, token: String)
     case getUserInfo
     case getUserRecommend
     case postMatchRequest(opponentID: String)
@@ -16,7 +17,6 @@ enum APIEndpoint {
     case postRejectRequest(matchID: String)
     case getPendingMatch
     case getNotificationSubscribe
-    
     
     // 엔드 포인트
     var url: String {
@@ -37,12 +37,14 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/match/pending"
         case .getNotificationSubscribe:
             return "http://3.34.46.87:8080/notification/subscribe"
+        case .signup:
+            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe:
             return .get
@@ -52,7 +54,11 @@ enum APIEndpoint {
     var parameters: Parameters? {
         switch self {
         case .logIn(let email, let provider, let idToken):
-            print(["email": email, "provider": provider, "idToken": idToken])
+            print("Sending logIn parameters:", ["email": email, "provider": provider, "idToken": idToken])
+            return ["email": email, "provider": provider, "idToken": idToken]
+            
+        case .signup(let email, let provider, let idToken): // signup의 매개변수 추가
+            print("Sending register parameters:", ["email": email, "provider": provider, "idToken": idToken])
             return ["email": email, "provider": provider, "idToken": idToken]
         case .getUserInfo:
             return nil
@@ -63,7 +69,7 @@ enum APIEndpoint {
     
     var header: HTTPHeaders? {
         switch self {
-        case .logIn:
+        case .logIn, .signup:
             return nil
         case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe:
             if let token = try? TokenManager.shared.getAccessToken() {
@@ -73,4 +79,3 @@ enum APIEndpoint {
         }
     }
 }
-

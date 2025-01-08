@@ -20,7 +20,8 @@ class HomeViewModel: ObservableObject {
     @Published private(set) var response: APIResponse<String?> = APIResponse(
         status: 0,
         message: "",
-        data: nil)
+        data: nil
+    )
     
     private let networkManager: NetworkManager
     

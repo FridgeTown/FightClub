@@ -8,15 +8,17 @@
 //  SignupFirstView.swift
 //  FightClub
 //
-//
+// 우선 Google 로그인을 기준으로 구현
 
 import SwiftUI
 
 struct SignupFirstView: View {
-    @State private var navigateToSecondView = false // 상태 추가
+    @Binding var path: [String] // 상위에서 경로를 바인딩 받도록 수정
+    @ObservedObject var signupData: SignupData // 상위에서 전달받은 SignupData 사용
+    @ObservedObject var googleAuthViewModel: GoogleOAuthViewModel // 상위에서 전달받은 ViewModel 사용
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
                 Color(red: 0.89, green: 0.1, blue: 0.1)
                     .ignoresSafeArea()
@@ -29,7 +31,7 @@ struct SignupFirstView: View {
                             .ignoresSafeArea(edges: .all)
                             .frame(width: geometry.size.width, height: geometry.size.height * 0.5)
                             .clipped()
-                        
+
                         Spacer()
 
                         Text("실력과 체급에 맞춰서\n안전하게 훈련하세요\n언제나 안전이 최우선입니다")
@@ -46,23 +48,51 @@ struct SignupFirstView: View {
                             .foregroundColor(.white)
 
                         FCButton("Next") {
-                            navigateToSecondView = true // 버튼 동작으로 화면 전환
+                            if let email = googleAuthViewModel.givenEmail {
+                                signupData.email = email
+                                print("Updated signupData.email in SignupFirstView: \(signupData.email ?? "nil")")
+                                path.append("SignupSecondView")
+                            } else {
+                                print("Error: googleAuthViewModel.givenEmail is nil")
+                                // 사용자에게 알림 표시 (예: Alert 또는 Log)
+                            }
                         }
                     }
                     .padding(.vertical, 20)
                 }
             }
+            .onAppear {
+                print("SignupFirstView - onAppear - googleAuthViewModel.givenEmail: \(googleAuthViewModel.givenEmail ?? "N/A")")
+                print("SignupFirstView - ViewModel Instance: \(Unmanaged.passUnretained(googleAuthViewModel).toOpaque())")
+            }
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $navigateToSecondView) {
-                SignupSecondView() // 두 번째 화면으로 이동
+            .navigationDestination(for: String.self) { view in
+                switch view {
+                case "SignupSecondView":
+                    SignupSecondView(signupData: signupData, path: $path)
+                case "SignupThirdView":
+                    SignupThirdView(signupData: signupData, path: $path)
+                case "SignupFourthView":
+                    SignupFourthView(signupData: signupData, path: $path)
+                case "SignupFifthView":
+                    SignupFifthView(signupData: signupData, path: $path)
+                case "ProfileView":
+                    ProfileView(signupData: signupData)
+                default:
+                    EmptyView()
+                }
             }
         }
     }
 }
-
 // 미리보기
 struct SignupFirstView_Previews: PreviewProvider {
+    @State static var path: [String] = [] // Dummy path for Preview
     static var previews: some View {
-        SignupFirstView()
+        SignupFirstView(
+            path: $path, // Provide the dummy path
+            signupData: SignupData(), // Provide a dummy SignupData instance
+            googleAuthViewModel: GoogleOAuthViewModel() // Provide a dummy GoogleOAuthViewModel instance
+        )
     }
 }
