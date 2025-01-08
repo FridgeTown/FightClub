@@ -10,17 +10,121 @@ import AVFoundation
 import LiveKit
 import KeychainAccess
 
+// 카메라 리 클래스
+class StreamingManager: ObservableObject {
+    static let shared = StreamingManager()
+    
+    let captureSession = AVCaptureSession()
+    let previewLayer: AVCaptureVideoPreviewLayer
+    
+    @Published var isStreaming = false
+    private var currentVideoTrack: LocalVideoTrack?
+    
+    private init() {
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        self.previewLayer.videoGravity = .resizeAspectFill
+        setupCaptureSession()
+        startPreviewSession()
+    }
+    
+    private func setupCaptureSession() {
+        captureSession.beginConfiguration()
+        captureSession.sessionPreset = .high
+        
+        // 후면 카메라 설정
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+            print("후면 카메라를 찾을 수 없습니다")
+            return
+        }
+        
+        do {
+            // 기존 입력/출력 제거
+            captureSession.inputs.forEach { captureSession.removeInput($0) }
+            captureSession.outputs.forEach { captureSession.removeOutput($0) }
+            
+            // 입력 설정
+            let input = try AVCaptureDeviceInput(device: device)
+            if captureSession.canAddInput(input) {
+                captureSession.addInput(input)
+            }
+            
+            // 출력 설정
+            let videoOutput = AVCaptureVideoDataOutput()
+            videoOutput.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
+            ]
+            if captureSession.canAddOutput(videoOutput) {
+                captureSession.addOutput(videoOutput)
+            }
+            
+            // 비디오 방향 설정
+            if let connection = videoOutput.connection(with: .video) {
+                if connection.isVideoOrientationSupported {
+                    connection.videoOrientation = .landscapeRight
+                }
+                if connection.isVideoMirroringSupported {
+                    connection.isVideoMirrored = false
+                }
+            }
+        } catch {
+            print("카메라 설정 오류: \(error)")
+        }
+        
+        captureSession.commitConfiguration()
+    }
+    
+    // 프리뷰 카메라 시작
+    func startPreviewSession() {
+        guard !captureSession.isRunning else { return }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.captureSession.startRunning()
+        }
+    }
+    
+    // 프리뷰 카메라 정지
+    func stopPreviewSession() {
+        guard captureSession.isRunning else { return }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.captureSession.stopRunning()
+        }
+    }
+    
+    func getCaptureSession() -> AVCaptureSession {
+        return captureSession
+    }
+}
+
+// LiveKit VideoView를 위한 SwiftUI 퍼
+struct LiveKitVideoView: UIViewRepresentable {
+    let publication: TrackPublication
+    
+    func makeUIView(context: Context) -> VideoView {
+        let videoView = VideoView()
+        videoView.track = publication.track as! any VideoTrack
+        return videoView
+    }
+    
+    func updateUIView(_ uiView: VideoView, context: Context) {
+        uiView.track = publication.track as! any VideoTrack
+    }
+}
+
 struct StreamingView: View {
     @EnvironmentObject var roomCtx: RoomContext
     @EnvironmentObject var appCtx: AppContext
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var streamingManager = StreamingManager.shared
     
-    @State private var isLiveStreaming = false
     @State private var isRoundActive = false
-    @State private var remainingTime: TimeInterval = 180 // 3 minutes
+    @State private var remainingTime: TimeInterval = 180
     @State private var timer: Timer?
     @State private var messages: [ChatMessage] = []
     @State private var newMessage = ""
+    
+    // 다이얼로그 상태
+    @State private var showStartStreamingAlert = false
+    @State private var showStopStreamingAlert = false
+    @State private var isLoading = false
     
     var httpService = HTTPClient()
     private let mainRed = Color("mainRed")
@@ -28,14 +132,43 @@ struct StreamingView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 카메라 프리뷰
-                CameraPreview(isLiveStreaming: $isLiveStreaming)
-                    .ignoresSafeArea()
+                // 카메라 프리뷰 (스트리밍 시작 전)
+                if !streamingManager.isStreaming {
+                    CameraPreview()
+                        .ignoresSafeArea()
+                }
+                
+                // LiveKit 비디오 트랙 (스트리밍 중)
+                if streamingManager.isStreaming,
+                   let publication = roomCtx.room.localParticipant.videoTracks.first {
+                    LiveKitVideoView(publication: publication)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .ignoresSafeArea()
+                }
                 
                 // 상단 오버레이
                 VStack {
+                    HStack {
+                        // 뒤로가기 버튼
+                        Button(action: {
+                            if streamingManager.isStreaming {
+                                showStopStreamingAlert = true
+                            } else {
+                                dismiss()
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .background(Circle().fill(Color.black.opacity(0.6)))
+                        }
+                        .padding(.leading, 20)
+                        
+                        Spacer()
+                    }
+                    
                     if isRoundActive {
-                        // 타이머 표시
                         Text(timeString(from: remainingTime))
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
@@ -51,7 +184,6 @@ struct StreamingView: View {
                             )
                             .shadow(color: .black.opacity(0.3), radius: 10)
                     }
-                    
                     Spacer()
                 }
                 .padding(.top, 40)
@@ -76,10 +208,8 @@ struct StreamingView: View {
                 VStack {
                     Spacer()
                     HStack(spacing: 30) {
-                        // 라운드 시작/종료 버튼
                         ControlButton(
-                            icon: isRoundActive ? "stop.circle.fill" : "play.circle.fill",
-                            color: isRoundActive ? .red : .green,
+                            text: isRoundActive ? "라운드 정지" : "라운드 시작",
                             action: {
                                 if isRoundActive {
                                     stopRound()
@@ -89,90 +219,153 @@ struct StreamingView: View {
                             }
                         )
                         
-                        // 라이브 스트리밍 시작/종료 버튼
                         ControlButton(
-                            icon: isLiveStreaming ? "record.circle.fill" : "record.circle",
-                            color: isLiveStreaming ? mainRed : .white,
+                            text: streamingManager.isStreaming ? "실시간 방송 정지" : "실시간 방송 시작",
                             action: {
-                                if isLiveStreaming {
-                                    stopLiveStreaming()
+                                if streamingManager.isStreaming {
+                                    showStopStreamingAlert = true
                                 } else {
-                                    startLiveStreaming()
+                                    showStartStreamingAlert = true
                                 }
                             }
                         )
                     }
                     .padding(.bottom, 40)
                 }
-            }
-        }
-        .onAppear {
-            // 가로 방향으로 강제 회전
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
-                    if error != nil {
-                        print("Failed to update geometry to landscape")
-                    }
+                
+                // 로딩 인디케이터
+                if isLoading {
+                    Color.black.opacity(0.5)
+                        .edgesIgnoringSafeArea(.all)
+                    ProgressView("방송 연결 중...")
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .foregroundColor(.white)
                 }
             }
-            AppDelegate.orientationLock = .landscape
+        }
+        .alert("실시간 방송 시작", isPresented: $showStartStreamingAlert) {
+            Button("취소", role: .cancel) { }
+            Button("시작") {
+                startLiveStreaming()
+            }
+        } message: {
+            Text("실시간 방송을 시작하시겠습니까?")
+        }
+        .alert("실시간 방송 종료", isPresented: $showStopStreamingAlert) {
+            Button("취소", role: .cancel) { }
+            Button("종료", role: .destructive) {
+                stopLiveStreaming()
+            }
+        } message: {
+            Text("실시간 방송을 종료하시겠습니까?")
+        }
+        .onAppear {
+            StreamingManager.shared.startPreviewSession()
+            setupLandscapeOrientation()
         }
         .onDisappear {
             stopRound()
-            // 세로 방향으로 복귀
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
-                    if error != nil {
-                        print("Failed to update geometry to portrait")
-                    }
-                }
+            if streamingManager.isStreaming {
+                stopLiveStreaming()
             }
-            AppDelegate.orientationLock = .all
+            setupPortraitOrientation()
         }
         .ignoresSafeArea()
     }
     
-    private var chatOverlay: some View {
-        VStack(spacing: 0) {
-            // 채팅 헤더
-            Text("실시간 채팅")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.5))
+    // LiveKit 연결 및 스트리밍 시작
+    private func startLiveStreaming() {
+        Task {
+            isLoading = true
+            // LiveKit 연결
+            await connectToRoom()
+            isLoading = false
             
-            // 채팅 메시지
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(messages) { message in
-                        ChatBubble(message: message)
-                            .padding(.horizontal, 8)
-                    }
-                }
-                .padding(.vertical, 8)
-            }
-            
-            // 메시지 입력
-            HStack(spacing: 8) {
-                TextField("메시지 입력...", text: $newMessage)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 14))
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(mainRed)
-                }
-            }
-            .padding(8)
-            .background(Color.black.opacity(0.3))
+            // 스트리밍 상태 업데이트
+            streamingManager.isStreaming = true
         }
+    }
+    
+    // LiveKit 연결 해제 및 스트리밍 종료
+    private func stopLiveStreaming() {
+        Task {
+            // LiveKit 카메라 비활성화 및 연결 해제
+            let localParticipant = roomCtx.room.localParticipant
+            await localParticipant.unpublishAll()
+            await roomCtx.disconnect()
+            
+            // 프리뷰 카메라 재시작
+            StreamingManager.shared.startPreviewSession()
+            
+            // 스트리밍 상태 업데이트
+            streamingManager.isStreaming = false
+        }
+    }
+    
+    // LiveKit 룸 연결
+    private func connectToRoom() async {
+        let livekitUrl = "wss://openvidufightclubsubdomain.click"
+        let roomName = "myRoom"
+        let participantName = "myMac"
+        let applicationServerUrl = "http://43.201.27.173:6080"
+        
+        do {
+            // 1. 토큰 획득
+            let token = try await httpService.getToken(
+                applicationServerUrl: applicationServerUrl,
+                roomName: roomName,
+                participantName: participantName)
+            
+            guard !token.isEmpty else {
+                print("Received empty token")
+                return
+            }
+            
+            // 2. Room 설정
+            roomCtx.token = token
+            roomCtx.livekitUrl = livekitUrl
+            roomCtx.name = roomName
+            
+            // 3. Room 연결
+            try await roomCtx.connect()
+            
+            // 4. LiveKit 카메라 활성화 (후면 카메라)
+            let localParticipant = roomCtx.room.localParticipant
+            try await localParticipant.setCamera    (enabled: true, captureOptions: CameraCaptureOptions(position: .back))
+            
+            print("LiveKit room connected and camera enabled")
+        } catch {
+            print("Failed to connect to room: \(error)")
+            streamingManager.isStreaming = false
+        }
+    }
+    
+    // 화면 방향 설정 함수들
+    private func setupLandscapeOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+                if error != nil {
+                    print("Failed to update geometry to landscape")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .landscape
+    }
+    
+    private func setupPortraitOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
+                if error != nil {
+                    print("Failed to update geometry to portrait")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .all
     }
     
     private func startRound() {
         isRoundActive = true
-        remainingTime = 180 // 3분
+        remainingTime = 180
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if remainingTime > 0 {
                 remainingTime -= 1
@@ -194,25 +387,38 @@ struct StreamingView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
     
-    private func startLiveStreaming() {
-        Task {
-            await connectToRoom()
-            isLiveStreaming = true
-        }
-    }
-    
-    private func stopLiveStreaming() {
-        Task {
-            // 카메라 비활성화
-            let localParticipant = roomCtx.room.localParticipant
-            try? await localParticipant.setCamera(enabled: false)
-            // 룸 연결 해제
-            await roomCtx.disconnect()
+    private var chatOverlay: some View {
+        VStack(spacing: 0) {
+            Text("실시간 채팅")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.5))
             
-            // 프리뷰 카메라 재시작
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isLiveStreaming = false
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(messages) { message in
+                        ChatBubble(message: message)
+                            .padding(.horizontal, 8)
+                    }
+                }
+                .padding(.vertical, 8)
             }
+            
+            HStack(spacing: 8) {
+                TextField("메시지 입력...", text: $newMessage)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(size: 14))
+                
+                Button(action: sendMessage) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(mainRed)
+                }
+            }
+            .padding(8)
+            .background(Color.black.opacity(0.3))
         }
     }
     
@@ -222,68 +428,58 @@ struct StreamingView: View {
         messages.append(message)
         newMessage = ""
     }
+}
+
+struct CameraPreview: View {
+    var body: some View {
+        CameraPreviewRepresentable()
+    }
+}
+
+struct CameraPreviewRepresentable: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: UIScreen.main.bounds)
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        let previewLayer = StreamingManager.shared.previewLayer
+        previewLayer.frame = view.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.connection?.videoOrientation = .landscapeRight
+        
+        view.layer.addSublayer(previewLayer)
+        
+        return view
+    }
     
-    private func connectToRoom() async {
-        let livekitUrl = "wss://openvidufightclubsubdomain.click"
-        let roomName = "myRoom"
-        let participantName = "myMac"
-        let applicationServerUrl = "http://43.201.27.173:6080"
-
-        guard !livekitUrl.isEmpty, !roomName.isEmpty else {
-            print("LiveKit URL or room name is empty")
-            return
-        }
-
-        do {
-            let token = try await httpService.getToken(
-                applicationServerUrl: applicationServerUrl, 
-                roomName: roomName,
-                participantName: participantName)
-
-            if token.isEmpty {
-                print("Received empty token")
-                return
-            }
-
-            roomCtx.token = token
-            roomCtx.livekitUrl = livekitUrl
-            roomCtx.name = roomName
-            
-            print("Connecting to room...")
-            try await roomCtx.connect()
-            
-            // 비디오 트랙 설정
-            let localParticipant = roomCtx.room.localParticipant
-            try await localParticipant.setCamera(enabled: true)
-            
-            print("Room connected and camera enabled")
-        } catch {
-            print("Failed to connect to room: \(error)")
+    func updateUIView(_ uiView: UIView, context: Context) {
+        DispatchQueue.main.async {
+            let previewLayer = StreamingManager.shared.previewLayer
+            previewLayer.frame = uiView.bounds
+            previewLayer.connection?.videoOrientation = .landscapeRight
         }
     }
 }
 
 struct ControlButton: View {
-    let icon: String
-    let color: Color
+    let text: String
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .resizable()
-                .frame(width: 60, height: 60)
-                .foregroundColor(color)
-                .padding(12)
+            Text(text)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
                 .background(
-                    Circle()
-                        .fill(Color.black.opacity(0.6))
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color("mainRed"))
                         .overlay(
-                            Circle()
-                                .stroke(color.opacity(0.5), lineWidth: 2)
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
                         )
                 )
-                .shadow(color: color.opacity(0.3), radius: 10)
+                .shadow(color: .black.opacity(0.3), radius: 10)
         }
     }
 }
@@ -316,93 +512,6 @@ struct ChatBubble: View {
             
             if !message.isFromCurrentUser {
                 Spacer()
-            }
-        }
-    }
-}
-
-struct CameraPreview: View {
-    @Binding var isLiveStreaming: Bool
-    
-    var body: some View {
-        CameraPreviewRepresentable(isLiveStreaming: $isLiveStreaming)
-            .edgesIgnoringSafeArea(.all)
-    }
-}
-
-struct CameraPreviewRepresentable: UIViewRepresentable {
-    @Binding var isLiveStreaming: Bool
-    let captureSession = AVCaptureSession()
-    let previewLayer: AVCaptureVideoPreviewLayer
-    
-    init(isLiveStreaming: Binding<Bool>) {
-        self._isLiveStreaming = isLiveStreaming
-        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        
-        // 세션 설정을 초기화 시점에 수행
-        setupCaptureSession()
-    }
-    
-    private func setupCaptureSession() {
-        // HD 해상도 설정
-        captureSession.sessionPreset = .high
-        
-        // 후면 카메라 명시적 설정
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
-            print("후면 카메라를 찾을 수 없습니다")
-            return
-        }
-        
-        do {
-            // 기존 입력 제거
-            captureSession.inputs.forEach { captureSession.removeInput($0) }
-            
-            let input = try AVCaptureDeviceInput(device: device)
-            if captureSession.canAddInput(input) {
-                captureSession.addInput(input)
-            }
-            
-            // 백그라운드에서 세션 시작
-            DispatchQueue.global(qos: .userInitiated).async {
-                if !captureSession.isRunning {
-                    captureSession.startRunning()
-                }
-            }
-        } catch {
-            print("카메라 설정 오류: \(error.localizedDescription)")
-        }
-    }
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-        
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.connection?.videoOrientation = .landscapeRight
-        
-        view.layer.addSublayer(previewLayer)
-        
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {
-        DispatchQueue.main.async {
-            previewLayer.frame = uiView.bounds
-            previewLayer.connection?.videoOrientation = .landscapeRight
-            
-            // LiveStreaming 상태에 따라 카메라 프리뷰 세션 제어
-            if isLiveStreaming {
-                if captureSession.isRunning {
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        captureSession.stopRunning()
-                    }
-                }
-            } else {
-                if !captureSession.isRunning {
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        captureSession.startRunning()
-                    }
-                }
             }
         }
     }

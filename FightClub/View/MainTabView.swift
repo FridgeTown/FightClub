@@ -27,11 +27,12 @@ struct MainTabView: View {
                 }
                 .tag(1)
             
-            profileSection
+            liveSections
                 .tag(2)
-                
             recordSection
                 .tag(3)
+            profileSection
+                .tag(4)
         }
         .tint(.red)
         .onAppear {
@@ -44,11 +45,11 @@ struct MainTabView: View {
     }
     
     // MARK: - Views
-    private var profileSection: some View {
-        LiveListViewDemo()
-        .tabItem {
-            Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
-        }
+    private var liveSections: some View {
+        LiveListView()
+            .tabItem {
+                Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
+            }
     }
     
     private var recordSection: some View {
@@ -56,6 +57,13 @@ struct MainTabView: View {
             .tabItem {
                 Label("기록", systemImage: "figure.boxing.circle.fill")
             }
+    }
+    
+    private var profileSection: some View {
+        LiveListViewDemo()
+        .tabItem {
+            Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
+        }
     }
 }
 
