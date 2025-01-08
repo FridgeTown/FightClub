@@ -166,7 +166,7 @@ struct ProfileView: View {
             "age": signupData.age ?? 0,
             "weight": signupData.weight ?? 0.0,
             "height": signupData.height ?? 0.0,
-            "bio": "기본 bio",
+            "bio": "자기소개를 입력해보세요!",
             "weightClass": "FLY",
             "role": "ROLE_USER",
             "nickname": nickname,

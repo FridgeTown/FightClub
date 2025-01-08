@@ -29,9 +29,12 @@ struct MainTabView: View {
             
             profileSection
                 .tag(2)
-                
+            
             recordSection
                 .tag(3)
+            
+            myProfileSection // My Profile 섹션 추가
+                .tag(4)
         }
         .tint(.red)
         .onAppear {
@@ -46,15 +49,22 @@ struct MainTabView: View {
     // MARK: - Views
     private var profileSection: some View {
         LiveListView()
-        .tabItem {
-            Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
-        }
+            .tabItem {
+                Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
+            }
     }
     
     private var recordSection: some View {
         RecordListView()
             .tabItem {
                 Label("기록", systemImage: "figure.boxing.circle.fill")
+            }
+    }
+    
+    private var myProfileSection: some View { // My Profile 섹션 추가
+        MyProfileView()
+            .tabItem {
+                Label("내 프로필", systemImage: "person.circle.fill")
             }
     }
 }
