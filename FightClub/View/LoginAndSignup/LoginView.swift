@@ -8,13 +8,40 @@
 import SwiftUI
 import GoogleSignInSwift
 import AuthenticationServices
+//import GoogleSignIn
+
+class SignupData: ObservableObject {
+    @Published var gender: String? = nil
+    @Published var age: Int? = nil
+    @Published var weight: Float? = nil
+    @Published var height: Float? = nil
+    @Published var nickname: String? = nil
+    @Published var email: String? = nil // email 추가
+    @Published var provider: String? = nil // provider 추가
+    
+    func toDictionary() -> [String: Any] {
+        return [
+            "gender": gender ?? "",
+            "age": age ?? 0,
+            "weight": weight ?? 0.0,
+            "height": height ?? 0.0,
+            "nickname": nickname ?? "",
+            "email": email ?? "",
+            "provider": provider ?? ""
+        ]
+    }
+} // 이후에 UserModel로 대체
 
 struct LoginView: View {
-    @StateObject private var viewModel = GoogleOAuthViewModel()
+    @StateObject var googleAuthViewModel = GoogleOAuthViewModel()
     @StateObject private var appleSignInCoordinator = AppleSignInCoordinator()
+    @StateObject private var signupData = SignupData()
     @State private var showMainView = false
     @State private var showSignupView = false
     
+    // path 추가
+    @State private var path: [String] = [] // NavigationStack 경로 관리
+
     var body: some View {
         ZStack {
             Color(red: 0.89, green: 0.1, blue: 0.1)
@@ -37,9 +64,17 @@ struct LoginView: View {
 
                 VStack(spacing: 20) {
                     GoogleSignInButton(scheme: .light, style: .wide) {
-                        viewModel.signIn()
-                    }.frame(width: 200, height: 40)
-                    
+                        googleAuthViewModel.signIn()
+                        Task {
+                            while googleAuthViewModel.givenEmail == nil {
+                                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms 대기
+                            }
+                            signupData.email = googleAuthViewModel.givenEmail
+                            print("Updated signupData.email in LoginView: \(signupData.email ?? "nil")")
+                            showSignupView = true
+                        }
+                    }
+                    .frame(width: 200, height: 40)
                     
                     SignInWithAppleButton(
                         onRequest: { request in
@@ -54,18 +89,24 @@ struct LoginView: View {
                                     } else {
                                         appleSignInCoordinator.email = appleIDCredential.user
                                     }
-                                        if let tokenData = appleIDCredential.identityToken,
-                                           let token = String(data: tokenData, encoding: .utf8) {
-                                            appleSignInCoordinator.oauthUserData.idToken = token
-                                            appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
-                                            
-                                            Task {
-                                                await appleSignInCoordinator.checkUserRegistration(email: appleSignInCoordinator.email!, provider: "apple", idToken: token)
-                                            }
+                                    if let tokenData = appleIDCredential.identityToken,
+                                       let token = String(data: tokenData, encoding: .utf8) {
+                                        appleSignInCoordinator.oauthUserData.idToken = token
+                                        appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
+                                        
+                                        // Save idToken to UserDefaults
+                                        UserDefaults.standard.set(token, forKey: "idToken")
+                                        Task {
+                                            await appleSignInCoordinator.checkUserRegistration(
+                                                email: appleSignInCoordinator.email!,
+                                                provider: "apple",
+                                                idToken: token
+                                            )
                                         }
+                                    }
                                 }
                             case .failure(let error):
-                                appleSignInCoordinator.errorMessage = "로그인 실패: \(error.localizedDescription)"
+                                print("Apple Sign-In failed: \(error.localizedDescription)")
                             }
                         }
                     )
@@ -80,9 +121,13 @@ struct LoginView: View {
             MainTabView()
         }
         .fullScreenCover(isPresented: $showSignupView) {
-            SignupFirstView()
+            SignupFirstView(
+                path: $path, // path 전달
+                signupData: signupData,
+                googleAuthViewModel: googleAuthViewModel
+            )
         }
-        .onChange(of: viewModel.authState) { oldState, newState in
+        .onChange(of: googleAuthViewModel.authState) { oldState, newState in
             switch newState {
             case .registered:
                 showMainView = true

@@ -40,8 +40,11 @@ struct HomeView: View {
         .onAppear {
             Task {
                 await viewModel.getUsers()
-                if let profile = viewModel.users.data {
-                    profiles = profile
+                if let usersData = viewModel.users.data {
+                    profiles = usersData
+                } else {
+                    print("서버에서 데이터를 받아오지 못했습니다.")
+                    profiles = [] // 기본값으로 빈 배열 설정
                 }
             }
         }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "50230cc07ece13b9c9a40344568ac928a07d7a39f21b135c8eac55a071cd0bcc",
+  "originHash" : "615d11d892f67e60440076a19a94bc1cf6af3d4d4f6e2f48ce8c2458ed0c8124",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -180,6 +180,7 @@
         "revision" : "ebc7251dd5b37f627c93698e4374084d98409633",
         "version" : "1.28.2"
       }
+<<<<<<< HEAD
     },
     {
       "identity" : "talkplus-ios-release",
@@ -198,6 +199,8 @@
         "revision" : "e43fe60fddd27e2d88ba0568ac2a2a15591b3063",
         "version" : "125.6422.11"
       }
+=======
+>>>>>>> 1b57895 (Save changes before switching branches)
     }
   ],
   "version" : 3
