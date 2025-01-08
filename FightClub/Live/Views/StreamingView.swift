@@ -23,70 +23,86 @@ struct StreamingView: View {
     @State private var newMessage = ""
     
     var httpService = HTTPClient()
+    private let mainRed = Color("mainRed")
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 // 카메라 프리뷰
-                CameraPreview()
+                CameraPreview(isLiveStreaming: $isLiveStreaming)
                     .ignoresSafeArea()
                 
-                // 채팅 오버레이
+                // 상단 오버레이
                 VStack {
                     if isRoundActive {
                         // 타이머 표시
                         Text(timeString(from: remainingTime))
-                            .font(.largeTitle)
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
-                            .padding()
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 20)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.black.opacity(0.6))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(mainRed, lineWidth: 2)
+                                    )
+                            )
+                            .shadow(color: .black.opacity(0.3), radius: 10)
                     }
                     
                     Spacer()
-                    
-                    // 채팅 영역
-                    HStack {
-                        Spacer()
-                        chatOverlay
-                            .frame(width: geometry.size.width * 0.3)
-                            .background(Color.black.opacity(0.5))
-                    }
+                }
+                .padding(.top, 40)
+                
+                // 채팅 오버레이
+                HStack {
+                    Spacer()
+                    chatOverlay
+                        .frame(width: geometry.size.width * 0.3)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.black.opacity(0.7))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .padding(.trailing, 20)
                 }
                 
                 // 컨트롤 버튼들
                 VStack {
                     Spacer()
-                    HStack {
+                    HStack(spacing: 30) {
                         // 라운드 시작/종료 버튼
-                        Button(action: {
-                            if isRoundActive {
-                                stopRound()
-                            } else {
-                                startRound()
+                        ControlButton(
+                            icon: isRoundActive ? "stop.circle.fill" : "play.circle.fill",
+                            color: isRoundActive ? .red : .green,
+                            action: {
+                                if isRoundActive {
+                                    stopRound()
+                                } else {
+                                    startRound()
+                                }
                             }
-                        }) {
-                            Image(systemName: isRoundActive ? "stop.circle.fill" : "play.circle.fill")
-                                .resizable()
-                                .frame(width: 60, height: 60)
-                                .foregroundColor(isRoundActive ? .red : .green)
-                        }
-                        .padding()
+                        )
                         
                         // 라이브 스트리밍 시작/종료 버튼
-                        Button(action: {
-                            if isLiveStreaming {
-                                stopLiveStreaming()
-                            } else {
-                                startLiveStreaming()
+                        ControlButton(
+                            icon: isLiveStreaming ? "record.circle.fill" : "record.circle",
+                            color: isLiveStreaming ? mainRed : .white,
+                            action: {
+                                if isLiveStreaming {
+                                    stopLiveStreaming()
+                                } else {
+                                    startLiveStreaming()
+                                }
                             }
-                        }) {
-                            Image(systemName: isLiveStreaming ? "radio.fill" : "radio")
-                                .resizable()
-                                .frame(width: 60, height: 60)
-                                .foregroundColor(isLiveStreaming ? .red : .white)
-                        }
-                        .padding()
+                        )
                     }
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 40)
                 }
             }
         }
@@ -117,26 +133,40 @@ struct StreamingView: View {
     }
     
     private var chatOverlay: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // 채팅 헤더
+            Text("실시간 채팅")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.5))
+            
+            // 채팅 메시지
             ScrollView {
-                LazyVStack(alignment: .leading) {
+                LazyVStack(alignment: .leading, spacing: 8) {
                     ForEach(messages) { message in
                         ChatBubble(message: message)
+                            .padding(.horizontal, 8)
                     }
                 }
+                .padding(.vertical, 8)
             }
-            .padding()
             
-            HStack {
+            // 메시지 입력
+            HStack(spacing: 8) {
                 TextField("메시지 입력...", text: $newMessage)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(size: 14))
                 
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .foregroundColor(.blue)
+                        .font(.system(size: 24))
+                        .foregroundColor(mainRed)
                 }
             }
-            .padding()
+            .padding(8)
+            .background(Color.black.opacity(0.3))
         }
     }
     
@@ -172,8 +202,18 @@ struct StreamingView: View {
     }
     
     private func stopLiveStreaming() {
-        isLiveStreaming = false
-        // 스트리밍 중지 로직
+        Task {
+            // 카메라 비활성화
+            let localParticipant = roomCtx.room.localParticipant
+            try? await localParticipant.setCamera(enabled: false)
+            // 룸 연결 해제
+            await roomCtx.disconnect()
+            
+            // 프리뷰 카메라 재시작
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isLiveStreaming = false
+            }
+        }
     }
     
     private func sendMessage() {
@@ -185,9 +225,9 @@ struct StreamingView: View {
     
     private func connectToRoom() async {
         let livekitUrl = "wss://openvidufightclubsubdomain.click"
-        let roomName = "myroom"
-        let participantName = "powerades"
-        let applicationServerUrl = "http://3.35.169.28:6080"
+        let roomName = "myRoom"
+        let participantName = "myMac"
+        let applicationServerUrl = "http://43.201.27.173:6080"
 
         guard !livekitUrl.isEmpty, !roomName.isEmpty else {
             print("LiveKit URL or room name is empty")
@@ -214,13 +254,36 @@ struct StreamingView: View {
             
             // 비디오 트랙 설정
             let localParticipant = roomCtx.room.localParticipant
-            
-            // 카메라 활성화
             try await localParticipant.setCamera(enabled: true)
             
             print("Room connected and camera enabled")
         } catch {
             print("Failed to connect to room: \(error)")
+        }
+    }
+}
+
+struct ControlButton: View {
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .resizable()
+                .frame(width: 60, height: 60)
+                .foregroundColor(color)
+                .padding(12)
+                .background(
+                    Circle()
+                        .fill(Color.black.opacity(0.6))
+                        .overlay(
+                            Circle()
+                                .stroke(color.opacity(0.5), lineWidth: 2)
+                        )
+                )
+                .shadow(color: color.opacity(0.3), radius: 10)
         }
     }
 }
@@ -233,6 +296,7 @@ struct ChatMessage: Identifiable {
 
 struct ChatBubble: View {
     let message: ChatMessage
+    private let mainRed = Color("mainRed")
     
     var body: some View {
         HStack {
@@ -241,10 +305,14 @@ struct ChatBubble: View {
             }
             
             Text(message.text)
-                .padding()
-                .background(message.isFromCurrentUser ? Color.blue : Color.gray)
+                .font(.system(size: 14))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(message.isFromCurrentUser ? mainRed : Color.gray.opacity(0.3))
+                )
                 .foregroundColor(.white)
-                .cornerRadius(15)
             
             if !message.isFromCurrentUser {
                 Spacer()
@@ -254,56 +322,87 @@ struct ChatBubble: View {
 }
 
 struct CameraPreview: View {
+    @Binding var isLiveStreaming: Bool
+    
     var body: some View {
-        CameraPreviewRepresentable()
+        CameraPreviewRepresentable(isLiveStreaming: $isLiveStreaming)
             .edgesIgnoringSafeArea(.all)
     }
 }
 
 struct CameraPreviewRepresentable: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+    @Binding var isLiveStreaming: Bool
+    let captureSession = AVCaptureSession()
+    let previewLayer: AVCaptureVideoPreviewLayer
+    
+    init(isLiveStreaming: Binding<Bool>) {
+        self._isLiveStreaming = isLiveStreaming
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         
-        let captureSession = AVCaptureSession()
-        
+        // 세션 설정을 초기화 시점에 수행
+        setupCaptureSession()
+    }
+    
+    private func setupCaptureSession() {
         // HD 해상도 설정
         captureSession.sessionPreset = .high
         
+        // 후면 카메라 명시적 설정
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
-            print("카메라를 찾을 수 없습니다")
-            return view
+            print("후면 카메라를 찾을 수 없습니다")
+            return
         }
         
         do {
+            // 기존 입력 제거
+            captureSession.inputs.forEach { captureSession.removeInput($0) }
+            
             let input = try AVCaptureDeviceInput(device: device)
             if captureSession.canAddInput(input) {
                 captureSession.addInput(input)
             }
             
-            let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-            previewLayer.frame = view.bounds
-            previewLayer.videoGravity = .resizeAspectFill
-            previewLayer.connection?.videoOrientation = .landscapeRight
-            
-            view.layer.addSublayer(previewLayer)
-            
             // 백그라운드에서 세션 시작
             DispatchQueue.global(qos: .userInitiated).async {
-                captureSession.startRunning()
+                if !captureSession.isRunning {
+                    captureSession.startRunning()
+                }
             }
-            
         } catch {
             print("카메라 설정 오류: \(error.localizedDescription)")
         }
+    }
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+        
+        previewLayer.frame = view.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.connection?.videoOrientation = .landscapeRight
+        
+        view.layer.addSublayer(previewLayer)
         
         return view
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
         DispatchQueue.main.async {
-            if let previewLayer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
-                previewLayer.frame = uiView.bounds
-                previewLayer.connection?.videoOrientation = .landscapeRight
+            previewLayer.frame = uiView.bounds
+            previewLayer.connection?.videoOrientation = .landscapeRight
+            
+            // LiveStreaming 상태에 따라 카메라 프리뷰 세션 제어
+            if isLiveStreaming {
+                if captureSession.isRunning {
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        captureSession.stopRunning()
+                    }
+                }
+            } else {
+                if !captureSession.isRunning {
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        captureSession.startRunning()
+                    }
+                }
             }
         }
     }
