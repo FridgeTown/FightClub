@@ -110,10 +110,12 @@ struct LiveKitVideoView: UIViewRepresentable {
 }
 
 struct StreamingView: View {
+    @StateObject private var viewModel: StreamingViewModel
     @EnvironmentObject var roomCtx: RoomContext
     @EnvironmentObject var appCtx: AppContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var streamingManager = StreamingManager.shared
+    let channelId: String
     
     @State private var isRoundActive = false
     @State private var remainingTime: TimeInterval = 180
@@ -125,9 +127,17 @@ struct StreamingView: View {
     @State private var showStartStreamingAlert = false
     @State private var showStopStreamingAlert = false
     @State private var isLoading = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
     
     var httpService = HTTPClient()
     private let mainRed = Color("mainRed")
+    
+    init(viewModel: StreamingViewModel = DIContainer.shared.makeStreamViewModel(),
+         channelId: String) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.channelId = channelId
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -154,6 +164,7 @@ struct StreamingView: View {
                             if streamingManager.isStreaming {
                                 showStopStreamingAlert = true
                             } else {
+                                setupPortraitOrientation()  // 세로 모드로 전환
                                 dismiss()
                             }
                         }) {
@@ -255,9 +266,18 @@ struct StreamingView: View {
             Button("취소", role: .cancel) { }
             Button("종료", role: .destructive) {
                 stopLiveStreaming()
+                setupPortraitOrientation()  // 세로 모드로 전환
+                dismiss()
             }
         } message: {
             Text("실시간 방송을 종료하시겠습니까?")
+        }
+        .alert("라이브 스트리밍 오류", isPresented: $showErrorAlert) {
+            Button("확인") {
+                dismiss()
+            }
+        } message: {
+            Text(errorMessage)
         }
         .onAppear {
             StreamingManager.shared.startPreviewSession()
@@ -268,7 +288,7 @@ struct StreamingView: View {
             if streamingManager.isStreaming {
                 stopLiveStreaming()
             }
-            setupPortraitOrientation()
+            setupPortraitOrientation()  // 화면이 사라질 때도 세로 모드로 전환
         }
         .ignoresSafeArea()
     }
@@ -277,12 +297,22 @@ struct StreamingView: View {
     private func startLiveStreaming() {
         Task {
             isLoading = true
-            // LiveKit 연결
-            await connectToRoom()
-            isLoading = false
+            print("channelID", channelId)
             
-            // 스트리밍 상태 업데이트
-            streamingManager.isStreaming = true
+//            await viewModel.postLiveStream(channelId: channelId, place: "")
+            
+            // response의 status로 성공 여부 확인
+//            if viewModel.response.status == 200 {  // 또는 실제 API 응답의 성공 상태값
+                await connectToRoom()
+                streamingManager.isStreaming = true
+//            } else {
+//                await MainActor.run {
+//                    errorMessage = "라이브 스트리밍을 시작할 수 없습니다. (\(viewModel.errorMessage ?? "알 수 없는 오류"))"
+//                    showErrorAlert = true
+//                }
+//            }
+            
+            isLoading = false
         }
     }
     
@@ -356,7 +386,7 @@ struct StreamingView: View {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
                 if error != nil {
-                    print("Failed to update geometry to portrait")
+                    print("Failed to update geometry: \(error.localizedDescription ?? "")")
                 }
             }
         }
@@ -527,7 +557,7 @@ struct StreamingView_Previews: PreviewProvider {
         let roomContext = RoomContext(store: store)
         let appContext = AppContext(store: store)
         
-        StreamingView()
+        StreamingView(channelId: "12345")
             .environmentObject(roomContext)
             .environmentObject(appContext)
     }

@@ -34,11 +34,11 @@ struct LiveListViewDemo: View {
                 Button("방송 송출 하기 ") {
                     isStreamingViewActive = true
                 }
-                .fullScreenCover(isPresented: $isStreamingViewActive) {
-                    StreamingView()
-                        .environmentObject(roomContext)
-                        .environmentObject(appContext)
-                }
+//                .fullScreenCover(isPresented: $isStreamingViewActive) {
+//                    StreamingView()
+//                        .environmentObject(roomContext)
+//                        .environmentObject(appContext)
+//                }
                 Button("방송 시청 하기 ") {
                     
                 }

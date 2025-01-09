@@ -12,8 +12,18 @@ struct LiveWatchView: View {
                              default: preferences)
         return RoomContext(store: store)
     }()
+    
+    // State properties
     @State private var isLoading = false
     @State private var connectionError: String?
+    @State private var isConnected = false
+    @State private var videoTrack: VideoTrack?
+    
+    // Constants
+    private let livekitUrl = "wss://openvidufightclubsubdomain.click"
+    private let roomName = "myRoom"
+    private let applicationServerUrl = "http://43.201.27.173:6080"
+    private let participantName = "viewer_\(Int.random(in: 1000...9999))"
     
     var httpService = HTTPClient()
     
@@ -40,9 +50,20 @@ struct LiveWatchView: View {
         }
         .navigationTitle("라이브 시청")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { connectToRoom() }
+        .onAppear {
+            Task {
+                do {
+                    try await connectToRoom()
+                } catch {
+                    print("Failed to connect: \(error)")
+                    connectionError = error.localizedDescription
+                }
+            }
+        }
         .onDisappear {
-            Task { await roomCtx.disconnect() }
+            Task {
+                await roomCtx.disconnect()
+            }
         }
     }
     
@@ -50,9 +71,9 @@ struct LiveWatchView: View {
     
     private var mainContentView: some View {
         Group {
-            if let streamer = roomCtx.room.remoteParticipants.values.first,  // 첫 번째 참가자(스트리머)
-               let publication = streamer.videoTracks.first,  // �트리머의 첫 번째 비디오 트랙
-               let track = publication.track as? VideoTrack {
+            if isLoading {
+                LoadingView()
+            } else if let track = videoTrack {
                 ZStack {
                     SwiftUIVideoView(track, layoutMode: .fit)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -61,7 +82,9 @@ struct LiveWatchView: View {
                     videoControlsOverlay
                 }
             } else {
-                waitingView
+                // 연결은 됐지만 비디오가 없는 경우
+                Text("스트리밍이 준비되지 않았습니다.")
+                    .foregroundColor(.gray)
             }
         }
     }
@@ -146,7 +169,13 @@ struct LiveWatchView: View {
                     .padding()
                 
                 Button("다시 시도") {
-                    connectToRoom()
+                    Task {
+                        do {
+                            try await connectToRoom()
+                        } catch {
+                            print("Retry failed: \(error)")
+                        }
+                    }
                 }
                 .foregroundColor(.white)
                 .padding()
@@ -172,62 +201,54 @@ struct LiveWatchView: View {
     
     // MARK: - 네트워크 연결
     
-    private func connectToRoom() {
-        Task {
-            isLoading = true
-            connectionError = nil
+    private func connectToRoom() async throws {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            // 1. 토큰 획득
+            let token = try await httpService.getToken(
+                applicationServerUrl: applicationServerUrl,
+                roomName: roomName,
+                participantName: participantName)
             
-            let livekitUrl = "wss://openvidufightclubsubdomain.click"
-            let roomName = "myRoom"
-            let participantName = "viewer_\(Int.random(in: 1000...9999))"
-            let applicationServerUrl = "http://43.201.27.173:6080"
-            
-            do {
-                print("Connecting to room: \(roomName) as \(participantName)")
-                
-                // 1. 토큰 획득
-                let token = try await httpService.getToken(
-                    applicationServerUrl: applicationServerUrl,
-                    roomName: roomName,
-                    participantName: participantName)
-                
-                guard !token.isEmpty else {
-                    connectionError = "토큰을 받아올 수 없습니다."
-                    isLoading = false
-                    return
-                }
-                
-                print("Token received successfully")
-                
-                // 2. Room 설정
-                roomCtx.token = token
-                roomCtx.livekitUrl = livekitUrl
-                roomCtx.name = roomName
-                
-                // 3. Room 연결
-                try await roomCtx.connect()
-                
-                print("Room connected successfully")
-                
-                // 4. 스트리머 정보 출력
-                if let streamer = roomCtx.room.remoteParticipants.values.first {
-                    print("Streamer found - Identity: \(streamer.identity)")
-                    print("Video tracks count: \(streamer.videoTracks.count)")
-                    
-                    for track in streamer.videoTracks {
-                        print("Track info - Name: \(track.name), Kind: \(track.kind), Muted: \(track.isMuted)")
-                    }
-                } else {
-                    print("No streamer found in the room")
-                    connectionError = "스트리머를 찾을 수 없습니다."
-                }
-                
-            } catch {
-                print("Connection error: \(error)")
-                connectionError = error.localizedDescription
+            guard !token.isEmpty else {
+                throw NSError(domain: "", code: -1, 
+                            userInfo: [NSLocalizedDescriptionKey: "Empty token received"])
             }
             
-            isLoading = false
+            // 2. Room 설정
+            roomCtx.token = token
+            roomCtx.livekitUrl = livekitUrl
+            roomCtx.name = roomName
+            
+            // 3. Room 연결
+            try await roomCtx.connect()
+            isConnected = true
+            
+            // 4. 비디오 트랙 찾기
+            await findVideoTrack()
+            
+        } catch {
+            print("Connection error: \(error)")
+            connectionError = error.localizedDescription
+            isConnected = false
+            throw error
+        }
+    }
+    
+    private func findVideoTrack() async {
+        // 비디오 트랙을 찾을 때까지 몇 번 시도
+        for _ in 0..<5 {
+            if let participant = roomCtx.room.remoteParticipants.values.first,
+               let publication = participant.videoTracks.first,
+               let track = publication.track as? VideoTrack {
+                await MainActor.run {
+                    self.videoTrack = track
+                }
+                return
+            }
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1초 대기
         }
     }
 }

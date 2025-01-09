@@ -9,9 +9,7 @@ import SwiftUI
 
 struct LiveListView: View {
     @State private var liveList: [LiveListModel] = [
-        LiveListModel(matchId: 0, title: "김현영 VS 이동인", thumbNail: "", place: "경기체고 복싱장"),
-        LiveListModel(matchId: 0, title: "김남훈 VS 윤석열", thumbNail: "", place: "테이큰 광교"),
-        LiveListModel(matchId: 0, title: "야스나리 케이스케 VS 김현우", thumbNail: "", place: "킵고잉 복싱장 영통")
+        LiveListModel(matchId: 0, title: "김지훈 VS 김남훈", thumbNail: "", place: "경기대학교")
     ]
     
     var body: some View {

@@ -1,5 +1,6 @@
 import SwiftUI
 import TalkPlus
+import KeychainAccess
 
 // MARK: - Main View
 struct ChatRoomView: View {
@@ -11,11 +12,25 @@ struct ChatRoomView: View {
     @State private var scrollProxy: ScrollViewProxy? = nil
     @State private var keyboardHeight: CGFloat = 0
     @State private var isViewAppeared = false
+    @State private var showStreamingView = false
+    
+    // LiveKit Context 추가
+    @StateObject private var roomContext: RoomContext
+    @StateObject private var appContext: AppContext
     
     // MARK: - Initialization
     init(tpChannel: TPChannel) {
         self.tpChannel = tpChannel
         _delegate = StateObject(wrappedValue: ChatRoomDelegate(channelId: tpChannel.getId()))
+        
+        // LiveKit Context 초기화
+        let preferences = Preferences()
+        let keychain = Keychain(service: "com.fightclub.app")
+        let store = ValueStore(store: keychain, 
+                             key: "preferences",
+                             default: preferences)
+        _roomContext = StateObject(wrappedValue: RoomContext(store: store))
+        _appContext = StateObject(wrappedValue: AppContext(store: store))
     }
     
     // MARK: - Body
@@ -62,7 +77,29 @@ struct ChatRoomView: View {
                                 .foregroundColor(Color.mainRed)
                         }
                     }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            setupLandscapeOrientation()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                showStreamingView = true
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "video.fill")
+                                Text("Live")
+                            }
+                            .foregroundColor(Color.mainRed)
+                        }
+                    }
                 }
+            }
+            .fullScreenCover(isPresented: $showStreamingView, onDismiss: {
+                setupPortraitOrientation()
+            }) {
+                StreamingView(channelId: tpChannel.getId())
+                    .environmentObject(roomContext)
+                    .environmentObject(appContext)
             }
         }
         .task {
@@ -174,6 +211,28 @@ struct ChatRoomView: View {
         } failure: { (errorCode, error) in
             messageText = currentText
         }
+    }
+    
+    private func setupLandscapeOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+                if error != nil {
+                    print("Failed to update geometry: \(error.localizedDescription ?? "")")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .landscape
+    }
+    
+    private func setupPortraitOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
+                if error != nil {
+                    print("Failed to update geometry: \(error.localizedDescription ?? "")")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .all
     }
 }
 

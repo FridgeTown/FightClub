@@ -55,6 +55,7 @@ struct Tab2View: View {
     @State private var showFullList = false
     @State private var showChatRoom = false
     @State private var selectedChannel: TPChannel?
+    @State private var isLoadingChatRoom = false
     private let talkPlusHandler = TalkPlusChannelHandler()
     
     // MARK: - Body
@@ -97,13 +98,30 @@ struct Tab2View: View {
         .sheet(isPresented: $showFullList) {
             fullListSheet
         }
-        .sheet(isPresented: $showChatRoom, onDismiss: {
-            Task {
-                await chatViewModel.getChatList()  // 채팅방에서 나올 때 목록 갱신
-            }
-        }) {
+        .sheet(isPresented: $showChatRoom) {
             if let channel = selectedChannel {
                 ChatRoomView(tpChannel: channel)
+                    .onAppear {
+                        // 채팅방이 나타날 때 로딩 상태 해제
+                        isLoadingChatRoom = false
+                    }
+                    .onDisappear {
+                        selectedChannel = nil
+                        Task {
+                            await chatViewModel.getChatList()
+                        }
+                    }
+            }
+        }
+        .overlay {
+            if isLoadingChatRoom {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .overlay(
+                        ProgressView()
+                            .scaleEffect(1.2)
+                            .tint(.white)
+                    )
             }
         }
         .onAppear {
@@ -142,11 +160,6 @@ struct Tab2View: View {
     }
     
     // MARK: - Actions
-    private func presentChatRoom(_ tpChannel: TPChannel) {
-        selectedChannel = tpChannel
-        showChatRoom = true
-    }
-    
     private func handleMatchAccepted() {
         Task {
             // 약간의 딜레이 후 채팅 목록 갱신
@@ -207,6 +220,19 @@ struct Tab2View: View {
                 .navigationBarItems(
                     trailing: Button("닫기") { showFullList = false }
                 )
+        }
+    }
+    
+    private func presentChatRoom(_ tpChannel: TPChannel) {
+        // 1. 로딩 상태 시작
+        isLoadingChatRoom = true
+        
+        // 2. 채널 설정
+        selectedChannel = tpChannel
+        
+        // 3. 메인 스레드에서 UI 업데이트
+        DispatchQueue.main.async {
+            showChatRoom = true
         }
     }
 }

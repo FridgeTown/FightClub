@@ -30,4 +30,9 @@ class DIContainer {
         let networkManager = NetworkManager.shared
         return MatchRequestModel(networkManager: networkManager)
     }
+    
+    func makeStreamViewModel() -> StreamingViewModel {
+        let networkManager = NetworkManager.shared
+        return StreamingViewModel(networkManager: networkManager)
+    }
 }
