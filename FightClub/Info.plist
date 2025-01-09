@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>복싱 동작을 녹화하고 분석하기 위해 카메라 접근 권한이 필요합니다.</string>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-	<string>NO</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -17,6 +13,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<string>NO</string>
 	<key>GIDClientID</key>
 	<string>706992104238-cjnh97q7gacedjjgnlh84fb415qig5k7.apps.googleusercontent.com</string>
 	<key>NSAppTransportSecurity</key>

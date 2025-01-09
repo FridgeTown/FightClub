@@ -80,7 +80,6 @@ struct ChatRowView: View {
 
 struct ChatListView: View {
     @StateObject private var viewModel = ChatListViewModel()
-    @State private var selectedChannel: TPChannel?
     
     var body: some View {
         NavigationView {
@@ -107,17 +106,7 @@ struct ChatListView: View {
                                 .padding(.top, 100)
                         } else {
                             ForEach(viewModel.channels) { channel in
-                                NavigationLink(
-                                    destination: ChatRoomView(tpChannel: viewModel.getTPChannel(for: channel.id)!)
-                                        .navigationBarHidden(true)
-                                        .onDisappear {
-                                            Task {
-                                                await viewModel.getChannels()
-                                            }
-                                        }
-                                ) {
-                                    ChatRowView(channel: channel)
-                                }
+                                ChatRowView(channel: channel)
                             }
                         }
                     }

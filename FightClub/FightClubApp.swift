@@ -13,6 +13,7 @@ import UserNotifications
 import TalkPlus
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+    static var orientationLock = UIInterfaceOrientationMask.all
     private var pendingFCMToken: String?
     private var apnsTokenReceived = false
     
@@ -132,6 +133,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 }
             }
         }
+    
+    // 화면 방향 제어를 위한 메서드 추가
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return AppDelegate.orientationLock
+    }
 }
 
 @main

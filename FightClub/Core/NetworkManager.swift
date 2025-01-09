@@ -22,8 +22,9 @@ class NetworkManager: NetworkManagerProtocol {
         let data = try await AF.request(endpoint.url,
                                         method: endpoint.method,
                                         parameters: endpoint.parameters,
-                                        encoding: JSONEncoding.default
-                                        //headers: endpoint.headers
+
+                                        encoding: JSONEncoding.default,
+                                        headers: endpoint.header
         ).serializingData()
         .value
         

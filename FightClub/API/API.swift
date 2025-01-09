@@ -17,8 +17,7 @@ enum APIEndpoint {
     case postRejectRequest(matchID: String)
     case getPendingMatch
     case getNotificationSubscribe
-
-    
+    case postLiveStart(channelId: String, place: String)
     
     // 엔드 포인트
     var url: String {
@@ -41,12 +40,16 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/match/pending"
         case .getNotificationSubscribe:
             return "http://3.34.46.87:8080/notification/subscribe"
+        case .signup:
+            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
+        case .postLiveStart:
+            return "http://3.34.46.87:8080/live/start"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe:
             return .get
@@ -66,6 +69,8 @@ enum APIEndpoint {
             return nil
         case .getUserRecommend, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .getPendingMatch, .getNotificationSubscribe:
             return nil
+        case .postLiveStart(let channelId, let place):
+            return ["place": "asdasd", "channelId": channelId, "title": "tests"]
         }
     }
     
@@ -73,7 +78,7 @@ enum APIEndpoint {
         switch self {
         case .logIn, .signup:
             return nil
-        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }

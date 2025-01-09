@@ -1,5 +1,6 @@
 import SwiftUI
 import TalkPlus
+import KeychainAccess
 
 // MARK: - Main View
 struct ChatRoomView: View {
@@ -11,60 +12,105 @@ struct ChatRoomView: View {
     @State private var scrollProxy: ScrollViewProxy? = nil
     @State private var keyboardHeight: CGFloat = 0
     @State private var isViewAppeared = false
+    @State private var showStreamingView = false
+    
+    // LiveKit Context 추가
+    @StateObject private var roomContext: RoomContext
+    @StateObject private var appContext: AppContext
     
     // MARK: - Initialization
     init(tpChannel: TPChannel) {
         self.tpChannel = tpChannel
         _delegate = StateObject(wrappedValue: ChatRoomDelegate(channelId: tpChannel.getId()))
+        
+        // LiveKit Context 초기화
+        let preferences = Preferences()
+        let keychain = Keychain(service: "com.fightclub.app")
+        let store = ValueStore(store: keychain, 
+                             key: "preferences",
+                             default: preferences)
+        _roomContext = StateObject(wrappedValue: RoomContext(store: store))
+        _appContext = StateObject(wrappedValue: AppContext(store: store))
     }
     
     // MARK: - Body
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                if !isViewAppeared || !delegate.isInitialized {
-                    LoadingView()
-                } else if delegate.messages.isEmpty {
-                    EmptyMessageView()
-                } else {
-                    messageList
-                }
+            ZStack {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
                 
-                Divider()
-                MessageInputField(text: $messageText, onSend: sendMessage)
-                    .padding(.vertical, 8)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Image("profile_placeholder")
-                            .resizable()
-                            .frame(width: 36, height: 36)
-                            .clipShape(Circle())
-                        
-                        Text(tpChannel.getName() ?? "")
-                            .font(.headline)
+                VStack(spacing: 0) {
+                    if !isViewAppeared || !delegate.isInitialized {
+                        LoadingView()
+                    } else if delegate.messages.isEmpty {
+                        EmptyMessageView()
+                    } else {
+                        messageList
                     }
+                    
+                    Divider()
+                    MessageInputField(text: $messageText, onSend: sendMessage)
+                        .padding(.vertical, 8)
                 }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 20, weight: .semibold))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        HStack {
+                            Image("profile_placeholder")
+                                .resizable()
+                                .frame(width: 36, height: 36)
+                                .clipShape(Circle())
+                            
+                            Text(tpChannel.getName() ?? "")
+                                .font(.headline)
+                        }
+                    }
+                    
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            print("ChatRoomView - Dismissing")
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(Color.mainRed)
+                        }
+                    }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            setupLandscapeOrientation()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                showStreamingView = true
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "video.fill")
+                                Text("Live")
+                            }
                             .foregroundColor(Color.mainRed)
+                        }
                     }
                 }
+            }
+            .fullScreenCover(isPresented: $showStreamingView, onDismiss: {
+                setupPortraitOrientation()
+            }) {
+                StreamingView(channelId: tpChannel.getId())
+                    .environmentObject(roomContext)
+                    .environmentObject(appContext)
             }
         }
-        .onAppear {
+        .task {
+            print("ChatRoomView - Task started")
             isViewAppeared = true
             setupKeyboardNotifications()
+            print("ChatRoomView - Loading initial messages")
             delegate.loadInitialMessages(for: tpChannel)
         }
         .onDisappear {
+            print("ChatRoomView - Disappearing")
             cleanupKeyboardNotifications()
         }
     }
@@ -84,6 +130,12 @@ struct ChatRoomView: View {
             .onAppear {
                 scrollProxy = proxy
                 scrollToBottom()
+                TalkPlus.sharedInstance()?.mark(asRead: tpChannel,
+                                                success: { tpChannel in
+                    // SUCCESS
+                }, failure: { (errorCode, error) in
+                    // FAILURE
+                })
             }
             .onChange(of: delegate.messages) { _ in
                 scrollToLastMessage()
@@ -159,6 +211,28 @@ struct ChatRoomView: View {
         } failure: { (errorCode, error) in
             messageText = currentText
         }
+    }
+    
+    private func setupLandscapeOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+                if error != nil {
+                    print("Failed to update geometry: \(error.localizedDescription ?? "")")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .landscape
+    }
+    
+    private func setupPortraitOrientation() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
+                if error != nil {
+                    print("Failed to update geometry: \(error.localizedDescription ?? "")")
+                }
+            }
+        }
+        AppDelegate.orientationLock = .all
     }
 }
 
@@ -241,28 +315,47 @@ class ChatRoomDelegate: NSObject, TPChannelDelegate, ObservableObject {
     @Published var isInitialized = false
     
     init(channelId: String) {
+        print("ChatRoomDelegate - Initializing with channel ID: \(channelId)")
         self.channelId = channelId
         super.init()
+        print("ChatRoomDelegate - Adding delegate")
         TalkPlus.sharedInstance()?.add(self, tag: channelId)
     }
     
     deinit {
+        print("ChatRoomDelegate - Deinitializing")
         TalkPlus.sharedInstance()?.removeChannelDelegate(channelId)
     }
     
     func loadInitialMessages(for channel: TPChannel) {
+        print("ChatRoomDelegate - Loading messages for channel: \(channel.getId())")
         let params = TPMessageRetrievalParams(channel: channel)
         params?.orderby = .orderByLatest
         
+        print("ChatRoomDelegate - Calling TalkPlus.getMessages")
         TalkPlus.sharedInstance()?.getMessages(params, success: { [weak self] tpMessages, hasNext in
-            guard let self = self,
-                  let tpMessages = tpMessages else { return }
+            print("ChatRoomDelegate - getMessages success callback")
+            guard let self = self else {
+                print("ChatRoomDelegate - Self is nil")
+                return
+            }
             
+            guard let tpMessages = tpMessages else {
+                print("ChatRoomDelegate - Messages is nil")
+                DispatchQueue.main.async {
+                    self.isInitialized = false
+                }
+                return
+            }
+            
+            print("ChatRoomDelegate - Successfully loaded \(tpMessages.count) messages")
             DispatchQueue.main.async {
                 self.messages = Array(tpMessages.reversed())
                 self.isInitialized = true
+                print("ChatRoomDelegate - Updated messages and initialized state")
             }
         }, failure: { [weak self] (errorCode, error) in
+            print("ChatRoomDelegate - Failed to load messages: \(errorCode), \(String(describing: error))")
             DispatchQueue.main.async {
                 self?.isInitialized = false
             }
@@ -270,10 +363,15 @@ class ChatRoomDelegate: NSObject, TPChannelDelegate, ObservableObject {
     }
     
     func messageReceived(_ tpChannel: TPChannel, message: TPMessage) {
-        guard tpChannel.getId() == channelId else { return }
+        guard tpChannel.getId() == channelId else {
+            print("ChatRoomDelegate - Received message for different channel")
+            return
+        }
         
+        print("ChatRoomDelegate - Received new message")
         DispatchQueue.main.async {
             self.messages.append(message)
+            print("ChatRoomDelegate - Added new message to list")
         }
     }
     

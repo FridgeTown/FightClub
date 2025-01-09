@@ -296,13 +296,4 @@ struct StatLabel: View {
     }
 }
 
-//struct SwipeView_Previews: PreviewProvider {
-//    @State static private var profiles: [MatchUser] = [
-//        MatchUser(userId: 20, nicname: "james", height: 200, weight: 20, bio: "New to boxing", gender: "MALE", profileImg: ),
-//        ProfileCardModel(userId: "defdwsfewfes", name: "Michael Jackson", age: 50, pictures: [UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!,UIImage(named: "elon_musk")!,UIImage(named: "jeff_bezos")!], weightClass: "2A", record: (wins: 10, losses: 15), style: "킥", bio: "마짱뜨실분")
-//    ]
-//    
-//    static var previews: some View {
-//        SwipeView(profiles: $profiles, onSwiped: {_,_ in})
-//    }
-//}
+

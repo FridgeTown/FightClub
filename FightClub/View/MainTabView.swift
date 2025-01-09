@@ -27,7 +27,7 @@ struct MainTabView: View {
                 }
                 .tag(1)
             
-            profileSection
+            liveSections
                 .tag(2)
             
             recordSection
@@ -47,7 +47,7 @@ struct MainTabView: View {
     }
     
     // MARK: - Views
-    private var profileSection: some View {
+    private var liveSections: some View {
         LiveListView()
             .tabItem {
                 Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
@@ -66,7 +66,7 @@ struct MainTabView: View {
             .tabItem {
                 Label("내 프로필", systemImage: "person.circle.fill")
             }
-    }
+    }// 이 부분 수정요망
 }
 
 class NotificationHandler: ObservableObject {
