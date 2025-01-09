@@ -10,14 +10,12 @@ import SwiftUI
 struct SplashView: View {
     @StateObject private var viewModel = SplashViewModel()
     @State private var showMainView = false
-    @State private var showWelcomeView = false
+    @State private var showLoginView = false
     
     var body: some View {
         ZStack {
-            // 배경
             Color.background.ignoresSafeArea()
             
-            // 로고 및 로딩 인디케이터
             VStack(spacing: 20) {
                 Image("title_logo")
                     .resizable()
@@ -34,10 +32,12 @@ struct SplashView: View {
         .onAppear {
             checkAuthStatus()
         }
+        // isAuthenticated == true → MainTabView
         .fullScreenCover(isPresented: $showMainView) {
             MainTabView()
         }
-        .fullScreenCover(isPresented: $showWelcomeView) {
+        // isAuthenticated == false → LoginView
+        .fullScreenCover(isPresented: $showLoginView) {
             LoginView()
         }
     }
@@ -50,12 +50,13 @@ struct SplashView: View {
                     if isAuthenticated {
                         showMainView = true
                     } else {
-                        showWelcomeView = true
+                        showLoginView = true
                     }
                 }
             } catch {
+                // 에러 발생 시에도 로그인 화면으로
                 await MainActor.run {
-                    showWelcomeView = true
+                    showLoginView = true
                 }
             }
         }

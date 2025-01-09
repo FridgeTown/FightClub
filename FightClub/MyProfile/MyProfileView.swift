@@ -17,13 +17,17 @@ struct MyProfileView: View {
     @State private var selectedImage: UIImage? = nil
     @State private var isUpdatingImage = false
     @State private var showSuccessMessage = false
-    
+    // Alert 제어용 State
+    @State private var showLogoutAlert = false
+    // SplashView를 fullScreenCover로 띄울 때 쓰일 State
+    @State private var showSplashView = false
     var body: some View {
         Group {
             if isLoading {
                 ProgressView("Loading...")
             } else if let profile = profileData {
                 VStack(spacing: 20) {
+                    
                     // 프로필 이미지 렌더링
                     if let selectedImage = selectedImage {
                         Image(uiImage: selectedImage)
@@ -77,12 +81,25 @@ struct MyProfileView: View {
                         Text("체중: \(profile.weight ?? 0.0) kg")
                         Text("체급: \(profile.weightClass ?? "Not Found")")
                         Text("포인트: \(profile.points ?? 0)")
-                        //Text("심박수: \(profile.heartBeat) bpm")
-                        //Text("칼로리 소모량: \(profile.kcal) kcal")
-                        //Text("역할: \(profile.role)")
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // ------------ 로그아웃 버튼 추가 ------------
+                    Button(action: {
+                        // Alert를 표시하도록
+                        showLogoutAlert = true
+                    }) {
+                        Text("로그아웃")
+                            .foregroundColor(.red)
+                    }
+                    .padding(.top, 8)
+                    .alert("로그아웃 하시겠습니까?", isPresented: $showLogoutAlert) {
+                        Button("확인", role: .destructive) {
+                            logout()
+                        }
+                        Button("취소", role: .cancel) { }
+                    }
                     
                     Spacer()
                 }
@@ -112,18 +129,37 @@ struct MyProfileView: View {
                 case .success:
                     print("프로필 이미지 업로드 성공")
                     self.showSuccessMessage = true
-                    loadUserInfo() // 최신 프로필 데이터를 다시 가져옵니다.
+                    loadUserInfo() // 최신 프로필 데이터 다시 가져오기
                 case .failure(let error):
                     print("프로필 이미지 업로드 실패: \(error)")
                     self.errorMessage = error.localizedDescription
                 }
             }
         }
+        .fullScreenCover(isPresented: $showSplashView) {
+                    SplashView()
+                }
         .padding()
         .navigationTitle("내 프로필")
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    // MARK: - 로그아웃 로직
+    private func logout() {
+        do {
+            // TokenManager를 통해 로컬 토큰 삭제
+            try TokenManager.shared.clearAllTokens()
+            showSplashView = true // SplashView 표시
+            print("로그아웃: 토큰 삭제 완료")
+            // 여기서 혹은 상위 View에서,
+            // SplashView로 돌아가는 로직을 추가할 수도 있습니다.
+        } catch {
+            print("토큰 삭제 실패:", error)
+            self.errorMessage = "로그아웃 실패: \(error.localizedDescription)"
+        }
+    }
+    
+    // MARK: - 유저 정보 로드
     private func loadUserInfo() {
         fetchUserInfo { result in
             DispatchQueue.main.async {
@@ -139,7 +175,11 @@ struct MyProfileView: View {
         }
     }
 
-    private func updateProfileImage(image: UIImage, completion: @escaping (Result<Void, Error>) -> Void) {
+    // MARK: - 프로필 이미지 업데이트
+    private func updateProfileImage(
+        image: UIImage,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
         guard let url = URL(string: "http://3.34.46.87:8080/user/image") else {
             completion(.failure(URLError(.badURL)))
             return
@@ -177,7 +217,6 @@ struct MyProfileView: View {
         }, to: url, method: .post, headers: headers)
         .validate(statusCode: 200..<300)
         .responseDecodable(of: APIResponse<UserData?>.self) { response in
-            // 서버 응답 디버깅
             if let data = response.data, let responseString = String(data: data, encoding: .utf8) {
                 print("서버 응답 데이터: \(responseString)")
             } else {
@@ -188,7 +227,6 @@ struct MyProfileView: View {
                 print("HTTP 상태 코드: \(statusCode)")
             }
 
-            // 결과 처리
             switch response.result {
             case .success(let apiResponse):
                 print("응답 성공: \(apiResponse)")
