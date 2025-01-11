@@ -239,15 +239,17 @@ struct ChatRoomView: View {
 // MARK: - Loading View
 struct LoadingView: View {
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
             Spacer()
             ProgressView()
                 .scaleEffect(1.5)
-            Text("Loading messages...")
+            Text("메시지를 불러오는 중...")
+                .font(.subheadline)
                 .foregroundColor(.gray)
-                .padding(.top)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
 }
 
@@ -398,12 +400,23 @@ class ChatRoomDelegate: NSObject, TPChannelDelegate, ObservableObject {
 struct EmptyMessageView: View {
     var body: some View {
         VStack(spacing: 16) {
+            Spacer()
+            
             Image(systemName: "message.circle")
-                .font(.system(size: 50))
-                .foregroundColor(.gray)
+                .font(.system(size: 60))
+                .foregroundColor(.gray.opacity(0.5))
+            
             Text("아직 대화가 없습니다")
                 .font(.headline)
                 .foregroundColor(.gray)
+            
+            Text("첫 메시지를 보내보세요!")
+                .font(.subheadline)
+                .foregroundColor(.gray.opacity(0.8))
+            
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
 }

@@ -8,28 +8,49 @@
 import SwiftUI
 
 struct LiveListView: View {
-    @State private var liveList: [LiveListModel] = [
-        LiveListModel(matchId: 0, title: "김지훈 VS 김남훈", thumbNail: "", place: "경기대학교")
-    ]
+    @StateObject private var viewModel: LiveListViewModel
+    @State private var liveList: [LiveListModel] = []
+    
+    init(viewModel: LiveListViewModel = DIContainer.shared.makeLiveListModel()) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(liveList) { live in
-                    NavigationLink(destination: LiveWatchView(live: live)) {
-                        LiveListRowView(live: live)
+            ZStack {
+                Color(.systemBackground).edgesIgnoringSafeArea(.all)
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if let lives = viewModel.liveList.data, !lives.isEmpty {
+                    List {
+                        ForEach(lives) { live in
+                            NavigationLink(destination: LiveWatchView(live: live)) {
+                                LiveListRowView(live: live)
+                            }
+                            .listRowBackground(Color.clear)
+                        }
                     }
+                    .listStyle(.plain)
+                } else {
+                    LiveEmptyStateView()
                 }
             }
             .navigationTitle("실시간 매치")
             .navigationBarTitleDisplayMode(.large)
-            .listStyle(.plain)
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchLiveList()
+            }
         }
     }
 }
 
 struct LiveListRowView: View {
-    var live: LiveListModel
+    let live: LiveListModel
+    
     var body: some View {
         HStack(spacing: 12) {
             // 썸네일 이미지
@@ -44,7 +65,6 @@ struct LiveListRowView: View {
                     .font(.headline)
                     .foregroundColor(.primary)
                 
-                // 위치 정보
                 HStack {
                     Image(systemName: "location.fill")
                         .foregroundColor(.gray)
@@ -56,17 +76,34 @@ struct LiveListRowView: View {
             
             Spacer()
             
-            // 라이브 표시
             Text("LIVE")
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color.red)
+                .background(Color.mainRed)
                 .clipShape(Capsule())
         }
         .padding(.vertical, 8)
+    }
+}
+
+struct LiveEmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "video.slash")
+                .font(.system(size: 50))
+                .foregroundColor(.gray)
+            
+            Text("현재 진행 중인 라이브가 없습니다")
+                .font(.headline)
+                .foregroundColor(.gray)
+            
+            Text("나중에 다시 확인해주세요")
+                .font(.subheadline)
+                .foregroundColor(.gray.opacity(0.8))
+        }
     }
 }
 

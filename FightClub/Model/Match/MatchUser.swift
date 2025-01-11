@@ -15,5 +15,6 @@ struct MatchUser: Decodable {
     let bio: String
     let gender: String
     let profileImg: String
+    let weightClass: String?
 }
 

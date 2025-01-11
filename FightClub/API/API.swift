@@ -18,6 +18,8 @@ enum APIEndpoint {
     case getPendingMatch
     case getNotificationSubscribe
     case postLiveStart(channelId: String, place: String)
+    case getLiveList
+    case postEndLiveMatch(matchId: String) //방송 종료
     
     // 엔드 포인트
     var url: String {
@@ -42,14 +44,18 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
         case .postLiveStart:
             return "http://3.34.46.87:8080/live/start"
+        case .getLiveList:
+            return "http://3.34.46.87:8080/live/list"
+        case .postEndLiveMatch(let matchID):
+            return "http://3.34.46.87:8080/live/end/\(matchID)"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart, .postEndLiveMatch:
             return .post
-        case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe:
+        case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe, .getLiveList:
             return .get
         }
     }
@@ -67,8 +73,10 @@ enum APIEndpoint {
             return nil
         case .getUserRecommend, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .getPendingMatch, .getNotificationSubscribe:
             return nil
-        case .postLiveStart(let channelId, let place):
+        case .postLiveStart(let channelId, let _):
             return ["place": "asdasd", "channelId": channelId, "title": "tests"]
+        case .getLiveList, .postEndLiveMatch:
+            return nil
         }
     }
     
@@ -76,7 +84,7 @@ enum APIEndpoint {
         switch self {
         case .logIn, .signup:
             return nil
-        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart, .getLiveList, .postEndLiveMatch:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return ["Authorization": "Bearer \(token)"]
             }

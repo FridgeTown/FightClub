@@ -9,6 +9,7 @@ import SwiftUI
 import AVFoundation
 import LiveKit
 import KeychainAccess
+import Network
 
 // 카메라 리 클래스
 class StreamingManager: ObservableObject {
@@ -265,9 +266,14 @@ struct StreamingView: View {
         .alert("실시간 방송 종료", isPresented: $showStopStreamingAlert) {
             Button("취소", role: .cancel) { }
             Button("종료", role: .destructive) {
-                stopLiveStreaming()
-                setupPortraitOrientation()  // 세로 모드로 전환
-                dismiss()
+                Task {
+                    if await stopLiveStreaming() {
+                        setupPortraitOrientation()
+                        await MainActor.run {
+                            dismiss()
+                        }
+                    }
+                }
             }
         } message: {
             Text("실시간 방송을 종료하시겠습니까?")
@@ -286,9 +292,11 @@ struct StreamingView: View {
         .onDisappear {
             stopRound()
             if streamingManager.isStreaming {
-                stopLiveStreaming()
+                Task {
+                    await stopLiveStreaming()
+                }
             }
-            setupPortraitOrientation()  // 화면이 사라질 때도 세로 모드로 전환
+            setupPortraitOrientation()
         }
         .ignoresSafeArea()
     }
@@ -299,37 +307,67 @@ struct StreamingView: View {
             isLoading = true
             print("channelID", channelId)
             
-//            await viewModel.postLiveStream(channelId: channelId, place: "")
+            await viewModel.postLiveStream(channelId: channelId, place: "")
             
-            // response의 status로 성공 여부 확인
-//            if viewModel.response.status == 200 {  // 또는 실제 API 응답의 성공 상태값
+//             response의 status로 성공 여부 확인
+            if viewModel.response.status == 500 {  // 또는 실제 API 응답의 성공 상태값
+                print(self.viewModel.response.data?.id, "방송 id ")
                 await connectToRoom()
                 streamingManager.isStreaming = true
-//            } else {
-//                await MainActor.run {
-//                    errorMessage = "라이브 스트리밍을 시작할 수 없습니다. (\(viewModel.errorMessage ?? "알 수 없는 오류"))"
-//                    showErrorAlert = true
-//                }
-//            }
+            } else {
+                await MainActor.run {
+                    errorMessage = "라이브 스트리밍을 시작할 수 없습니다. (\(viewModel.errorMessage ?? "알 수 없는 오류"))"
+                    showErrorAlert = true
+                }
+            }
             
             isLoading = false
         }
     }
     
     // LiveKit 연결 해제 및 스트리밍 종료
-    private func stopLiveStreaming() {
-        Task {
-            // LiveKit 카메라 비활성화 및 연결 해제
-            let localParticipant = roomCtx.room.localParticipant
-            await localParticipant.unpublishAll()
-            await roomCtx.disconnect()
+    private func stopLiveStreaming() async -> Bool {
+        isLoading = true
+        
+        // 라이브 스트리밍 종료 API 호출
+        if let matchId = viewModel.response.data?.id {
+            await viewModel.postEndLiveStream(matchId: matchId)
             
-            // 프리뷰 카메라 재시작
-            StreamingManager.shared.startPreviewSession()
-            
-            // 스트리밍 상태 업데이트
-            streamingManager.isStreaming = false
+            if viewModel.response.status == 200 {
+                do {
+                    // 1. LiveKit 카메라 비활성화
+                    let localParticipant = roomCtx.room.localParticipant
+                    try await localParticipant.setCamera(enabled: false)
+                    await localParticipant.unpublishAll()
+                    
+                    // 2. LiveKit 연결 해제
+                    await roomCtx.disconnect()
+                    
+                    // 3. 캡처 세션 정지
+                    StreamingManager.shared.stopPreviewSession()
+                    
+                    // 4. 스트리밍 상태 업데이트
+                    streamingManager.isStreaming = false
+                    
+                    print("라이브 종료 완료")
+                    isLoading = false
+                    return true
+                } catch {
+                    print("카메라 비활성화 실패: \(error)")
+                    // 에러 발생 시에도 연결 해제 시도
+                    await roomCtx.disconnect()
+                    StreamingManager.shared.stopPreviewSession()
+                    streamingManager.isStreaming = false
+                    isLoading = false
+                    return true
+                }
+            } else {
+                print("카메라 비활성화 실패 ")
+            }
         }
+        
+        isLoading = false
+        return false
     }
     
     // LiveKit 룸 연결
@@ -562,3 +600,4 @@ struct StreamingView_Previews: PreviewProvider {
             .environmentObject(appContext)
     }
 }
+

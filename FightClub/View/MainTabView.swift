@@ -14,27 +14,32 @@ struct MainTabView: View {
     @StateObject private var notificationHandler = NotificationHandler()
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView()
-                .tabItem {
-                    Label("홈", systemImage: "flame.fill")
-                }
-                .tag(0)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem {
+                        Label("홈", systemImage: "flame.fill")
+                    }
+                    .tag(0)
+                
+                Tab2View()
+                    .tabItem {
+                        Label("채팅", systemImage: "message.fill")
+                    }
+                    .tag(1)
+                
+                liveSections
+                    .tag(2)
+                recordSection
+                    .tag(3)
+                profileSection
+                    .tag(4)
+            }
+            .tint(.red)
             
-            Tab2View()
-                .tabItem {
-                    Label("채팅", systemImage: "message.fill")
-                }
-                .tag(1)
-            
-            liveSections
-                .tag(2)
-            recordSection
-                .tag(3)
-            profileSection
-                .tag(4)
+            // 알림 오버레이 추가
+            NotificationOverlay()
         }
-        .tint(.red)
         .onAppear {
             NotificationService.shared.startService()
         }
@@ -62,7 +67,7 @@ struct MainTabView: View {
     private var profileSection: some View {
         LiveListViewDemo()
         .tabItem {
-            Label("LIVE", systemImage: "antenna.radiowaves.left.and.right")
+            Label("더보기", systemImage: "ellipsis")
         }
     }
 }

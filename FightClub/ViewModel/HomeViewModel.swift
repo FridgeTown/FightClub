@@ -1,7 +1,7 @@
 //
 //  HomeViewModel.swift
 //  FightClub
-//
+//1
 //  Created by Edward Lee on 12/30/24.
 //
 
@@ -34,9 +34,10 @@ class HomeViewModel: ObservableObject {
         isLoading = true
         do {
             users = try await networkManager.requestArray(.getUserRecommend)
-            print(users)
+            print("getUsers() in HomeViewModel:", users)
         } catch {
             errorMessage = error.localizedDescription
+            print("errorMessage", errorMessage)
         }
         isLoading = false
     }

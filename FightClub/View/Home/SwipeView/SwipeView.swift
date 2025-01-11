@@ -87,36 +87,56 @@ struct SwipeableCardView: View {
     var body: some View {
         SwipeCardView(model: model)
             .overlay(
-                HStack{
-                    Text(like).font(.largeTitle).bold().foregroundGradient(colors: [Color(hex: "6ceac5"), Color(hex: "16dba1")]).padding().overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(LinearGradient(gradient: .init(colors: [Color(hex: "6ceac5"), Color(hex: "16dba1")]),
+                HStack {
+                    Text(like)
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundGradient(colors: [Color(hex: "6ceac5"), Color(hex: "16dba1")])
+                        .padding()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(LinearGradient(gradient: .init(colors: [Color(hex: "6ceac5"), Color(hex: "16dba1")]),
                                                    startPoint: .topLeading,
                                                    endPoint: .bottomTrailing), lineWidth: 4)
-                    ).rotationEffect(.degrees(-30)).opacity(getLikeOpacity())
+                        )
+                        .rotationEffect(.degrees(-30))
+                        .opacity(getLikeOpacity())
                     Spacer()
-                    Text(nope).font(.largeTitle).bold().foregroundGradient(colors: [Color(hex: "ff6560"), Color(hex: "f83770")]).padding().overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(LinearGradient(gradient: .init(colors: [Color(hex: "ff6560"), Color(hex: "f83770")]),
+                    Text(nope)
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundGradient(colors: [Color(hex: "ff6560"), Color(hex: "f83770")])
+                        .padding()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(LinearGradient(gradient: .init(colors: [Color(hex: "ff6560"), Color(hex: "f83770")]),
                                                    startPoint: .topLeading,
                                                    endPoint: .bottomTrailing), lineWidth: 4)
-                    ).rotationEffect(.degrees(30)).opacity(getDislikeOpacity())
-
-                }.padding(.top, 45).padding(.leading, 20).padding(.trailing, 20)
-                ,alignment: .top)
+                        )
+                        .rotationEffect(.degrees(30))
+                        .opacity(getDislikeOpacity())
+                }
+                .padding(.top, 45)
+                .padding(.horizontal, 20),
+                alignment: .top
+            )
             .offset(x: self.dragOffset.width,y: self.dragOffset.height)
             .rotationEffect(.degrees(self.dragOffset.width * -0.06), anchor: .center)
-            .simultaneousGesture(DragGesture(minimumDistance: 0.0).onChanged{ value in
-                self.dragOffset = value.translation
-            }.onEnded{ value in
-                performDragEnd(value.translation)
-                print("onEnd: \(value.location)")
-            }).onChange(of: swipeAction, perform: { newValue in
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0.0)
+                    .onChanged { value in
+                        self.dragOffset = value.translation
+                    }
+                    .onEnded { value in
+                        performDragEnd(value.translation)
+                        print("onEnd: \(value.location)")
+                    }
+            )
+            .onChange(of: swipeAction) { oldValue, newValue in
                 if newValue != .doNothing {
                     performSwipe(newValue)
                 }
-                
-            })
+            }
     }
     
     private func performSwipe(_ swipeAction: SwipeAction){
@@ -197,86 +217,165 @@ struct SwipeCardView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            GeometryReader { geometry in
-                AsyncImage(url: URL(string: model.profileImg)) { phase in
-                    switch phase {
-                    case .empty:
-                        // 로딩 중일 때
-                        ProgressView()
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                    case .success(let image):
-                        // 이미지 로드 성공
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .clipped()
-                    case .failure(_):
-                        // 이미지 로드 실패
-                        Image(systemName: "person.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: geometry.size.width * 0.5)
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .background(Color.gray.opacity(0.3))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-            }
-            
-            // 프로필 정보 오버레이
-            VStack {
-                Spacer()
-                
-                // 프로필 정보
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(model.nickname)
-                            .font(.title)
-                            .fontWeight(.bold)
-//                        Text("나이")
-//                            .font(.title2)
-//                            .fontWeight(.medium)
-                        Spacer()
-                    }
-                    
-                    // 복싱 스탯
-                    HStack(spacing: 15) {
-                        StatLabel(title: "체중", value: "\(model.weight)")
-                        StatLabel(title: "키", value: "\(model.height)")
-                    }
-                    .padding(.top, 4)
-                    
-                    // 자기소개
-                    if !model.bio.isEmpty {
-                        Text(model.bio)
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.9))
-                            .lineLimit(2)
-                            .padding(.top, 4)
-                    }
-                }
-                .padding()
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [.clear, .black.opacity(0.8)]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .foregroundColor(.white)
-            }
+            CardBackgroundView(model: model)
+            CardContentView(model: model)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .aspectRatio(0.7, contentMode: .fit)
-        .background(.white)
+        .background(Color("card_background"))
         .cornerRadius(15)
         .shadow(color: Color.mainRed.opacity(0.2), radius: 10)
         .overlay(
             RoundedRectangle(cornerRadius: 15)
                 .stroke(Color.mainRed.opacity(0.1), lineWidth: 1)
         )
+    }
+}
+
+struct CardBackgroundView: View {
+    let model: MatchUser
+    
+    var body: some View {
+        GeometryReader { geometry in
+            AsyncImage(url: URL(string: model.profileImg)) { phase in
+                switch phase {
+                case .empty:
+                    ProgressView()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                case .failure(_):
+                    Image(systemName: "person.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: geometry.size.width * 0.5)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .background(Color.gray.opacity(0.3))
+                @unknown default:
+                    EmptyView()
+                }
+            }
+        }
+    }
+}
+
+struct CardContentView: View {
+    let model: MatchUser
+    
+    var body: some View {
+        VStack {
+//            WeightClassBadge(weightClass: model.weightClass)
+            Spacer()
+            ProfileInfoView(model: model)
+        }
+    }
+}
+
+struct WeightClassBadge: View {
+    let weightClass: String
+    
+    var body: some View {
+        HStack {
+            Spacer()
+            Text(weightClass)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.mainRed)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white, lineWidth: 1.5)
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+        }
+        .padding(.top, 16)
+        .padding(.trailing, 16)
+    }
+}
+
+struct ProfileInfoView: View {
+    let model: MatchUser
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(model.nickname)
+                    .font(.title)
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            
+            BoxingStatsView(model: model)
+            
+            if !model.bio.isEmpty {
+                Text(model.bio)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(2)
+                    .padding(.top, 4)
+            }
+            
+//            PreferredScheduleView(days: model.preferredDays, times: model.preferredTimes)
+        }
+        .padding()
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [.clear, .black.opacity(0.8)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .foregroundColor(.white)
+    }
+}
+
+struct BoxingStatsView: View {
+    let model: MatchUser
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            StatLabel(title: "체중", value: "\(model.weight)kg")
+            StatLabel(title: "키", value: "\(model.height)cm")
+//            StatLabel(title: "경력", value: model.experience)
+        }
+        .padding(.top, 4)
+    }
+}
+
+struct PreferredScheduleView: View {
+    let days: [String]
+    let times: [String]
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            if !days.isEmpty {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.mainRed)
+                    Text(days.joined(separator: ", "))
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            }
+            
+            if !times.isEmpty {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.mainRed)
+                    Text(times.joined(separator: ", "))
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            }
+        }
     }
 }
 

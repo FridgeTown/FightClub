@@ -30,9 +30,16 @@ struct SplashView: View {
                         .scaleEffect(1.5)
                 }
             }
+            
+            // 알림 오버레이 추가
+            NotificationOverlay()
         }
         .onAppear {
             checkAuthStatus()
+            // 로그인 성공 시 SSE 서비스 시작
+            if UserDataManager.shared.getUserData() != nil {
+                NotificationService.shared.startService()
+            }
         }
         .fullScreenCover(isPresented: $showMainView) {
             MainTabView()

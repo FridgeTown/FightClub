@@ -7,12 +7,16 @@
 
 import Foundation
 
-struct LiveListModel: Decodable, Identifiable {
-    let id = UUID()
-    let matchId: Int
+struct LiveListModel: Codable, Identifiable {
+    let id: Int
     let title: String
-    let thumbNail: String
     let place: String
+    let thumbNail: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "matchId"
+        case title
+        case place
+        case thumbNail
+    }
 }
-
-

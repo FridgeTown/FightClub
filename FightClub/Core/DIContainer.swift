@@ -35,4 +35,9 @@ class DIContainer {
         let networkManager = NetworkManager.shared
         return StreamingViewModel(networkManager: networkManager)
     }
+    
+    func makeLiveListModel() -> LiveListViewModel {
+        let networkManager = NetworkManager.shared
+        return LiveListViewModel(networkManager: networkManager)
+    }
 }

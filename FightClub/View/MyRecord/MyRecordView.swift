@@ -15,7 +15,6 @@ struct MyRecordView: View {
         NavigationView {
             ZStack {
                 backgroundColor.edgesIgnoringSafeArea(.all)
-                
                 RecordListView()
             }
         }

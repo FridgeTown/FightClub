@@ -14,6 +14,7 @@ struct RecordingView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     @StateObject private var recordingManager = RecordingManager()
+    @StateObject private var notificationHandler = NotificationHandler()
     @State private var showingConfirmation = false
     @State private var memo: String = ""
     @State private var showingSummary = false
@@ -34,6 +35,9 @@ struct RecordingView: View {
             } else {
                 recordingView
             }
+            
+            // 알림 오버레이 추가
+            NotificationOverlay()
         }
         .statusBar(hidden: true)
         .edgesIgnoringSafeArea(.all)
@@ -49,6 +53,7 @@ struct RecordingView: View {
             recordingManager.stopCamera()
             isViewAppeared = false
         }
+        .environmentObject(notificationHandler)
     }
     
     private var recordingView: some View {

@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreData
 import AVFoundation
+import AVKit
 import Vision
 import Combine
 
@@ -27,7 +28,6 @@ struct RecordListView: View {
                 Color.black.edgesIgnoringSafeArea(.all)
                 
                 VStack(spacing: 0) {
-                    // 헤더
                     HStack {
                         Text("나의 기록")
                             .font(.title)
@@ -44,9 +44,12 @@ struct RecordListView: View {
                         }
                     }
                     .padding()
+                    .background(Color.black)
                     
                     if sessions.isEmpty {
+                        Spacer()
                         RecordEmptyStateView()
+                        Spacer()
                     } else {
                         List {
                             ForEach(sessions) { session in
@@ -200,18 +203,40 @@ struct RecordEmptyStateView: View {
 
 struct RecordVideoPlayerView: View {
     let url: URL
-    @State private var player: AVPlayer?
+    @Environment(\.dismiss) private var dismiss
+    @State private var player: AVPlayer
+    
+    init(url: URL) {
+        self.url = url
+        _player = State(initialValue: AVPlayer(url: url))
+    }
     
     var body: some View {
-        VideoPlayer(url: (player ?? AVPlayer(url: url)) as! URL)
-            .onAppear {
-                player = AVPlayer(url: url)
-                player?.play()
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+            
+            AVKit.VideoPlayer(player: player)
+                .edgesIgnoringSafeArea(.all)
+            
+            // 닫기 버튼
+            VStack {
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                    Spacer()
+                }
+                Spacer()
             }
-            .onDisappear {
-                player?.pause()
-                player = nil
-            }
-            .edgesIgnoringSafeArea(.all)
+        }
+        .onAppear {
+            player.play()
+        }
+        .onDisappear {
+            player.pause()
+        }
     }
 }

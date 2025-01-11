@@ -13,7 +13,7 @@ class StreamingViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
     
-    @Published private(set) var response: APIResponse<String?> = APIResponse(
+    @Published private(set) var response: APIResponse<LiveStreamResponse> = APIResponse(
         status: 0,
         message: "",
         data: nil
@@ -25,16 +25,41 @@ class StreamingViewModel: ObservableObject {
         self.networkManager = networkManager
     }
     
-    
     @MainActor
     func postLiveStream(channelId: String, place: String) async {
         isLoading = true
         do {
             response = try await networkManager.request(.postLiveStart(channelId: channelId, place: place))
-            print(response.status)
+            print("리스폰스", response.status)
+            if let id = response.data?.id {
+                print("채팅방 ID:", id)
+            }
         } catch {
             errorMessage = error.localizedDescription
+            print("Error:", error)
         }
         isLoading = false
+    }
+    
+    @MainActor
+    func postEndLiveStream(matchId: String) async {
+        isLoading = true
+        do {
+            response = try await networkManager.request(.postEndLiveMatch(matchId: matchId))
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Error:", error)
+        }
+        isLoading = false
+    }
+    
+}
+
+
+struct LiveStreamResponse: Codable {
+    let id: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "chatRoomId"
     }
 }

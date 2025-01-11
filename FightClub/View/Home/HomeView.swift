@@ -41,6 +41,7 @@ struct HomeView: View {
             Task {
                 await viewModel.getUsers()
                 if let usersData = viewModel.users.data {
+                    print("userDdata: \(usersData)")
                     profiles = usersData
                 } else {
                     print("서버에서 데이터를 받아오지 못했습니다.")
