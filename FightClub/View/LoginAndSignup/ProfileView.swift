@@ -160,13 +160,13 @@ struct ProfileView: View {
 
         let parameters: [String: Any] = [
             "email": email,
-            "provider": "google",
+            "provider": signupData.provider ?? "google", // 기본값은 google
             "profileImage": "",
             "gender": signupData.gender ?? "MALE",
             "age": signupData.age ?? 0,
             "weight": signupData.weight ?? 0.0,
             "height": signupData.height ?? 0.0,
-            "bio": "기본 bio",
+            "bio": "자기소개를 입력해보세요",
             "weightClass": "FLY",
             "role": "ROLE_USER",
             "nickname": nickname,

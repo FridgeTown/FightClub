@@ -141,6 +141,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 }
 
 @main
+/*
 struct FightClubApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let persistenceController = PersistenceController.shared
@@ -152,6 +153,17 @@ struct FightClubApp: App {
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
+        }
+    }
+}
+ */
+struct FightClubApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    var body: some Scene {
+        WindowGroup {
+            // 무조건 SplashView를 처음 보여주도록
+            SplashView()
         }
     }
 }

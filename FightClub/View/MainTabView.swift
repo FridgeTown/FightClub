@@ -32,11 +32,10 @@ struct MainTabView: View {
                     .tag(2)
                 recordSection
                     .tag(3)
-                profileSection
+                myProfileSection // My Profile 섹션 추가
                     .tag(4)
             }
             .tint(.red)
-            
             // 알림 오버레이 추가
             NotificationOverlay()
         }
@@ -47,6 +46,7 @@ struct MainTabView: View {
             NotificationService.shared.stopService()
         }
         .environmentObject(notificationHandler)
+        }
     }
     
     // MARK: - Views
@@ -63,15 +63,13 @@ struct MainTabView: View {
                 Label("기록", systemImage: "figure.boxing.circle.fill")
             }
     }
-    
-    private var profileSection: some View {
-        LiveListViewDemo()
-        .tabItem {
-            Label("더보기", systemImage: "ellipsis")
-        }
+    private var myProfileSection: some View { // My Profile 섹션 추가
+        MyProfileView()
+            .tabItem {
+                Label("내 프로필", systemImage: "person.circle.fill")
+            }
     }
-}
-
+    
 class NotificationHandler: ObservableObject {
     // MARK: - Properties
     @Published private(set) var lastNotification: NotificationEvent?

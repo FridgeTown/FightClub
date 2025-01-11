@@ -25,7 +25,9 @@ enum APIEndpoint {
     var url: String {
         switch self {
         case .logIn:
-            return "http://3.34.46.87:8080/login"
+            return "http://3.34.46.87:8080/login" // 기존 로그인 URL
+        case .signup:
+            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
         case .getUserInfo:
             return "http://3.34.46.87:8080/user/info"
         case .getUserRecommend:
