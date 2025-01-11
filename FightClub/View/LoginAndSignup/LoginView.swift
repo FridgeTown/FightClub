@@ -41,12 +41,12 @@ struct LoginView: View {
     
     // path 추가
     @State private var path: [String] = [] // NavigationStack 경로 관리
-
+    
     var body: some View {
         ZStack {
             Color(red: 0.89, green: 0.1, blue: 0.1)
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 40) {
                 Text("Welcome to FightClub")
                     .font(Font.custom("BebasNeue", size: 36))
@@ -58,24 +58,25 @@ struct LoginView: View {
                         )
                     )
                     .shadow(color: .black.opacity(0.8), radius: 4, x: 2, y: 2)
-
+                
                 Text("간편하게 시작하기")
                     .foregroundColor(.white)
-
+                
                 VStack(spacing: 20) {
                     GoogleSignInButton(scheme: .light, style: .wide) {
                         googleAuthViewModel.signIn()
                         Task {
                             while googleAuthViewModel.givenEmail == nil {
-                                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms 대기
+                                try? await Task.sleep(nanoseconds: 100_000_000)
                             }
+                            // 1) 구글 로그인 email 저장
                             signupData.email = googleAuthViewModel.givenEmail
-                            print("Updated signupData.email in LoginView: \(signupData.email ?? "nil")")
+                            signupData.provider = "google"
                             showSignupView = true
                         }
                     }
                     .frame(width: 200, height: 40)
-                    
+
                     SignInWithAppleButton(
                         onRequest: { request in
                             request.requestedScopes = [.fullName, .email]
@@ -83,30 +84,27 @@ struct LoginView: View {
                         onCompletion: { result in
                             switch result {
                             case .success(let authorization):
-                                if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                                    if let email = appleIDCredential.email {
-                                        appleSignInCoordinator.email = email
-                                    } else {
-                                        appleSignInCoordinator.email = appleIDCredential.user
-                                    }
-                                    if let tokenData = appleIDCredential.identityToken,
-                                       let token = String(data: tokenData, encoding: .utf8) {
-                                        appleSignInCoordinator.oauthUserData.idToken = token
-                                        appleSignInCoordinator.oauthUserData.oauthId = appleIDCredential.user
+                                if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                                    let email = credential.email ?? credential.user
+                                    if let tokenData = credential.identityToken,
+                                       let idToken = String(data: tokenData, encoding: .utf8) {
                                         
-                                        // Save idToken to UserDefaults
-                                        UserDefaults.standard.set(token, forKey: "idToken")
+                                        // 2) 애플 로그인 email 저장
+                                        signupData.email = email
+                                        signupData.provider = "apple"
+                                        
                                         Task {
                                             await appleSignInCoordinator.checkUserRegistration(
-                                                email: appleSignInCoordinator.email!,
+                                                email: email,
                                                 provider: "apple",
-                                                idToken: token
+                                                idToken: idToken
                                             )
                                         }
+                                        showSignupView = true
                                     }
                                 }
                             case .failure(let error):
-                                print("Apple Sign-In failed: \(error.localizedDescription)")
+                                print("Apple Sign In Error: \(error.localizedDescription)")
                             }
                         }
                     )

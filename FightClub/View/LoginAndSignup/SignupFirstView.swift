@@ -1,10 +1,3 @@
-//
-//  Registration.swift
-//  FightClub
-//
-//  Created by 김지훈 on 26/12/2024.
-//
-//
 //  SignupFirstView.swift
 //  FightClub
 //
@@ -48,13 +41,12 @@ struct SignupFirstView: View {
                             .foregroundColor(.white)
 
                         FCButton("Next") {
-                            if let email = googleAuthViewModel.givenEmail {
-                                signupData.email = email
-                                print("Updated signupData.email in SignupFirstView: \(signupData.email ?? "nil")")
+                            // 더 이상 googleAuthViewModel.givenEmail을 확인하지 않음
+                            if let email = signupData.email, !email.isEmpty {
+                                print("Proceeding to SignupSecondView with email: \(email)")
                                 path.append("SignupSecondView")
                             } else {
-                                print("Error: googleAuthViewModel.givenEmail is nil")
-                                // 사용자에게 알림 표시 (예: Alert 또는 Log)
+                                print("Error: signupData.email is nil or empty")
                             }
                         }
                     }
