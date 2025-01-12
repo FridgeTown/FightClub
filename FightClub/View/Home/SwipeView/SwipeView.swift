@@ -67,7 +67,9 @@ struct SwipeView: View {
     }
     
     private func removeTopItem() {
-        profiles.removeLast()
+        if profiles.count != 0 {
+            profiles.removeLast()
+        }
     }
 }
 
@@ -268,7 +270,7 @@ struct CardContentView: View {
     
     var body: some View {
         VStack {
-//            WeightClassBadge(weightClass: model.weightClass)
+            WeightClassBadge(weightClass: model.weightClass)
             Spacer()
             ProfileInfoView(model: model)
         }
@@ -282,7 +284,7 @@ struct WeightClassBadge: View {
         HStack {
             Spacer()
             Text(weightClass)
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -308,7 +310,7 @@ struct ProfileInfoView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text(model.nickname)
-                    .font(.title)
+                    .font(.largeTitle)
                     .fontWeight(.bold)
                 Spacer()
             }
@@ -389,7 +391,7 @@ struct StatLabel: View {
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
         }
     }

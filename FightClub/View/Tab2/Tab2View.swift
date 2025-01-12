@@ -281,7 +281,11 @@ struct LimitedMatchRequestView: View {
                         await handleAccept(request)
                     }
                 },
-                onDecline: { handleDecline(request) }
+                onDecline: {
+                    Task {
+                        await handleDecline(request)
+                    }
+                }
             )
         }
     }
@@ -302,9 +306,15 @@ struct LimitedMatchRequestView: View {
         }
     }
     
-    private func handleDecline(_ request: MatchRequest) {
+    private func handleDecline(_ request: MatchRequest) async {
         // TODO: 거절 로직 구현
-        onMatchStatusChanged()
+        do {
+            await viewModel.rejectMatch(matchId: request.id)
+            await viewModel.getPendingList()
+            onMatchStatusChanged()
+        } catch {
+            print("매칭 거절 실패: \(error)")
+        }
     }
 }
 

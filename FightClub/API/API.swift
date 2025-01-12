@@ -6,6 +6,7 @@
 //
 
 import Alamofire
+import Foundation
 
 enum APIEndpoint {
     case logIn(email: String, provider: String, token: String)
@@ -20,6 +21,7 @@ enum APIEndpoint {
     case postLiveStart(channelId: String, place: String)
     case getLiveList
     case postEndLiveMatch(matchId: String) //방송 종료
+    case updateProfileImage(imageData: Data)  // 추가
     
     // 엔드 포인트
     var url: String {
@@ -50,12 +52,14 @@ enum APIEndpoint {
             return "http://3.34.46.87:8080/live/list"
         case .postEndLiveMatch(let matchID):
             return "http://3.34.46.87:8080/live/end/\(matchID)"
+        case .updateProfileImage:
+            return "http://3.34.46.87:8080/user/image"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart, .postEndLiveMatch:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart, .postEndLiveMatch, .updateProfileImage:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe, .getLiveList:
             return .get
@@ -79,6 +83,8 @@ enum APIEndpoint {
             return ["place": "asdasd", "channelId": channelId, "title": "tests"]
         case .getLiveList, .postEndLiveMatch:
             return nil
+        case .updateProfileImage(let imageData):
+            return ["file": imageData]
         }
     }
     
@@ -86,9 +92,19 @@ enum APIEndpoint {
         switch self {
         case .logIn, .signup:
             return nil
+        case .updateProfileImage:
+            if let token = try? TokenManager.shared.getAccessToken() {
+                return [
+                    "Authorization": "Bearer \(token)",
+                    "Content-Type": "multipart/form-data"
+                ]
+            }
+            return nil
         case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart, .getLiveList, .postEndLiveMatch:
             if let token = try? TokenManager.shared.getAccessToken() {
-                return ["Authorization": "Bearer \(token)"]
+                return [
+                    "Authorization": "Bearer \(token)"
+                ]
             }
             return nil
         }

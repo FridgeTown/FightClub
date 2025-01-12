@@ -61,7 +61,6 @@ struct SplashView: View {
                     }
                 }
             } catch {
-                // 에러 발생 시에도 로그인 화면으로
                 await MainActor.run {
                     showLoginView = true
                 }
@@ -79,8 +78,6 @@ class SplashViewModel: ObservableObject {
     func checkAuthentication() async throws -> Bool {
         isLoading = true
         defer { isLoading = false }
-        
-//        try? tokenManager.saveAccessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvbmVAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTczNTc1NjczMCwiZXhwIjoxNzM2MzYxNTMwfQ.xd7I-qBe0bzuMXKLGebUfXFxCnP7F-FA6pEgVP66Co8")
         // 토큰 존재 여부 확인
         guard let _ = try? tokenManager.getAccessToken() else {
             print("token manager에 토큰이 존재하지 않습니다.")

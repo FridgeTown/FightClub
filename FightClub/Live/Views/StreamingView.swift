@@ -310,7 +310,7 @@ struct StreamingView: View {
             await viewModel.postLiveStream(channelId: channelId, place: "")
             
 //             response의 status로 성공 여부 확인
-            if viewModel.response.status == 500 {  // 또는 실제 API 응답의 성공 상태값
+            if viewModel.response.status == 200 {  // 또는 실제 API 응답의 성공 상태값
                 print(self.viewModel.response.data?.id, "방송 id ")
                 await connectToRoom()
                 streamingManager.isStreaming = true

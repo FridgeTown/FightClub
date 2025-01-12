@@ -53,4 +53,17 @@ class MatchRequestModel: ObservableObject {
         }
         isLoading = false
     }
+    
+    @MainActor
+    func rejectMatch(matchId: Int) async {
+        isLoading = true
+        do {
+            let id = matchId.toString()
+            response = try await networkManager.request(.postRejectRequest(matchID: id))
+            print("Match rejected")
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
 }

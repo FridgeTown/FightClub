@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 
+@MainActor
 struct MainTabView: View {
     // MARK: - Properties
     @State private var selectedTab = 0

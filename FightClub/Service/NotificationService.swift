@@ -5,7 +5,7 @@ import UIKit
 import SwiftUI
 
 enum NotificationType: String {
-    case matchRequest = "MATCH_REQUEST"
+    case matchRequest = "새로운 스파링 요청"
     case newMessage = "NEW_MESSAGE"
     case unknown
     
@@ -19,7 +19,7 @@ enum NotificationType: String {
     
     var icon: String {
         switch self {
-        case .matchRequest: return "person.2.fill"
+        case .matchRequest: return "figure.wave.circle.fill"
         case .newMessage: return "message.fill"
         case .unknown: return "bell.fill"
         }
@@ -27,7 +27,7 @@ enum NotificationType: String {
     
     var color: Color {
         switch self {
-        case .matchRequest: return .blue
+        case .matchRequest: return .red
         case .newMessage: return .green
         case .unknown: return .gray
         }
@@ -53,41 +53,127 @@ struct NotificationData: Codable {
 struct NotificationBanner: View {
     let event: NotificationEvent
     @Binding var isPresented: Bool
+    @State private var offset: CGFloat = -100
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color.black : Color.white
+    }
+    
+    private var textColor: Color {
+        colorScheme == .dark ? Color.white : Color.black
+    }
+    
+    private var secondaryTextColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.7) : Color.black.opacity(0.6)
+    }
+    
+    private var gradientColors: [Color] {
+        if colorScheme == .dark {
+            return [
+                Color.gray.opacity(0.3),
+                Color.black.opacity(0.7)
+            ]
+        } else {
+            return [
+                Color.white.opacity(0.9),
+                Color.white.opacity(0.7)
+            ]
+        }
+    }
     
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: event.notificationType.icon)
-                .font(.system(size: 24))
-                .foregroundColor(event.notificationType.color)
+        HStack(spacing: 16) {
+            // 아이콘 컨테이너
+            Circle()
+                .fill(event.notificationType.color.opacity(colorScheme == .dark ? 0.2 : 0.15))
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Image(systemName: event.notificationType.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(event.notificationType.color)
+                )
             
-            VStack(alignment: .center, spacing: 4) {
+            // 텍스트 컨테이너
+            VStack(alignment: .leading, spacing: 4) {
                 Text(event.notificationType.rawValue)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(textColor)
+                
                 Text(event.message)
                     .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                    .foregroundColor(secondaryTextColor)
+                    .lineLimit(2)
             }
-            .frame(maxWidth: .infinity)
+            .padding(.trailing, 8)
             
+            Spacer()
+            
+            // 닫기 버튼
             Button(action: {
-                withAnimation {
+                withAnimation(.spring()) {
                     isPresented = false
                 }
             }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.gray)
+                Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(colorScheme == .dark ? .white.opacity(0.6) : .gray)
+                    .frame(width: 28, height: 28)
+                    .background(Color.gray.opacity(colorScheme == .dark ? 0.3 : 0.1))
+                    .clipShape(Circle())
             }
         }
-        .padding()
-        .frame(width: 300)  // 고정된 너비 설정
-        .background(.white)
-        .cornerRadius(15)
-        .shadow(color: Color.mainRed.opacity(0.2), radius: 10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.mainRed.opacity(0.1), lineWidth: 1)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(
+            ZStack {
+                backgroundColor
+                    .opacity(0.98)
+                
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: gradientColors),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .blur(radius: 0.5)
+            }
         )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(
+            color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1),
+            radius: colorScheme == .dark ? 15 : 20,
+            x: 0,
+            y: 10
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            (colorScheme == .dark ? Color.white : Color.white).opacity(0.3),
+                            (colorScheme == .dark ? Color.white : Color.white).opacity(0.1)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .offset(y: offset)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                offset = 0
+            }
+        }
+        .onTapGesture {
+            withAnimation(.spring()) {
+                isPresented = false
+            }
+        }
     }
 }
 
@@ -364,47 +450,18 @@ class NotificationService: NSObject, ObservableObject, URLSessionDataDelegate {
     }
     
     private func processSSEData(_ text: String) {
-        buffer += text
+        print("processSSEDData", text)
         
-        let maxBufferSize = 1024 * 1024 // 1MB
-        if buffer.count > maxBufferSize {
-            buffer = String(buffer.suffix(maxBufferSize / 2))
-        }
-        
-        let lines = buffer.components(separatedBy: "\n")
-        buffer = lines.last ?? ""
-        
-        var currentEvent = ""
-        var currentData = ""
-        
-        for line in lines.dropLast() {
-            if line.hasPrefix("event:") {
-                currentEvent = line.dropFirst(6).trimmingCharacters(in: .whitespaces)
-            } else if line.hasPrefix("data:") {
-                currentData = line.dropFirst(5).trimmingCharacters(in: .whitespaces)
-                
-                
-                
-                // 이벤트와 데이터가 모두 있을 때 처리
-                if currentEvent == "notification" || !currentData.isEmpty {
-                    print("SSE Notification received:", currentData)
-                    
-                    // 알림 이벤트 생성
-                    let event = NotificationEvent(
-                        type: "MATCH_REQUEST",
-                        message: currentData,
-                        data: NotificationData(matchId: nil, channelId: nil)
-                    )
-                    
-                    DispatchQueue.main.async { [weak self] in
-                        self?.showInAppNotification(event)
-                        self?.notificationSubject.send(event)
-                    }
-                    
-                    // 처리 후 초기화
-                    currentEvent = ""
-                    currentData = ""
-                }
+        if text.contains("습니다") {
+            let event = NotificationEvent(
+                type: "MATCH_REQUEST",
+                message: text,
+                data: NotificationData(matchId: nil, channelId: nil)
+            )
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.showInAppNotification(event)
+                self?.notificationSubject.send(event)
             }
         }
     }
@@ -415,7 +472,7 @@ class NotificationService: NSObject, ObservableObject, URLSessionDataDelegate {
         
         // 3초 후에 알림 숨기기
         hideNotificationTimer?.invalidate()
-        hideNotificationTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+        hideNotificationTimer = Timer.scheduledTimer(withTimeInterval: 6.0, repeats: false) { [weak self] _ in
             DispatchQueue.main.async {
                 withAnimation {
                     self?.showNotification = false
