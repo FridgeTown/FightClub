@@ -15,6 +15,7 @@ struct RecordingView: View {
     
     @StateObject private var recordingManager = RecordingManager()
     @StateObject private var notificationHandler = NotificationHandler()
+    @StateObject private var healthKitManager = HealthKitManager.shared
     @State private var showingConfirmation = false
     @State private var memo: String = ""
     @State private var showingSummary = false
@@ -28,6 +29,8 @@ struct RecordingView: View {
                     duration: recordingManager.elapsedTime,
                     punchCount: recordingManager.punchCount,
                     videoURL: recordedVideoURL,
+                    heartRate: healthKitManager.heartRate,
+                    calories: healthKitManager.activeCalories,
                     memo: $memo,
                     onSave: saveRecording,
                     onDiscard: discardRecording
@@ -110,16 +113,14 @@ struct RecordingView: View {
     
     private func startRecording() {
         recordingManager.startRecording()
+        healthKitManager.startWorkoutSession()
     }
     
     private func stopRecording() {
         recordingManager.stopRecording { url in
+            healthKitManager.stopWorkoutSession()
             if let url = url {
                 self.recordedVideoURL = url
-                self.showingSummary = true
-            } else {
-                print("Error: Failed to get video URL")
-                // 실패 시에도 summary 화면으로 전환하여 사용자가 선택할 수 있게 함
                 self.showingSummary = true
             }
         }
@@ -198,6 +199,8 @@ struct RecordingSummaryView: View {
     let duration: TimeInterval
     let punchCount: Int
     let videoURL: URL?
+    let heartRate: Double
+    let calories: Double
     @Binding var memo: String
     let onSave: () -> Void
     let onDiscard: () -> Void
@@ -232,6 +235,22 @@ struct RecordingSummaryView: View {
                             icon: "hand.raised.fill",
                             value: "\(punchCount)",
                             title: "총 펀치",
+                            color: mainRed
+                        )
+                        
+                        // 심박수 카드
+                        StatisticCardView(
+                            icon: "heart.fill",
+                            value: String(format: "%.0f", heartRate),
+                            title: "평균 심박수",
+                            color: mainRed
+                        )
+                        
+                        // 칼로리 카드
+                        StatisticCardView(
+                            icon: "flame.fill",
+                            value: String(format: "%.0f", calories),
+                            title: "소모 칼로리",
                             color: mainRed
                         )
                     }

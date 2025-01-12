@@ -1,14 +1,14 @@
 //
-//  FightClubTests.swift
-//  FightClubTests
+//  FightClub_Watch_AppTests.swift
+//  FightClub Watch AppTests
 //
 //  Created by Edward Lee on 1/13/25.
 //
 
 import XCTest
-@testable import FightClub
+@testable import FightClub_Watch_App
 
-final class FightClubTests: XCTestCase {
+final class FightClub_Watch_AppTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

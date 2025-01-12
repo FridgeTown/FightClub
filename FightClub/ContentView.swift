@@ -2,18 +2,23 @@
 //  ContentView.swift
 //  FightClub
 //
-//  Created by Edward Lee on 12/25/24.
+//  Created by Edward Lee on 1/13/25.
 //
 
 import SwiftUI
 
-//        MainTabView()
-//        GoogleLoginDemo()
-//        SignupFirstView()
-
 struct ContentView: View {
-    
     var body: some View {
-        SplashView()
+        VStack {
+            Image(systemName: "globe")
+                .imageScale(.large)
+                .foregroundStyle(.tint)
+            Text("Hello, world!")
+        }
+        .padding()
     }
+}
+
+#Preview {
+    ContentView()
 }
