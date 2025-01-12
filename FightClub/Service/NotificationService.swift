@@ -350,7 +350,7 @@ class NotificationService: NSObject, ObservableObject, URLSessionDataDelegate {
             return
         }
         
-        guard let url = URL(string: "http://3.34.46.87:8080/notification/subscribe") else {
+        guard let url = URL(string: "http://43.200.49.201:8080/notification/subscribe") else {
             print("Invalid URL")
             return
         }

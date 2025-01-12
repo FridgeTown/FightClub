@@ -41,7 +41,7 @@ class DIContainer {
         return LiveListViewModel(networkManager: networkManager)
     }
     
-    func makeMyProfileViewModel() -> MyProfileViewModel {
+    @MainActor func makeMyProfileViewModel() -> MyProfileViewModel {
         let networkManager = NetworkManager.shared
         return MyProfileViewModel(networkManager: networkManager)
     }

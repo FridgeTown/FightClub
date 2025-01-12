@@ -243,7 +243,7 @@ struct LoadingView: View {
             Spacer()
             ProgressView()
                 .scaleEffect(1.5)
-            Text("메시지를 불러오는 중...")
+            Text("불러오는 중...")
                 .font(.subheadline)
                 .foregroundColor(.gray)
             Spacer()

@@ -62,10 +62,12 @@ struct SplashView: View {
                 }
             } catch {
                 await MainActor.run {
-                    showLoginView = true
+                    print("이쪽으로 오는게 맞지않아 ? ")
+//                    showLoginView = true
                 }
             }
         }
+        
     }
 }
 

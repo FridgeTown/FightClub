@@ -41,6 +41,10 @@ class UserDataManager {
            return userData?.chatToken
        }
        
+       var profileImageUrl: String? {
+        return userData?.profileImg
+    }
+       
        // UserData 초기화 (로그아웃 시 사용)
        func clearUserData() {
            userData = nil

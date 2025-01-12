@@ -27,33 +27,33 @@ enum APIEndpoint {
     var url: String {
         switch self {
         case .logIn:
-            return "http://3.34.46.87:8080/login" // 기존 로그인 URL
+            return "http://43.200.49.201:8080/login" // 기존 로그인 URL
         case .signup:
-            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
+            return "http://43.200.49.201:8080/signup" // 새로운 회원가입 URL
         case .getUserInfo:
-            return "http://3.34.46.87:8080/user/info"
+            return "http://43.200.49.201:8080/user/info"
         case .getUserRecommend:
-            return "http://3.34.46.87:8080/user/recommendation"
+            return "http://43.200.49.201:8080/user/recommendation"
         case .postMatchRequest(let opponentID):
-            return "http://3.34.46.87:8080/match/\(opponentID)"
+            return "http://43.200.49.201:8080/match/\(opponentID)"
         case .postRejectRequest(let matchID):
-            return "http://3.34.46.87:8080/match/reject/\(matchID)"
+            return "http://43.200.49.201:8080/match/reject/\(matchID)"
         case .postAcceptRequest(let matchID):
-            return "http://3.34.46.87:8080/match/accept/\(matchID)"
+            return "http://43.200.49.201:8080/match/accept/\(matchID)"
         case .getPendingMatch:
-            return "http://3.34.46.87:8080/match/pending"
+            return "http://43.200.49.201:8080/match/pending"
         case .getNotificationSubscribe:
-            return "http://3.34.46.87:8080/notification/subscribe"
+            return "http://43.200.49.201:8080/notification/subscribe"
         case .signup:
-            return "http://3.34.46.87:8080/signup" // 새로운 회원가입 URL
+            return "http://43.200.49.201:8080/signup" // 새로운 회원가입 URL
         case .postLiveStart:
-            return "http://3.34.46.87:8080/live/start"
+            return "http://43.200.49.201:8080/live/start"
         case .getLiveList:
-            return "http://3.34.46.87:8080/live/list"
+            return "http://43.200.49.201:8080/live/list"
         case .postEndLiveMatch(let matchID):
-            return "http://3.34.46.87:8080/live/end/\(matchID)"
+            return "http://43.200.49.201:8080/live/end/\(matchID)"
         case .updateProfileImage:
-            return "http://3.34.46.87:8080/user/image"
+            return "http://43.200.49.201:8080/user/image"
         }
     }
     

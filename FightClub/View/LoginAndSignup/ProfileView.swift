@@ -174,7 +174,7 @@ struct ProfileView: View {
         ]
 
         AF.request(
-            "http://3.34.46.87:8080/signup",
+            "http://43.200.49.201:8080/signup",
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default
