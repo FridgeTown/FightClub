@@ -9,6 +9,7 @@ class HealthKitManager: NSObject, ObservableObject {
     @Published var heartRate: Double = 0
     @Published var activeCalories: Double = 0
     @Published var isRecording = false
+    @Published var watchConnectionStatus: String = "초기화 중..."
     
     private let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate)!
     private let activeEnergyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
@@ -20,65 +21,21 @@ class HealthKitManager: NSObject, ObservableObject {
     }
     
     private func setupWatchConnectivity() {
-        guard WCSession.isSupported() else {
-            print("WCSession이 지원되지 않습니다")
-            return
-        }
-        
-        session = WCSession.default
-        session?.delegate = self
-        
-        print("\n=== iOS App WCSession Setup ===")
-        print("iOS 앱 번들 ID: \(Bundle.main.bundleIdentifier ?? "없음")")
-        if let watchAppBundleID = Bundle.main.object(forInfoDictionaryKey: "WKAppBundleIdentifier") as? String {
-            print("설정된 Watch 앱 번들 ID: \(watchAppBundleID)")
-        }
-        
-        // 세션 활성화
-        session?.activate()
-        
-        // 활성화 후 Watch App과의 연결 시도
-        startWatchConnectionAttempt()
-    }
-    
-    private func startWatchConnectionAttempt() {
-        var attemptCount = 0
-        let maxAttempts = 5
-        
-        func attemptConnection() {
-            guard let session = session, attemptCount < maxAttempts else { return }
+        if WCSession.isSupported() {
+            let session = WCSession.default
+            session.delegate = self
+            session.activate()
+            self.session = session
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(attemptCount)) {
-                print("\n=== Watch 연결 시도 (\(attemptCount + 1)/\(maxAttempts)) ===")
-                print("활성화 상태: \(session.activationState.rawValue)")
-                print("페어링 상태: \(session.isPaired)")
-                print("워치 앱 설치됨: \(session.isWatchAppInstalled)")
-                print("통신 가능: \(session.isReachable)")
-                
-                if session.isReachable {
-                    print("Watch App과 연결 성공!")
-                    // 연결 성공 시 테스트 메시지 전송
-                    session.sendMessage(["test": "connection"], replyHandler: { reply in
-                        print("Watch 응답: \(reply)")
-                    }, errorHandler: { error in
-                        print("통신 테스트 실패: \(error.localizedDescription)")
-                    })
-                } else {
-                    attemptCount += 1
-                    if attemptCount < maxAttempts {
-                        print("재시도 중...")
-                        attemptConnection()
-                    } else {
-                        print("최대 시도 횟수 초과")
-                    }
-                }
+            print("\n=== iOS App WCSession Setup ===")
+            print("iOS 앱 번들 ID: \(Bundle.main.bundleIdentifier ?? "없음")")
+            if let watchAppBundleID = Bundle.main.object(forInfoDictionaryKey: "WKAppBundleIdentifier") as? String {
+                print("설정된 Watch 앱 번들 ID: \(watchAppBundleID)")
             }
         }
-        
-        attemptConnection()
     }
     
-    func requestAuthorization() {
+    private func requestAuthorization() {
         let typesToRead: Set<HKObjectType> = [heartRateType, activeEnergyType]
         
         healthStore.requestAuthorization(toShare: nil, read: typesToRead) { success, error in
@@ -91,7 +48,7 @@ class HealthKitManager: NSObject, ObservableObject {
     }
     
     private func checkWatchConnection() -> Bool {
-        let session = WCSession.default
+        guard let session = self.session else { return false }
         
         guard session.isPaired else {
             print("Apple Watch가 페어링되지 않았습니다")
@@ -111,10 +68,10 @@ class HealthKitManager: NSObject, ObservableObject {
         return true
     }
     
-     func startWorkoutSession() {
-        let session = WCSession.default
+    // MARK: - Workout Session Management
+    func startWorkoutSession() {
+        guard let session = self.session else { return }
         
-        // 연결 상태 확인
         if !checkWatchConnection() {
             print("Watch 연결 상태 확인 필요:")
             print("- 페어링됨: \(session.isPaired)")
@@ -123,123 +80,163 @@ class HealthKitManager: NSObject, ObservableObject {
             return
         }
         
-        // 메시지 전송
-        session.sendMessage(["command": "startWorkout"], 
-                           replyHandler: { reply in
-            print("Watch 응답: \(reply)")
-        }, errorHandler: { error in
-            print("워치 통신 에러: \(error.localizedDescription)")
-        })
+        // 실시간 메시지 전송
+        if session.isReachable {
+            sendWorkoutCommand("startWorkout")
+        } else {
+            // Background 전송
+            sendBackgroundWorkoutCommand("startWorkout")
+        }
     }
     
     func stopWorkoutSession() {
-        isRecording = false
+        guard let session = self.session else { return }
         
-        // Watch 연결 상태 확인
-        guard let session = session, 
-              session.isPaired,
-              session.isWatchAppInstalled else {
+        if !checkWatchConnection() {
             return
         }
         
-        // Watch에 운동 종료 알림
-        session.sendMessage(["command": "stopWorkout"], replyHandler: nil) { error in
-            print("워치 통신 에러: \(error.localizedDescription)")
+        // 실시간 메시지 전송
+        if session.isReachable {
+            sendWorkoutCommand("stopWorkout")
+        } else {
+            // Background 전송
+            sendBackgroundWorkoutCommand("stopWorkout")
         }
     }
     
-    func checkHealthKitAuthorization() {
-        let healthStore = HKHealthStore()
+    // MARK: - Message Sending Methods
+    private func sendWorkoutCommand(_ command: String) {
+        guard let session = self.session else { return }
         
-        if HKHealthStore.isHealthDataAvailable() {
-            print("HealthKit 사용 가능")
+        // 메시지 형식을 Watch App 기대형식에 맞춤
+        let message: [String: Any] = [
+            "command": command,
+            "timestamp": Date().timeIntervalSince1970,
+            "type": "workout"  // 명령의 타입을 명시
+        ]
+        
+        print("전송할 메시지: \(message)")  // 디버깅용 로그
+        
+        session.sendMessage(message, replyHandler: { reply in
+            print("Watch 응답 received: \(reply)")
             
-            let typesToRead: Set<HKObjectType> = [
-                HKObjectType.quantityType(forIdentifier: .heartRate)!,
-                HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
-            ]
-            
-            healthStore.requestAuthorization(toShare: nil, read: typesToRead) { success, error in
-                if success {
-                    print("HealthKit 권한 획득 성공")
-                    self.startObservingHealthData()
-                } else {
-                    print("HealthKit 권한 획득 실패: \(error?.localizedDescription ?? "알 수 없는 오류")")
+            // 응답 처리
+            if let error = reply["error"] as? String {
+                print("Watch 에러 응답: \(error)")
+            } else if let status = reply["status"] as? String {
+                print("Watch 상태 응답: \(status)")
+                
+                // 상태에 따른 처리
+                switch status {
+                    case "started":
+                        self.isRecording = true
+                    case "stopped":
+                        self.isRecording = false
+                    default:
+                        print("알 수 없는 상태: \(status)")
                 }
             }
-        } else {
-            print("HealthKit을 사용할 수 없습니다")
+            
+        }, errorHandler: { error in
+            print("메시지 전송 실패: \(error.localizedDescription)")
+            // 실패 시 Background 전송
+            self.sendBackgroundWorkoutCommand(command)
+        })
+    }
+
+    
+    // Background 전송용 메서드도 동일한 형식으로 수정
+    private func sendBackgroundWorkoutCommand(_ command: String) {
+        guard let session = self.session else { return }
+        
+        let userInfo: [String: Any] = [
+            "command": command,
+            "timestamp": Date().timeIntervalSince1970,
+            "type": "workout"
+        ]
+        
+        print("Background 전송할 메시지: \(userInfo)")  // 디버깅용 로그
+        
+        do {
+            try session.updateApplicationContext(userInfo)
+            print("Background 명령 전송 성공: \(command)")
+            
+            // 상태 업데이트
+            if command == "stopWorkout" {
+                self.isRecording = false
+            } else if command == "startWorkout" {
+                self.isRecording = true
+            }
+        } catch {
+            print("Background 명령 전송 실패: \(error.localizedDescription)")
         }
     }
     
-    private func startObservingHealthData() {
-        print("건강 데이터 모니터링 시작")
-        // 여기에 실제 데이터 모니터링 코드 추가
+    // 현재 상태 확인용 메서드 추가
+    func checkWorkoutStatus() {
+        guard let session = self.session, session.isReachable else {
+            print("Watch 연결 안됨")
+            return
+        }
+        
+        let statusMessage: [String: Any] = [
+            "command": "status",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        print("상태 확인 메시지 전송: \(statusMessage)")
+        
+        session.sendMessage(statusMessage, replyHandler: { reply in
+            print("상태 확인 응답: \(reply)")
+            
+            if let status = reply["workoutStatus"] as? String {
+                print("현재 운동 상태: \(status)")
+                self.isRecording = (status == "active")
+            }
+        }, errorHandler: { error in
+            print("상태 확인 실패: \(error.localizedDescription)")
+        })
     }
 }
 
-// WatchConnectivity 델리게이트 구현
-extension HealthKitManager: WCSessionDelegate {
+// MARK: - WCSessionDelegate
+@objc extension HealthKitManager: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        DispatchQueue.main.async { [weak self] in
-            print("\n=== iOS WCSession Activation ===")
-            print("활성화 상태: \(activationState.rawValue)")
-            print("페어링 상태: \(session.isPaired)")
-            print("워치 앱 설치됨: \(session.isWatchAppInstalled)")
-            print("통신 가능: \(session.isReachable)")
-            
+        DispatchQueue.main.async {
             if let error = error {
-                print("활성화 오류: \(error.localizedDescription)")
+                self.watchConnectionStatus = "활성화 실패: \(error.localizedDescription)"
+                return
             }
             
-            // 활성화 성공 시 Watch App 검색
-            if activationState == .activated {
-                self?.startWatchAppDiscovery()
-            }
-        }
-    }
-    
-    private func startWatchAppDiscovery() {
-        guard let session = session else { return }
-        
-        // Watch App 검색 시도
-        print("\n=== Watch App 검색 시작 ===")
-        
-        // 1초 간격으로 5번 시도
-        for i in 0..<5 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i)) {
-                if !session.isWatchAppInstalled {
-                    print("검색 시도 \(i + 1): Watch App 찾는 중...")
-                    
-                    // 상태 확인
-                    print("- 활성화 상태: \(session.activationState.rawValue)")
-                    print("- 페어링 상태: \(session.isPaired)")
-                    print("- 워치 앱 설치됨: \(session.isWatchAppInstalled)")
-                    
-//                     통신 테스트
-                    session.sendMessage(["discover": "attempt_\(i)"], replyHandler: { reply in
-                        print("Watch App 응답: \(reply)")
-                    }, errorHandler: { error in
-                        print("Watch App 검색 오류: \(error.localizedDescription)")
-                    })
-                } else {
-                    print("Watch App 발견!")
-                }
+            switch activationState {
+            case .activated:
+                self.watchConnectionStatus = "세션 활성화됨"
+            case .inactive:
+                self.watchConnectionStatus = "세션 비활성화됨"
+            case .notActivated:
+                self.watchConnectionStatus = "세션 활성화되지 않음"
+            @unknown default:
+                self.watchConnectionStatus = "알 수 없는 상태"
             }
         }
     }
     
     func sessionDidBecomeInactive(_ session: WCSession) {
-        print("WCSession 비활성화됨")
+        DispatchQueue.main.async {
+            self.watchConnectionStatus = "세션 비활성화됨"
+        }
     }
     
     func sessionDidDeactivate(_ session: WCSession) {
-        print("WCSession 비활성화 완료")
-        WCSession.default.activate()
+        DispatchQueue.main.async {
+            self.watchConnectionStatus = "세션 비활성화 완료"
+            // iOS에서는 새로운 세션을 활성화
+            WCSession.default.activate()
+        }
     }
     
-    // Watch로부터 데이터 수신
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
             if let heartRate = message["heartRate"] as? Double {
                 self.heartRate = heartRate
@@ -250,23 +247,25 @@ extension HealthKitManager: WCSessionDelegate {
         }
     }
     
-    // WCSessionDelegate 메서드 수정
-    func sessionReachabilityDidChange(_ session: WCSession) {
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
         DispatchQueue.main.async {
-            print("\n=== Watch 연결 상태 변경 ===")
-            print("통신 가능: \(session.isReachable)")
-            
-            if session.isReachable {
-                // Watch App이 연결 가능해지면 테스트 메시지 전송
-                session.sendMessage(["status": "check"], replyHandler: { reply in
-                    print("Watch 응답: \(reply)")
-                }, errorHandler: { error in
-                    print("상태 확인 실패: \(error.localizedDescription)")
-                })
-            } else {
-                // 연결이 끊어지면 재연결 시도
-                self.startWatchConnectionAttempt()
+            if let command = applicationContext["command"] as? String {
+                print("Background 명령 수신: \(command)")
             }
         }
     }
-} 
+    
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        DispatchQueue.main.async {
+            self.watchConnectionStatus = session.isReachable ? "Watch 연결됨" : "Watch 연결 끊김"
+            
+            if session.isReachable {
+                session.sendMessage(["status": "check"], replyHandler: { reply in
+                    print("sessionReachabilityDidChange, Watch 응답: \(reply)")
+                }, errorHandler: { error in
+                    print("상태 확인 실패: \(error.localizedDescription)")
+                })
+            }
+        }
+    }
+}
