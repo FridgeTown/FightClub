@@ -29,7 +29,7 @@ enum APIEndpoint {
         case .logIn:
             return "http://43.200.49.201:8080/login" // 기존 로그인 URL
         case .signup:
-            return "http://43.200.49.201:8080/signup" // 새로운 회원가입 URL
+            return "http 1://43.200.49.201:8080/signup" // 새로운 회원가입 URL
         case .getUserInfo:
             return "http://43.200.49.201:8080/user/info"
         case .getUserRecommend:

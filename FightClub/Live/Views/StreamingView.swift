@@ -309,18 +309,19 @@ struct StreamingView: View {
             
             await viewModel.postLiveStream(channelId: channelId, place: "")
             
-//             response의 status로 성공 여부 확인
-            if viewModel.response.status == 200 {  // 또는 실제 API 응답의 성공 상태값
-                print(self.viewModel.response.data?.id, "방송 id ")
-                await connectToRoom()
-                streamingManager.isStreaming = true
-            } else {
-                await MainActor.run {
-                    errorMessage = "라이브 스트리밍을 시작할 수 없습니다. (\(viewModel.errorMessage ?? "알 수 없는 오류"))"
-                    showErrorAlert = true
-                }
-            }
-            
+////             response의 status로 성공 여부 확인
+//            if viewModel.response.status == 200 {  // 또는 실제 API 응답의 성공 상태값
+//                print(self.viewModel.response.data?.id, "방송 id ")
+//                await connectToRoom()
+//                streamingManager.isStreaming = true
+//            } else {
+//                await MainActor.run {
+//                    errorMessage = "라이브 스트리밍을 시작할 수 없습니다. (\(viewModel.errorMessage ?? "알 수 없는 오류"))"
+//                    showErrorAlert = true
+//                }
+//            }
+                            await connectToRoom()
+                            streamingManager.isStreaming = true
             isLoading = false
         }
     }
@@ -375,6 +376,7 @@ struct StreamingView: View {
         let livekitUrl = "wss://openvidufightclubsubdomain.click"
         let roomName = "myRoom"
         let participantName = "myMac"
+//        let applicationServerUrl = "https://hwanan.com/"
         let applicationServerUrl = "http://43.201.27.173:6080"
         
         do {
@@ -589,7 +591,7 @@ struct StreamingView_Previews: PreviewProvider {
     static var previews: some View {
         let preferences = Preferences()
         let keychain = Keychain(service: "com.fightclub.app")
-        let store = ValueStore(store: keychain, 
+        let store = ValueStore(store: keychain,
                              key: "preferences",
                              default: preferences)
         let roomContext = RoomContext(store: store)
@@ -600,4 +602,3 @@ struct StreamingView_Previews: PreviewProvider {
             .environmentObject(appContext)
     }
 }
-

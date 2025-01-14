@@ -218,7 +218,7 @@ private struct LogoutButton: View {
     @Binding var showSplashView: Bool
     
     var body: some View {
-        Button(action: { viewModel.showLogoutAlert = true }) {
+        Button(action: { Task {try TokenManager.shared.clearAllTokens()} }) {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
                     .font(.system(size: 20))

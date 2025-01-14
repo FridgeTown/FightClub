@@ -7,16 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		302391292D2ED0A800C485B7 /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = 302391282D2ED0A800C485B7 /* LiveKit */; };
-		3023912C2D2ED10000C485B7 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3023912B2D2ED10000C485B7 /* FirebaseCore */; };
-		3023912E2D2ED10000C485B7 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 3023912D2D2ED10000C485B7 /* FirebaseFunctions */; };
-		302391302D2ED10000C485B7 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 3023912F2D2ED10000C485B7 /* FirebaseInAppMessaging-Beta */; };
-		302391322D2ED10000C485B7 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 302391312D2ED10000C485B7 /* FirebaseMessaging */; };
-		302391352D2ED17000C485B7 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 302391342D2ED17000C485B7 /* KeychainAccess */; };
-		302391382D2ED19F00C485B7 /* spm-talkplus-framework in Frameworks */ = {isa = PBXBuildFile; productRef = 302391372D2ED19F00C485B7 /* spm-talkplus-framework */; };
-		3023913B2D2ED1C900C485B7 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 3023913A2D2ED1C900C485B7 /* GoogleSignIn */; };
-		3023913D2D2ED1C900C485B7 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3023913C2D2ED1C900C485B7 /* GoogleSignInSwift */; };
-		303224352D2ED374006016CE /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 303224342D2ED374006016CE /* Alamofire */; };
+		30109A492D342F35007424FA /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A482D342F35007424FA /* FirebaseAnalytics */; };
+		30109A4B2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A4A2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion */; };
+		30109A4D2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A4C2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport */; };
+		30109A4F2D342F35007424FA /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A4E2D342F35007424FA /* FirebaseAppCheck */; };
+		30109A512D342F35007424FA /* FirebaseAppDistribution-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A502D342F35007424FA /* FirebaseAppDistribution-Beta */; };
+		3093D1472D344E9E006EFF27 /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1462D344E9E006EFF27 /* LiveKit */; };
+		3093D14A2D344EDA006EFF27 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1492D344EDA006EFF27 /* Alamofire */; };
+		3093D14D2D344EFF006EFF27 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D14C2D344EFF006EFF27 /* KeychainAccess */; };
+		3093D1502D344F23006EFF27 /* spm-talkplus-framework in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D14F2D344F23006EFF27 /* spm-talkplus-framework */; };
+		3093D1532D344F46006EFF27 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1522D344F46006EFF27 /* GoogleSignIn */; };
+		3093D1552D344F46006EFF27 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1542D344F46006EFF27 /* GoogleSignInSwift */; };
 		30A21A922D2ECC74005812C3 /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21A912D2ECC74005812C3 /* LiveKit */; };
 		30A21A9D2D2ECE10005812C3 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21A9C2D2ECE10005812C3 /* FirebaseAnalytics */; };
 		30A21A9F2D2ECE10005812C3 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21A9E2D2ECE10005812C3 /* FirebaseAnalyticsOnDeviceConversion */; };
@@ -38,9 +39,24 @@
 		30A21ABF2D2ECE10005812C3 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21ABE2D2ECE10005812C3 /* FirebaseMessaging */; };
 		30A21AC12D2ECE10005812C3 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21AC02D2ECE10005812C3 /* FirebasePerformance */; };
 		30A21AC32D2ECE10005812C3 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 30A21AC22D2ECE10005812C3 /* FirebaseRemoteConfig */; };
+		30E329AA2D365C5300577981 /* FightClub Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3052761A2D34993300AAB7A4 /* FightClub Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3052762D2D34993400AAB7A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 305E53522D1B0691002E4746 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 305276192D34993300AAB7A4;
+			remoteInfo = "FightClub Watch Watch App";
+		};
+		305276372D34993400AAB7A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 305E53522D1B0691002E4746 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 305276192D34993300AAB7A4;
+			remoteInfo = "FightClub Watch Watch App";
+		};
 		305E536B2D1B0693002E4746 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 305E53522D1B0691002E4746 /* Project object */;
@@ -55,65 +71,94 @@
 			remoteGlobalIDString = 305E53592D1B0691002E4746;
 			remoteInfo = FightClub;
 		};
-		30AFE6AD2D341DD500BADC81 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 305E53522D1B0691002E4746 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 30AFE6992D341DD400BADC81;
-			remoteInfo = "FightClub Watch App";
-		};
-		30AFE6B72D341DD500BADC81 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 305E53522D1B0691002E4746 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 30AFE6992D341DD400BADC81;
-			remoteInfo = "FightClub Watch App";
-		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		303DAA452D351A1800A9422F /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				30E329AA2D365C5300577981 /* FightClub Watch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		305276042D34993300AAB7A4 /* FightClub WatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub WatchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3052760E2D34993300AAB7A4 /* FightClub WatchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub WatchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3052761A2D34993300AAB7A4 /* FightClub Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FightClub Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3052762C2D34993400AAB7A4 /* FightClub Watch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub Watch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		305276362D34993400AAB7A4 /* FightClub Watch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub Watch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		305E535A2D1B0691002E4746 /* FightClub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FightClub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		305E536A2D1B0693002E4746 /* FightClubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FightClubTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		305E53742D1B0693002E4746 /* FightClubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FightClubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30AFE6842D341DD400BADC81 /* FightClubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FightClubTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30AFE68E2D341DD400BADC81 /* FightClubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FightClubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		30AFE69A2D341DD400BADC81 /* FightClub Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FightClub Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		30AFE6AC2D341DD500BADC81 /* FightClub Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		30AFE6B62D341DD500BADC81 /* FightClub Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FightClub Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		307D31ED2D1BC4C5003CCE92 /* Exceptions for "FightClub" folder in "FightClub" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
 				Info.plist,
 			);
 			target = 305E53592D1B0691002E4746 /* FightClub */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		30FCB9482D342E6A001BA4F3 /* Exceptions for "FightClub" folder in "Copy Bundle Resources" phase from "FightClub" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 305E53582D1B0691002E4746 /* Resources */;
+			membershipExceptions = (
+				FightClubApp.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		305276072D34993300AAB7A4 /* FightClub WatchTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FightClub WatchTests";
+			sourceTree = "<group>";
+		};
+		305276112D34993300AAB7A4 /* FightClub WatchUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FightClub WatchUITests";
+			sourceTree = "<group>";
+		};
+		3052761E2D34993300AAB7A4 /* FightClub Watch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FightClub Watch Watch App";
+			sourceTree = "<group>";
+		};
+		3052762F2D34993400AAB7A4 /* FightClub Watch Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FightClub Watch Watch AppTests";
+			sourceTree = "<group>";
+		};
+		305276392D34993400AAB7A4 /* FightClub Watch Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FightClub Watch Watch AppUITests";
+			sourceTree = "<group>";
+		};
 		305E535C2D1B0691002E4746 /* FightClub */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				307D31ED2D1BC4C5003CCE92 /* Exceptions for "FightClub" folder in "FightClub" target */,
+				30FCB9482D342E6A001BA4F3 /* Exceptions for "FightClub" folder in "Copy Bundle Resources" phase from "FightClub" target */,
 			);
 			path = FightClub;
-			sourceTree = "<group>";
-		};
-		305E536D2D1B0693002E4746 /* FightClubTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FightClubTests;
 			sourceTree = "<group>";
 		};
 		305E53772D1B0693002E4746 /* FightClubUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FightClubUITests;
-			sourceTree = "<group>";
-		};
-		30AFE6762D341DD200BADC81 /* FightClub */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FightClub;
 			sourceTree = "<group>";
 		};
 		30AFE6872D341DD400BADC81 /* FightClubTests */ = {
@@ -126,59 +171,80 @@
 			path = FightClubUITests;
 			sourceTree = "<group>";
 		};
-		30AFE69E2D341DD400BADC81 /* FightClub Watch App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "FightClub Watch App";
-			sourceTree = "<group>";
-		};
-		30AFE6AF2D341DD500BADC81 /* FightClub Watch AppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "FightClub Watch AppTests";
-			sourceTree = "<group>";
-		};
-		30AFE6B92D341DD500BADC81 /* FightClub Watch AppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "FightClub Watch AppUITests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		305276012D34993300AAB7A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3052760B2D34993300AAB7A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276172D34993300AAB7A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276292D34993400AAB7A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276332D34993400AAB7A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		305E53572D1B0691002E4746 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				30A21AB32D2ECE10005812C3 /* FirebaseFirestoreCombine-Community in Frameworks */,
-				303224352D2ED374006016CE /* Alamofire in Frameworks */,
+				3093D14A2D344EDA006EFF27 /* Alamofire in Frameworks */,
 				30A21AA12D2ECE10005812C3 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
-				302391302D2ED10000C485B7 /* FirebaseInAppMessaging-Beta in Frameworks */,
-				3023913D2D2ED1C900C485B7 /* GoogleSignInSwift in Frameworks */,
+				3093D1552D344F46006EFF27 /* GoogleSignInSwift in Frameworks */,
 				30A21ABD2D2ECE10005812C3 /* FirebaseMLModelDownloader in Frameworks */,
 				30A21A9D2D2ECE10005812C3 /* FirebaseAnalytics in Frameworks */,
 				30A21ABB2D2ECE10005812C3 /* FirebaseInstallations in Frameworks */,
-				3023913B2D2ED1C900C485B7 /* GoogleSignIn in Frameworks */,
-				302391352D2ED17000C485B7 /* KeychainAccess in Frameworks */,
+				30109A4D2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				3093D1532D344F46006EFF27 /* GoogleSignIn in Frameworks */,
+				3093D14D2D344EFF006EFF27 /* KeychainAccess in Frameworks */,
 				30A21ABF2D2ECE10005812C3 /* FirebaseMessaging in Frameworks */,
 				30A21AA92D2ECE10005812C3 /* FirebaseCore in Frameworks */,
-				3023912E2D2ED10000C485B7 /* FirebaseFunctions in Frameworks */,
+				30109A4B2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
 				30A21AC32D2ECE10005812C3 /* FirebaseRemoteConfig in Frameworks */,
 				30A21AB12D2ECE10005812C3 /* FirebaseFirestore in Frameworks */,
-				3023912C2D2ED10000C485B7 /* FirebaseCore in Frameworks */,
+				30109A4F2D342F35007424FA /* FirebaseAppCheck in Frameworks */,
 				30A21AC12D2ECE10005812C3 /* FirebasePerformance in Frameworks */,
 				30A21AB52D2ECE10005812C3 /* FirebaseFunctions in Frameworks */,
-				302391322D2ED10000C485B7 /* FirebaseMessaging in Frameworks */,
 				30A21AAF2D2ECE10005812C3 /* FirebaseDynamicLinks in Frameworks */,
 				30A21AA72D2ECE10005812C3 /* FirebaseAuthCombine-Community in Frameworks */,
-				302391382D2ED19F00C485B7 /* spm-talkplus-framework in Frameworks */,
-				302391292D2ED0A800C485B7 /* LiveKit in Frameworks */,
 				30A21AAD2D2ECE10005812C3 /* FirebaseDatabase in Frameworks */,
 				30A21A9F2D2ECE10005812C3 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
+				3093D1502D344F23006EFF27 /* spm-talkplus-framework in Frameworks */,
 				30A21A922D2ECC74005812C3 /* LiveKit in Frameworks */,
+				30109A492D342F35007424FA /* FirebaseAnalytics in Frameworks */,
 				30A21AB72D2ECE10005812C3 /* FirebaseFunctionsCombine-Community in Frameworks */,
 				30A21AB92D2ECE10005812C3 /* FirebaseInAppMessaging-Beta in Frameworks */,
 				30A21AAB2D2ECE10005812C3 /* FirebaseCrashlytics in Frameworks */,
 				30A21AA32D2ECE10005812C3 /* FirebaseAppCheck in Frameworks */,
+				3093D1472D344E9E006EFF27 /* LiveKit in Frameworks */,
 				30A21AA52D2ECE10005812C3 /* FirebaseAppDistribution-Beta in Frameworks */,
+				30109A512D342F35007424FA /* FirebaseAppDistribution-Beta in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,42 +276,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		30AFE6972D341DD400BADC81 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6A92D341DD500BADC81 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6B32D341DD500BADC81 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		303DAA412D351A1800A9422F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		305E53512D1B0691002E4746 = {
 			isa = PBXGroup;
 			children = (
 				305E535C2D1B0691002E4746 /* FightClub */,
-				305E536D2D1B0693002E4746 /* FightClubTests */,
 				305E53772D1B0693002E4746 /* FightClubUITests */,
-				30AFE6762D341DD200BADC81 /* FightClub */,
 				30AFE6872D341DD400BADC81 /* FightClubTests */,
 				30AFE6912D341DD400BADC81 /* FightClubUITests */,
-				30AFE69E2D341DD400BADC81 /* FightClub Watch App */,
-				30AFE6AF2D341DD500BADC81 /* FightClub Watch AppTests */,
-				30AFE6B92D341DD500BADC81 /* FightClub Watch AppUITests */,
+				305276072D34993300AAB7A4 /* FightClub WatchTests */,
+				305276112D34993300AAB7A4 /* FightClub WatchUITests */,
+				3052761E2D34993300AAB7A4 /* FightClub Watch Watch App */,
+				3052762F2D34993400AAB7A4 /* FightClub Watch Watch AppTests */,
+				305276392D34993400AAB7A4 /* FightClub Watch Watch AppUITests */,
+				303DAA412D351A1800A9422F /* Frameworks */,
 				305E535B2D1B0691002E4746 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -258,9 +311,11 @@
 				305E53742D1B0693002E4746 /* FightClubUITests.xctest */,
 				30AFE6842D341DD400BADC81 /* FightClubTests.xctest */,
 				30AFE68E2D341DD400BADC81 /* FightClubUITests.xctest */,
-				30AFE69A2D341DD400BADC81 /* FightClub Watch App.app */,
-				30AFE6AC2D341DD500BADC81 /* FightClub Watch AppTests.xctest */,
-				30AFE6B62D341DD500BADC81 /* FightClub Watch AppUITests.xctest */,
+				305276042D34993300AAB7A4 /* FightClub WatchTests.xctest */,
+				3052760E2D34993300AAB7A4 /* FightClub WatchUITests.xctest */,
+				3052761A2D34993300AAB7A4 /* FightClub Watch Watch App.app */,
+				3052762C2D34993400AAB7A4 /* FightClub Watch Watch AppTests.xctest */,
+				305276362D34993400AAB7A4 /* FightClub Watch Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -268,6 +323,118 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		305276032D34993300AAB7A4 /* FightClub WatchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 305276452D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub WatchTests" */;
+			buildPhases = (
+				305276002D34993300AAB7A4 /* Sources */,
+				305276012D34993300AAB7A4 /* Frameworks */,
+				305276022D34993300AAB7A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				305276072D34993300AAB7A4 /* FightClub WatchTests */,
+			);
+			name = "FightClub WatchTests";
+			packageProductDependencies = (
+			);
+			productName = "FightClub WatchTests";
+			productReference = 305276042D34993300AAB7A4 /* FightClub WatchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		3052760D2D34993300AAB7A4 /* FightClub WatchUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 305276482D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub WatchUITests" */;
+			buildPhases = (
+				3052760A2D34993300AAB7A4 /* Sources */,
+				3052760B2D34993300AAB7A4 /* Frameworks */,
+				3052760C2D34993300AAB7A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				305276112D34993300AAB7A4 /* FightClub WatchUITests */,
+			);
+			name = "FightClub WatchUITests";
+			packageProductDependencies = (
+			);
+			productName = "FightClub WatchUITests";
+			productReference = 3052760E2D34993300AAB7A4 /* FightClub WatchUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		305276192D34993300AAB7A4 /* FightClub Watch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3052763E2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch App" */;
+			buildPhases = (
+				305276162D34993300AAB7A4 /* Sources */,
+				305276172D34993300AAB7A4 /* Frameworks */,
+				305276182D34993300AAB7A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3052761E2D34993300AAB7A4 /* FightClub Watch Watch App */,
+			);
+			name = "FightClub Watch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "FightClub Watch Watch App";
+			productReference = 3052761A2D34993300AAB7A4 /* FightClub Watch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3052762B2D34993400AAB7A4 /* FightClub Watch Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3052764B2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch AppTests" */;
+			buildPhases = (
+				305276282D34993400AAB7A4 /* Sources */,
+				305276292D34993400AAB7A4 /* Frameworks */,
+				3052762A2D34993400AAB7A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3052762E2D34993400AAB7A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3052762F2D34993400AAB7A4 /* FightClub Watch Watch AppTests */,
+			);
+			name = "FightClub Watch Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "FightClub Watch Watch AppTests";
+			productReference = 3052762C2D34993400AAB7A4 /* FightClub Watch Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		305276352D34993400AAB7A4 /* FightClub Watch Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3052764E2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch AppUITests" */;
+			buildPhases = (
+				305276322D34993400AAB7A4 /* Sources */,
+				305276332D34993400AAB7A4 /* Frameworks */,
+				305276342D34993400AAB7A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				305276382D34993400AAB7A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				305276392D34993400AAB7A4 /* FightClub Watch Watch AppUITests */,
+			);
+			name = "FightClub Watch Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "FightClub Watch Watch AppUITests";
+			productReference = 305276362D34993400AAB7A4 /* FightClub Watch Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		305E53592D1B0691002E4746 /* FightClub */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 305E537E2D1B0693002E4746 /* Build configuration list for PBXNativeTarget "FightClub" */;
@@ -275,6 +442,7 @@
 				305E53562D1B0691002E4746 /* Sources */,
 				305E53572D1B0691002E4746 /* Frameworks */,
 				305E53582D1B0691002E4746 /* Resources */,
+				303DAA452D351A1800A9422F /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
@@ -306,16 +474,17 @@
 				30A21ABE2D2ECE10005812C3 /* FirebaseMessaging */,
 				30A21AC02D2ECE10005812C3 /* FirebasePerformance */,
 				30A21AC22D2ECE10005812C3 /* FirebaseRemoteConfig */,
-				302391282D2ED0A800C485B7 /* LiveKit */,
-				3023912B2D2ED10000C485B7 /* FirebaseCore */,
-				3023912D2D2ED10000C485B7 /* FirebaseFunctions */,
-				3023912F2D2ED10000C485B7 /* FirebaseInAppMessaging-Beta */,
-				302391312D2ED10000C485B7 /* FirebaseMessaging */,
-				302391342D2ED17000C485B7 /* KeychainAccess */,
-				302391372D2ED19F00C485B7 /* spm-talkplus-framework */,
-				3023913A2D2ED1C900C485B7 /* GoogleSignIn */,
-				3023913C2D2ED1C900C485B7 /* GoogleSignInSwift */,
-				303224342D2ED374006016CE /* Alamofire */,
+				30109A482D342F35007424FA /* FirebaseAnalytics */,
+				30109A4A2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion */,
+				30109A4C2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport */,
+				30109A4E2D342F35007424FA /* FirebaseAppCheck */,
+				30109A502D342F35007424FA /* FirebaseAppDistribution-Beta */,
+				3093D1462D344E9E006EFF27 /* LiveKit */,
+				3093D1492D344EDA006EFF27 /* Alamofire */,
+				3093D14C2D344EFF006EFF27 /* KeychainAccess */,
+				3093D14F2D344F23006EFF27 /* spm-talkplus-framework */,
+				3093D1522D344F46006EFF27 /* GoogleSignIn */,
+				3093D1542D344F46006EFF27 /* GoogleSignInSwift */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -333,9 +502,6 @@
 			);
 			dependencies = (
 				305E536C2D1B0693002E4746 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				305E536D2D1B0693002E4746 /* FightClubTests */,
 			);
 			name = FightClubTests;
 			packageProductDependencies = (
@@ -411,74 +577,6 @@
 			productReference = 30AFE68E2D341DD400BADC81 /* FightClubUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		30AFE6992D341DD400BADC81 /* FightClub Watch App */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 30AFE6BE2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch App" */;
-			buildPhases = (
-				30AFE6962D341DD400BADC81 /* Sources */,
-				30AFE6972D341DD400BADC81 /* Frameworks */,
-				30AFE6982D341DD400BADC81 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				30AFE69E2D341DD400BADC81 /* FightClub Watch App */,
-			);
-			name = "FightClub Watch App";
-			packageProductDependencies = (
-			);
-			productName = "FightClub Watch App";
-			productReference = 30AFE69A2D341DD400BADC81 /* FightClub Watch App.app */;
-			productType = "com.apple.product-type.application";
-		};
-		30AFE6AB2D341DD500BADC81 /* FightClub Watch AppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 30AFE6CB2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch AppTests" */;
-			buildPhases = (
-				30AFE6A82D341DD500BADC81 /* Sources */,
-				30AFE6A92D341DD500BADC81 /* Frameworks */,
-				30AFE6AA2D341DD500BADC81 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				30AFE6AE2D341DD500BADC81 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				30AFE6AF2D341DD500BADC81 /* FightClub Watch AppTests */,
-			);
-			name = "FightClub Watch AppTests";
-			packageProductDependencies = (
-			);
-			productName = "FightClub Watch AppTests";
-			productReference = 30AFE6AC2D341DD500BADC81 /* FightClub Watch AppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		30AFE6B52D341DD500BADC81 /* FightClub Watch AppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 30AFE6CE2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch AppUITests" */;
-			buildPhases = (
-				30AFE6B22D341DD500BADC81 /* Sources */,
-				30AFE6B32D341DD500BADC81 /* Frameworks */,
-				30AFE6B42D341DD500BADC81 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				30AFE6B82D341DD500BADC81 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				30AFE6B92D341DD500BADC81 /* FightClub Watch AppUITests */,
-			);
-			name = "FightClub Watch AppUITests";
-			packageProductDependencies = (
-			);
-			productName = "FightClub Watch AppUITests";
-			productReference = 30AFE6B62D341DD500BADC81 /* FightClub Watch AppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -489,6 +587,25 @@
 				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
+					305276032D34993300AAB7A4 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 305275F42D34993100AAB7A4;
+					};
+					3052760D2D34993300AAB7A4 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 305275F42D34993100AAB7A4;
+					};
+					305276192D34993300AAB7A4 = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					3052762B2D34993400AAB7A4 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 305276192D34993300AAB7A4;
+					};
+					305276352D34993400AAB7A4 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 305276192D34993300AAB7A4;
+					};
 					305E53592D1B0691002E4746 = {
 						CreatedOnToolsVersion = 16.1;
 					};
@@ -508,17 +625,6 @@
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = 30AFE6742D341DD200BADC81;
 					};
-					30AFE6992D341DD400BADC81 = {
-						CreatedOnToolsVersion = 16.1;
-					};
-					30AFE6AB2D341DD500BADC81 = {
-						CreatedOnToolsVersion = 16.1;
-						TestTargetID = 30AFE6992D341DD400BADC81;
-					};
-					30AFE6B52D341DD500BADC81 = {
-						CreatedOnToolsVersion = 16.1;
-						TestTargetID = 30AFE6992D341DD400BADC81;
-					};
 				};
 			};
 			buildConfigurationList = 305E53552D1B0691002E4746 /* Build configuration list for PBXProject "FightClub" */;
@@ -531,12 +637,12 @@
 			mainGroup = 305E53512D1B0691002E4746;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				302391272D2ED0A800C485B7 /* XCRemoteSwiftPackageReference "client-sdk-swift" */,
-				3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				302391332D2ED17000C485B7 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
-				302391362D2ED19F00C485B7 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */,
-				302391392D2ED1C900C485B7 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				303224332D2ED374006016CE /* XCRemoteSwiftPackageReference "Alamofire" */,
+				3093D1442D344E66006EFF27 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				3093D1452D344E9E006EFF27 /* XCRemoteSwiftPackageReference "client-sdk-swift" */,
+				3093D1482D344EDA006EFF27 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				3093D14B2D344EFF006EFF27 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				3093D14E2D344F23006EFF27 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */,
+				3093D1512D344F46006EFF27 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -548,14 +654,51 @@
 				305E53732D1B0693002E4746 /* FightClubUITests */,
 				30AFE6832D341DD400BADC81 /* FightClubTests */,
 				30AFE68D2D341DD400BADC81 /* FightClubUITests */,
-				30AFE6992D341DD400BADC81 /* FightClub Watch App */,
-				30AFE6AB2D341DD500BADC81 /* FightClub Watch AppTests */,
-				30AFE6B52D341DD500BADC81 /* FightClub Watch AppUITests */,
+				305276032D34993300AAB7A4 /* FightClub WatchTests */,
+				3052760D2D34993300AAB7A4 /* FightClub WatchUITests */,
+				305276192D34993300AAB7A4 /* FightClub Watch Watch App */,
+				3052762B2D34993400AAB7A4 /* FightClub Watch Watch AppTests */,
+				305276352D34993400AAB7A4 /* FightClub Watch Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		305276022D34993300AAB7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3052760C2D34993300AAB7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276182D34993300AAB7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3052762A2D34993400AAB7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276342D34993400AAB7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		305E53582D1B0691002E4746 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -591,30 +734,44 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		30AFE6982D341DD400BADC81 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6AA2D341DD500BADC81 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6B42D341DD500BADC81 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		305276002D34993300AAB7A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3052760A2D34993300AAB7A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276162D34993300AAB7A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276282D34993400AAB7A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		305276322D34993400AAB7A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		305E53562D1B0691002E4746 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -650,30 +807,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		30AFE6962D341DD400BADC81 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6A82D341DD500BADC81 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		30AFE6B22D341DD500BADC81 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3052762E2D34993400AAB7A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 305276192D34993300AAB7A4 /* FightClub Watch Watch App */;
+			targetProxy = 3052762D2D34993400AAB7A4 /* PBXContainerItemProxy */;
+		};
+		305276382D34993400AAB7A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 305276192D34993300AAB7A4 /* FightClub Watch Watch App */;
+			targetProxy = 305276372D34993400AAB7A4 /* PBXContainerItemProxy */;
+		};
 		305E536C2D1B0693002E4746 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 305E53592D1B0691002E4746 /* FightClub */;
@@ -684,19 +830,229 @@
 			target = 305E53592D1B0691002E4746 /* FightClub */;
 			targetProxy = 305E53752D1B0693002E4746 /* PBXContainerItemProxy */;
 		};
-		30AFE6AE2D341DD500BADC81 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 30AFE6992D341DD400BADC81 /* FightClub Watch App */;
-			targetProxy = 30AFE6AD2D341DD500BADC81 /* PBXContainerItemProxy */;
-		};
-		30AFE6B82D341DD500BADC81 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 30AFE6992D341DD400BADC81 /* FightClub Watch App */;
-			targetProxy = 30AFE6B72D341DD500BADC81 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		3052763F2D34993400AAB7A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "FightClub Watch Watch App/FightClub Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FightClub Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "FightClub Watch App/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FightClub Watch";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.donginlee.fightclub;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.donginlee.fightclub.watch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Debug;
+		};
+		305276402D34993400AAB7A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "FightClub Watch Watch App/FightClub Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FightClub Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "FightClub Watch App/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FightClub Watch";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.donginlee.fightclub;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.donginlee.fightclub.watch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Release;
+		};
+		305276462D34993400AAB7A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-WatchTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch";
+			};
+			name = Debug;
+		};
+		305276472D34993400AAB7A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-WatchTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch";
+			};
+			name = Release;
+		};
+		305276492D34993400AAB7A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-WatchUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "FightClub Watch";
+			};
+			name = Debug;
+		};
+		3052764A2D34993400AAB7A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-WatchUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "FightClub Watch";
+			};
+			name = Release;
+		};
+		3052764C2D34993400AAB7A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Debug;
+		};
+		3052764D2D34993400AAB7A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Release;
+		};
+		3052764F2D34993400AAB7A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "FightClub Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Debug;
+		};
+		305276502D34993400AAB7A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TKGJMJG2JJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "FightClub Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.1;
+			};
+			name = Release;
+		};
 		305E537C2D1B0693002E4746 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -819,7 +1175,6 @@
 		305E537F2D1B0693002E4746 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FightClub/FightClub.entitlements;
@@ -832,8 +1187,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FightClub/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "복싱 동작을 녹화하고 분석하기 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Live 송출을 위한 마이크 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
@@ -858,7 +1214,6 @@
 		305E53802D1B0693002E4746 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FightClub/FightClub.entitlements;
@@ -871,8 +1226,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FightClub/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "복싱 동작을 녹화하고 분석하기 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Live 송출을 위한 마이크 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
@@ -966,74 +1322,6 @@
 			};
 			name = Release;
 		};
-		30AFE6BF2D341DD500BADC81 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "FightClub Watch App/FightClub Watch App.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"FightClub Watch App/Preview Content\"";
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FightClub-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = FightClub;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dongInLee.FightClub;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dongInLee.FightClub.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Debug;
-		};
-		30AFE6C02D341DD500BADC81 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "FightClub Watch App/FightClub Watch App.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"FightClub Watch App/Preview Content\"";
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FightClub-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = FightClub;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "운동 중 심박수와 칼로리 소모량을 측정하기 위해 건강 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "운동 데이터를 저장하기 위해 건강 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dongInLee.FightClub;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dongInLee.FightClub.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Release;
-		};
 		30AFE6C62D341DD500BADC81 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1106,87 +1394,54 @@
 			};
 			name = Release;
 		};
-		30AFE6CC2D341DD500BADC81 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Debug;
-		};
-		30AFE6CD2D341DD500BADC81 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FightClub Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FightClub Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Release;
-		};
-		30AFE6CF2D341DD500BADC81 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "FightClub Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Debug;
-		};
-		30AFE6D02D341DD500BADC81 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TKGJMJG2JJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dongInLee.FightClub-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "FightClub Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 11.1;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3052763E2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3052763F2D34993400AAB7A4 /* Debug */,
+				305276402D34993400AAB7A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		305276452D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub WatchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				305276462D34993400AAB7A4 /* Debug */,
+				305276472D34993400AAB7A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		305276482D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub WatchUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				305276492D34993400AAB7A4 /* Debug */,
+				3052764A2D34993400AAB7A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3052764B2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3052764C2D34993400AAB7A4 /* Debug */,
+				3052764D2D34993400AAB7A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3052764E2D34993400AAB7A4 /* Build configuration list for PBXNativeTarget "FightClub Watch Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3052764F2D34993400AAB7A4 /* Debug */,
+				305276502D34993400AAB7A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		305E53552D1B0691002E4746 /* Build configuration list for PBXProject "FightClub" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1223,15 +1478,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		30AFE6BE2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch App" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				30AFE6BF2D341DD500BADC81 /* Debug */,
-				30AFE6C02D341DD500BADC81 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		30AFE6C52D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClubTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1250,68 +1496,26 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		30AFE6CB2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch AppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				30AFE6CC2D341DD500BADC81 /* Debug */,
-				30AFE6CD2D341DD500BADC81 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		30AFE6CE2D341DD500BADC81 /* Build configuration list for PBXNativeTarget "FightClub Watch AppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				30AFE6CF2D341DD500BADC81 /* Debug */,
-				30AFE6D02D341DD500BADC81 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		302391272D2ED0A800C485B7 /* XCRemoteSwiftPackageReference "client-sdk-swift" */ = {
+		3093D1442D344E66006EFF27 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/livekit/client-sdk-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.19;
-			};
-		};
-		3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 11.6.0;
 			};
 		};
-		302391332D2ED17000C485B7 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+		3093D1452D344E9E006EFF27 /* XCRemoteSwiftPackageReference "client-sdk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-		302391362D2ED19F00C485B7 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/adxcorp/talkplus-ios-release.git";
+			repositoryURL = "https://github.com/livekit/client-sdk-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.6.4;
+				minimumVersion = 2.0.19;
 			};
 		};
-		302391392D2ED1C900C485B7 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
-		303224332D2ED374006016CE /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		3093D1482D344EDA006EFF27 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
@@ -1319,58 +1523,82 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		3093D14B2D344EFF006EFF27 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		3093D14E2D344F23006EFF27 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adxcorp/talkplus-ios-release.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.4;
+			};
+		};
+		3093D1512D344F46006EFF27 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		302391282D2ED0A800C485B7 /* LiveKit */ = {
+		30109A482D342F35007424FA /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 302391272D2ED0A800C485B7 /* XCRemoteSwiftPackageReference "client-sdk-swift" */;
+			productName = FirebaseAnalytics;
+		};
+		30109A4A2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAnalyticsOnDeviceConversion;
+		};
+		30109A4C2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAnalyticsWithoutAdIdSupport;
+		};
+		30109A4E2D342F35007424FA /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAppCheck;
+		};
+		30109A502D342F35007424FA /* FirebaseAppDistribution-Beta */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = "FirebaseAppDistribution-Beta";
+		};
+		3093D1462D344E9E006EFF27 /* LiveKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3093D1452D344E9E006EFF27 /* XCRemoteSwiftPackageReference "client-sdk-swift" */;
 			productName = LiveKit;
 		};
-		3023912B2D2ED10000C485B7 /* FirebaseCore */ = {
+		3093D1492D344EDA006EFF27 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
+			package = 3093D1482D344EDA006EFF27 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
-		3023912D2D2ED10000C485B7 /* FirebaseFunctions */ = {
+		3093D14C2D344EFF006EFF27 /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
-		};
-		3023912F2D2ED10000C485B7 /* FirebaseInAppMessaging-Beta */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = "FirebaseInAppMessaging-Beta";
-		};
-		302391312D2ED10000C485B7 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3023912A2D2ED10000C485B7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
-		};
-		302391342D2ED17000C485B7 /* KeychainAccess */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 302391332D2ED17000C485B7 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			package = 3093D14B2D344EFF006EFF27 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
 		};
-		302391372D2ED19F00C485B7 /* spm-talkplus-framework */ = {
+		3093D14F2D344F23006EFF27 /* spm-talkplus-framework */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 302391362D2ED19F00C485B7 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */;
+			package = 3093D14E2D344F23006EFF27 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */;
 			productName = "spm-talkplus-framework";
 		};
-		3023913A2D2ED1C900C485B7 /* GoogleSignIn */ = {
+		3093D1522D344F46006EFF27 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 302391392D2ED1C900C485B7 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			package = 3093D1512D344F46006EFF27 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
 		};
-		3023913C2D2ED1C900C485B7 /* GoogleSignInSwift */ = {
+		3093D1542D344F46006EFF27 /* GoogleSignInSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 302391392D2ED1C900C485B7 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			package = 3093D1512D344F46006EFF27 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
-		};
-		303224342D2ED374006016CE /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 303224332D2ED374006016CE /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
 		};
 		30A21A912D2ECC74005812C3 /* LiveKit */ = {
 			isa = XCSwiftPackageProductDependency;

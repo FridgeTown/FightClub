@@ -17,13 +17,14 @@ struct ContentView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
-                if workoutManager.isWorkoutInProgress {
-                    // 운동 중인 경우
-                    WorkoutView()
-                } else {
-                    // 대기 상태
-                    StartView()
-                }
+                StartView()
+//                if workoutManager.isWorkoutInProgress {
+//                    // 운동 중인 경우
+//                    WorkoutView()
+//                } else {
+//                    // 대기 상태
+//                    StartView()
+//                }
             }
         }
     }
@@ -56,21 +57,22 @@ struct WorkoutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                Text("운동중 화면")
                 // 심박수
-                MetricView(
-                    title: "심박수",
-                    value: Int(workoutManager.heartRate),
-                    unit: "BPM",
-                    systemImage: "heart.fill"
-                )
-                
-                // 칼로리
-                MetricView(
-                    title: "소모 칼로리",
-                    value: Int(workoutManager.activeCalories),
-                    unit: "kcal",
-                    systemImage: "flame.fill"
-                )
+//                MetricView(
+//                    title: "심박수",
+//                    value: Int(workoutManager.heartRate),
+//                    unit: "BPM",
+//                    systemImage: "heart.fill"
+//                )
+//                
+//                // 칼로리
+//                MetricView(
+//                    title: "소모 칼로리",
+//                    value: Int(workoutManager.activeCalories),
+//                    unit: "kcal",
+//                    systemImage: "flame.fill"
+//                )
             }
             .padding()
         }

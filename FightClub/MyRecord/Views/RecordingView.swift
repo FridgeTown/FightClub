@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import AVKit
+import WatchConnectivity
 
 struct RecordingView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -21,6 +22,8 @@ struct RecordingView: View {
     @State private var showingSummary = false
     @State private var recordedVideoURL: URL?
     @State private var isViewAppeared = false
+    @State private var showWatchAppAlert = false
+    @State private var showPunchEffect = false
     
     var body: some View {
         ZStack {
@@ -41,6 +44,15 @@ struct RecordingView: View {
             
             // 알림 오버레이 추가
             NotificationOverlay()
+            
+            // 펀치 효과 오버레이
+            if showPunchEffect {
+                Color.red
+                    .opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .transition(.opacity)
+                    .animation(.easeOut(duration: 0.2), value: showPunchEffect)
+            }
         }
         .statusBar(hidden: true)
         .edgesIgnoringSafeArea(.all)
@@ -57,6 +69,24 @@ struct RecordingView: View {
             isViewAppeared = false
         }
         .environmentObject(notificationHandler)
+        .alert(isPresented: $showWatchAppAlert) {
+            Alert(
+                title: Text("Watch App Not Installed"),
+                message: Text("Please install the Watch App to use this feature."),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .onChange(of: recordingManager.punchCount) { newCount in
+            // 펀치가 감지될 때마다 효과 표시
+            showPunchEffect = true
+            
+            // 0.2초 후에 효과 제거
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation {
+                    showPunchEffect = false
+                }
+            }
+        }
     }
     
     private var recordingView: some View {
@@ -112,6 +142,11 @@ struct RecordingView: View {
     }
     
     private func startRecording() {
+        if !WCSession.default.isWatchAppInstalled {
+            showWatchAppAlert = true
+            return
+        }
+        
         recordingManager.startRecording()
         healthKitManager.startWorkoutSession()
     }
@@ -127,56 +162,21 @@ struct RecordingView: View {
     }
     
     private func saveRecording() {
-        guard let videoURL = recordedVideoURL else {
-            print("Error: No video URL available")
-            presentationMode.wrappedValue.dismiss()
-            return
-        }
+        let newSession = BoxingSession(context: viewContext)
         
-        // 비디오 파일을 Documents 디렉토리로 이동
-        let fileManager = FileManager.default
+        // 데이터 설정
+        newSession.date = Date()
+        newSession.duration = recordingManager.elapsedTime
+        newSession.punchCount = Int32(recordingManager.punchCount)
+        newSession.memo = memo.isEmpty ? nil : memo
+        newSession.heartRate = HealthKitManager.shared.heartRate
+        newSession.activeCalories = HealthKitManager.shared.activeCalories
+        
         do {
-            let documentsPath = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let fileName = "boxing_session_\(Date().timeIntervalSince1970).mov"
-            let destinationURL = documentsPath.appendingPathComponent(fileName)
-            
-            // 이미 같은 이름의 파일이 있다면 삭제
-            if fileManager.fileExists(atPath: destinationURL.path) {
-                try fileManager.removeItem(at: destinationURL)
-            }
-            
-            // 비디오 파일 복사 (이동 대신 복사를 사용)
-            try fileManager.copyItem(at: videoURL, to: destinationURL)
-            
-            // CoreData에 세션 저장
-            let newSession = BoxingSession(context: viewContext)
-            newSession.id = UUID()
-            newSession.date = Date()
-            newSession.duration = recordingManager.elapsedTime
-            newSession.punchCount = Int32(recordingManager.punchCount)
-            newSession.memo = memo.isEmpty ? nil : memo
-            newSession.videoURL = destinationURL
-            
             try viewContext.save()
-            print("Session saved successfully")
-            
-            // 원본 파일 삭제
-            try? fileManager.removeItem(at: videoURL)
-            
-            // 저장 성공 후 뷰 닫기
-            DispatchQueue.main.async {
-                self.presentationMode.wrappedValue.dismiss()
-            }
-            
+            presentationMode.wrappedValue.dismiss()
         } catch {
-            print("Error saving session: \(error.localizedDescription)")
-            // 에러 발생 시 임시 파일 정리
-            try? fileManager.removeItem(at: videoURL)
-            
-            // 에러 상황에서도 뷰는 닫아줌
-            DispatchQueue.main.async {
-                self.presentationMode.wrappedValue.dismiss()
-            }
+            print("저장 실패: \(error.localizedDescription)")
         }
     }
     
@@ -568,6 +568,33 @@ struct CameraPermissionView: View {
             }
         }
         .padding()
+    }
+}
+
+// 펀치 효과를 위한 애니메이션 수정자
+struct PunchEffectModifier: ViewModifier {
+    let isActive: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                Group {
+                    if isActive {
+                        Color.red
+                            .opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .transition(.opacity)
+                            .animation(.easeOut(duration: 0.2), value: isActive)
+                    }
+                }
+            )
+    }
+}
+
+
+extension View {
+    func punchEffect(isActive: Bool) -> some View {
+        self.modifier(PunchEffectModifier(isActive: isActive))
     }
 }
 

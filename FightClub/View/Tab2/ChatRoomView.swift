@@ -26,7 +26,7 @@ struct ChatRoomView: View {
         // LiveKit Context 초기화
         let preferences = Preferences()
         let keychain = Keychain(service: "com.fightclub.app")
-        let store = ValueStore(store: keychain, 
+        let store = ValueStore(store: keychain,
                              key: "preferences",
                              default: preferences)
         _roomContext = StateObject(wrappedValue: RoomContext(store: store))
@@ -243,7 +243,7 @@ struct LoadingView: View {
             Spacer()
             ProgressView()
                 .scaleEffect(1.5)
-            Text("불러오는 중...")
+            Text("메시지를 불러오는 중...")
                 .font(.subheadline)
                 .foregroundColor(.gray)
             Spacer()

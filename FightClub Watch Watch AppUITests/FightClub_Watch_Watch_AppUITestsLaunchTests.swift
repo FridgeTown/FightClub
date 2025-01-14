@@ -1,13 +1,13 @@
 //
-//  FightClub_Watch_AppUITestsLaunchTests.swift
-//  FightClub Watch AppUITests
+//  FightClub_Watch_Watch_AppUITestsLaunchTests.swift
+//  FightClub Watch Watch AppUITests
 //
 //  Created by Edward Lee on 1/13/25.
 //
 
 import XCTest
 
-final class FightClub_Watch_AppUITestsLaunchTests: XCTestCase {
+final class FightClub_Watch_Watch_AppUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

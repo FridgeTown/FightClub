@@ -9,7 +9,11 @@ import Foundation
 import CoreData
 
 @objc(BoxingSession)
-public class BoxingSession: NSManagedObject, Identifiable {
+public class BoxingSession: NSManagedObject {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<BoxingSession> {
+        return NSFetchRequest<BoxingSession>(entityName: "BoxingSession")
+    }
+    
     @NSManaged public var id: UUID
     @NSManaged public var date: Date
     @NSManaged public var duration: Double
@@ -17,6 +21,8 @@ public class BoxingSession: NSManagedObject, Identifiable {
     @NSManaged public var memo: String?
     @NSManaged public var videoURL: URL?
     @NSManaged public var highlightsData: Data?
+    @NSManaged public var heartRate: Double
+    @NSManaged public var activeCalories: Double
     
     var highlights: [TimeInterval] {
         get {
@@ -38,8 +44,5 @@ public class BoxingSession: NSManagedObject, Identifiable {
     }
 }
 
-extension BoxingSession {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<BoxingSession> {
-        return NSFetchRequest<BoxingSession>(entityName: "BoxingSession")
-    }
-}
+// MARK: - Identifiable
+extension BoxingSession: Identifiable { }
