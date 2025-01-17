@@ -4,6 +4,11 @@ import Vision
 import Combine
 import UIKit
 
+// MARK: - Notification Names
+extension Notification.Name {
+    static let punchDetected = Notification.Name("punchDetected")
+}
+
 // MARK: - Recording Manager
 class RecordingManager: NSObject, ObservableObject {
     // MARK: - Published Properties
@@ -201,6 +206,15 @@ class RecordingManager: NSObject, ObservableObject {
         // 카메라 세션 정리
         stopCamera()
     }
+    
+    private func handlePunchDetection() {
+        DispatchQueue.main.async {
+            self.punchCount += 1
+            // 펀치 효과음 재생
+            AudioPlayerManager.shared.playSound(named: "punch", volume: 0.5)
+        }
+    }
+
 }
 
 extension RecordingManager: AVCaptureFileOutputRecordingDelegate {
@@ -226,9 +240,7 @@ extension RecordingManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         if isRecording {
             punchDetector.detectPunch(in: sampleBuffer) { [weak self] isPunch in
                 if isPunch {
-                    DispatchQueue.main.async {
-                        self?.punchCount += 1
-                    }
+                    self?.handlePunchDetection()
                 }
             }
         }
@@ -243,9 +255,7 @@ extension RecordingManager: VideoProcessingChainDelegate {
     
     func videoProcessingChain(_ chain: VideoProcessingChain, didDetectAction action: String) {
         // 펀치 동작 감지 시 처리
-        DispatchQueue.main.async { [weak self] in
-            self?.punchCount += 1
-        }
+        handlePunchDetection()
     }
     
     func videoProcessingChain(_ chain: VideoProcessingChain, didDetect poses: [Pose]?, in frame: CGImage) {

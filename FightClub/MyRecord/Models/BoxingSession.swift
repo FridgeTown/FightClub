@@ -23,6 +23,8 @@ public class BoxingSession: NSManagedObject {
     @NSManaged public var highlightsData: Data?
     @NSManaged public var heartRate: Double
     @NSManaged public var activeCalories: Double
+    @NSManaged public var maxPunchSpeed: Double
+    @NSManaged public var avgPunchSpeed: Double
     
     var highlights: [TimeInterval] {
         get {

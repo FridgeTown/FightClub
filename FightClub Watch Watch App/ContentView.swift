@@ -54,7 +54,6 @@ struct WorkoutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text("운동중 화면")
                 // 심박수
                 MetricView(
                     title: "심박수",
@@ -62,11 +61,19 @@ struct WorkoutView: View {
                     unit: "BPM",
                     systemImage: "heart.fill"
                 )
-//                
-//                // 칼로리
+                
+                // 현재 펀치 속도
+                MetricView(
+                    title: "현재 펀치 속도",
+                    value: Int(workoutManager.currentPunchSpeed),
+                    unit: "m/s",
+                    systemImage: "figure.boxing"
+                )
+                
+                // 소모 칼로리
                 MetricView(
                     title: "소모 칼로리",
-                    value: 0,
+                    value: Int(workoutManager.activeCalories),
                     unit: "kcal",
                     systemImage: "flame.fill"
                 )

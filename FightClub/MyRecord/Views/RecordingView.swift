@@ -11,6 +11,39 @@ import AVKit
 import WatchConnectivity
 import Vision
 
+// 오디오 플레이어 관리 클래스
+class AudioPlayerManager: NSObject, AVAudioPlayerDelegate {
+    static let shared = AudioPlayerManager()
+    private var audioPlayer: AVAudioPlayer?
+    
+    func playSound(named: String, volume: Float = 1.0) {
+        guard let soundURL = Bundle.main.url(forResource: named, withExtension: "mp3") else {
+            print("\(named) 효과음 파일을 찾을 수 없습니다")
+            return
+        }
+        
+        do {
+            // 이전 플레이어 정리
+            audioPlayer?.stop()
+            audioPlayer = nil
+            
+            // 새로운 플레이어 생성 및 재생
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer?.delegate = self
+            audioPlayer?.volume = volume
+            audioPlayer?.numberOfLoops = 0  // 한 번만 재생
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+        } catch {
+            print("\(named) 효과음 재생 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        audioPlayer = nil
+    }
+}
+
 struct RecordingView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var viewContext
@@ -37,6 +70,13 @@ struct RecordingView: View {
     // 녹화 상태 추가
     @State private var isRecording = false
     
+    // 펀치 속도 관련 변수 추가
+    @State private var savedMaxPunchSpeed: Double = 0.0
+    @State private var savedAvgPunchSpeed: Double = 0.0
+    
+    // 이전 펀치 카운트 저장
+    @State private var lastPunchCount: Int = 0
+    
     var body: some View {
         ZStack {
             if showingSummary {
@@ -46,6 +86,8 @@ struct RecordingView: View {
                     videoURL: recordedVideoURL,
                     heartRate: savedHeartRate,
                     calories: savedCalories,
+                    maxPunchSpeed: savedMaxPunchSpeed,
+                    avgPunchSpeed: savedAvgPunchSpeed,
                     memo: $memo,
                     onSave: saveRecording,
                     onDiscard: discardRecording
@@ -111,14 +153,9 @@ struct RecordingView: View {
             )
         }
         .onChange(of: recordingManager.punchCount) { newCount in
-            // 펀치가 감지될 때마다 효과 표시
-            showPunchEffect = true
-            
-            // 0.2초 후에 효과 제거
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation {
-                    showPunchEffect = false
-                }
+            if newCount > lastPunchCount {
+                playPunchSound()
+                lastPunchCount = newCount
             }
         }
     }
@@ -192,6 +229,16 @@ struct RecordingView: View {
         // HealthKit 세션 중지
         healthKitManager.stopWorkoutSession()
         
+        // 워치에 종료 메시지 전송
+        let session = WCSession.default
+        if session.isReachable {
+            session.sendMessage(["command": "stopWorkout"], replyHandler: { reply in
+                print("워치 앱 종료 응답: \(reply)")
+            }, errorHandler: { error in
+                print("워치 앱 종료 메시지 전송 실패: \(error.localizedDescription)")
+            })
+        }
+        
         // 카메라와 모든 리소스 정리
         recordingManager.cleanup()
         
@@ -207,18 +254,17 @@ struct RecordingView: View {
             return true
         }
         
-        // 워치 자체가 없는 경우 (페어링 안됨 또는 앱 미설치)
+        // 워치 연결 상태 확인
         if !session.isPaired || !session.isWatchAppInstalled {
+            print("Watch is not paired or app is not installed")
             showWatchAppAlert = true
             return false
         }
         
-        // 워치는 있지만 연결이 안된 경우
+        // 워치 앱이 설치되어 있지만 연결할 수 없는 경우
         if !session.isReachable {
-            // 아직 선택하지 않은 경우에만 알림 표시
-            if !proceedWithoutWatch {
-                showProceedWithoutWatchAlert = true
-            }
+            print("Watch is not reachable")
+            showProceedWithoutWatchAlert = true
             return false
         }
         
@@ -244,6 +290,7 @@ struct RecordingView: View {
     }
     
     private func startRecording() {
+        playStartSound()
         // 워치 없이 진행하기로 한 경우
         if proceedWithoutWatch {
             startRecordingAfterWatchReady()
@@ -251,29 +298,18 @@ struct RecordingView: View {
         }
         
         // 워치 연결 확인
-        let session = WCSession.default
-        if session.isReachable {
+        if checkWatchConnection() {
             // 워치 앱에 시작 명령 전송
             healthKitManager.startWorkoutSession()
-            session.sendMessage(["command": "startWorkout"], replyHandler: { reply in
-                if let status = reply["status"] as? String, status == "ready" {
-                    print("워치 앱 준비 완료")
-                }
-                // 응답 받으면 녹화 시작
-                DispatchQueue.main.async {
-                    self.startRecordingAfterWatchReady()
-                }
-            }, errorHandler: { error in
-                print("워치 앱 시작 명령 전송 실패: \(error.localizedDescription)")
-                // 에러 발생해도 녹화는 시작
-                DispatchQueue.main.async {
-                    self.startRecordingAfterWatchReady()
-                }
-            })
+            startRecordingAfterWatchReady()
         } else {
             // 워치가 연결되지 않은 경우 선택 알림
             showProceedWithoutWatchAlert = true
         }
+    }
+    
+    private func playStartSound() {
+        AudioPlayerManager.shared.playSound(named: "ding")
     }
     
     private func startRecordingAfterWatchReady() {
@@ -292,6 +328,8 @@ struct RecordingView: View {
         savedPunchCount = recordingManager.punchCount
         savedHeartRate = healthKitManager.heartRate
         savedCalories = healthKitManager.activeCalories
+        savedMaxPunchSpeed = healthKitManager.maxPunchSpeed
+        savedAvgPunchSpeed = healthKitManager.avgPunchSpeed
         
         // 녹화 중지
         recordingManager.stopRecording { url in
@@ -300,7 +338,7 @@ struct RecordingView: View {
                 recordedVideoURL = url
                 
                 // HealthKit 세션 중지
-                HealthKitManager.shared.stopWorkoutSession()
+                healthKitManager.stopWorkoutSession()
                 
                 // 카메라 프리뷰와 모든 리소스 중지
                 recordingManager.cleanup()
@@ -324,6 +362,8 @@ struct RecordingView: View {
         newSession.memo = memo.isEmpty ? nil : memo
         newSession.heartRate = savedHeartRate
         newSession.activeCalories = savedCalories
+        newSession.maxPunchSpeed = savedMaxPunchSpeed
+        newSession.avgPunchSpeed = savedAvgPunchSpeed
         
         do {
             try viewContext.save()
@@ -354,6 +394,10 @@ struct RecordingView: View {
         let seconds = Int(timeInterval) % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
+    
+    private func playPunchSound() {
+        AudioPlayerManager.shared.playSound(named: "punch", volume: 0.5)
+    }
 }
 
 struct RecordingSummaryView: View {
@@ -362,6 +406,8 @@ struct RecordingSummaryView: View {
     let videoURL: URL?
     let heartRate: Double
     let calories: Double
+    let maxPunchSpeed: Double
+    let avgPunchSpeed: Double
     @Binding var memo: String
     let onSave: () -> Void
     let onDiscard: () -> Void
@@ -398,6 +444,26 @@ struct RecordingSummaryView: View {
                             title: "총 펀치",
                             color: mainRed
                         )
+                    }
+                    .padding(.horizontal)
+
+                    // 속도 통계 카드
+                    HStack(spacing: 20) {
+                        // 최고 펀치 속도 카드
+                        StatisticCardView(
+                            icon: "speedometer",
+                            value: String(format: "%.1f", maxPunchSpeed),
+                            title: "최고 속도",
+                            color: mainRed
+                        )
+                        
+                        // 평균 펀치 속도 카드
+                        StatisticCardView(
+                            icon: "gauge",
+                            value: String(format: "%.1f", avgPunchSpeed),
+                            title: "평균 속도",
+                            color: mainRed
+                        )
                         
                         // 심박수 카드
                         StatisticCardView(
@@ -406,14 +472,6 @@ struct RecordingSummaryView: View {
                             title: "평균 심박수",
                             color: mainRed
                         )
-                        
-                        // 칼로리 카드
-//                        StatisticCardView(
-//                            icon: "flame.fill",
-//                            value: String(format: "%.0f", calories),
-//                            title: "소모 칼로리",
-//                            color: mainRed
-//                        )
                     }
                     .padding(.horizontal)
                     
