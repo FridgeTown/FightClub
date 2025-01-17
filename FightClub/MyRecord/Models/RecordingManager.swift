@@ -210,8 +210,13 @@ class RecordingManager: NSObject, ObservableObject {
     private func handlePunchDetection() {
         DispatchQueue.main.async {
             self.punchCount += 1
-            // 펀치 효과음 재생
-            AudioPlayerManager.shared.playSound(named: "punch", volume: 0.5)
+            
+            // 펀치 감지 알림 발송
+            NotificationCenter.default.post(
+                name: .punchDetected,
+                object: nil,
+                userInfo: ["punchCount": self.punchCount]
+            )
         }
     }
 

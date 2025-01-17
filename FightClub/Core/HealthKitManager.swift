@@ -43,7 +43,7 @@ class HealthKitManager: NSObject, ObservableObject {
     
     @objc private func handleWatchMessage(_ notification: Notification) {
         guard let message = notification.userInfo as? [String: Any] else { return }
-        
+        print("수신됨? 메세지", message)
         DispatchQueue.main.async {
             if let heartRate = message["heartRate"] as? Double {
                 self.heartRate = heartRate
@@ -75,14 +75,14 @@ class HealthKitManager: NSObject, ObservableObject {
                     if let heartRate = context["heartRate"] as? Double {
                         self.heartRate = heartRate
                     }
-                case "punchSpeedUpdate":
-                    if let speed = context["speed"] as? Double,
-                       let isMaxSpeed = context["isMaxSpeed"] as? Bool {
-                        if isMaxSpeed {
-                            self.maxPunchSpeed = speed
-                        } else {
-                            self.avgPunchSpeed = speed
-                        }
+                case "punchStats":
+                    print("PUNCHSTATS", context)
+                    if let maxSpeed = context["maxSpeed"] as? Double {
+                        self.maxPunchSpeed = maxSpeed
+                    }
+                    
+                    if let avgSpeed = context["avgSpeed"] as? Double {
+                        self.avgPunchSpeed = avgSpeed
                     }
                 case "workout":
                     if let command = context["command"] as? String {
@@ -99,7 +99,7 @@ class HealthKitManager: NSObject, ObservableObject {
                         self.workoutCalories = workoutCalories
                     }
                 default:
-                    print("알 수 없는 메시지 타입: \(type)")
+                    print("알 수 없는 메시지 타입: \(type), \(context)")
                 }
             } else {
                 // 이전 형식의 컨텍스트 처리

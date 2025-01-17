@@ -449,31 +449,33 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         }
     }
     
-    // MARK: - Message Handling
     @objc private func handleWatchMessage(_ notification: Notification) {
-        guard let message = notification.userInfo as? [String: Any] else {
-            print("잘못된 메시지 형식")
-            return
-        }
-        
-        print("워치 메시지 수신: \(message)")
-        
-        if let type = message["type"] as? String {
-            switch type {
-            case "workout":
-                if let command = message["command"] as? String {
-                    handleWorkoutCommand(command)
+            guard let message = notification.userInfo as? [String: Any] else {
+                print("잘못된 메시지 형식")
+                return
+            }
+            
+            print("워치 메시지 수신: \(message)")
+            
+            // command 키가 있는 경우 워크아웃 명령으로 처리
+            if let command = message["command"] as? String {
+                handleWorkoutCommand(command)
+                return
+            }
+            
+            // type 키가 있는 경우 데이터 메시지로 처리
+            if let type = message["type"] as? String {
+                switch type {
+                case "punchData":
+                    if let speed = message["speed"] as? Double {
+                        handlePunchData(speed)
+                    }
+                default:
+                    print("알 수 없는 메시지 타입: \(type)")
                 }
-            case "punchData":
-                if let speed = message["speed"] as? Double {
-                    handlePunchData(speed)
-                }
-            default:
-                print("알 수 없는 메시지 타입: \(type)")
             }
         }
-    }
-    
+        
     private func handleWorkoutCommand(_ command: String) {
         switch command {
         case "startWorkout":

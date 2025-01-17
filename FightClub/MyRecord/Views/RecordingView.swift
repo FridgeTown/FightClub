@@ -77,6 +77,8 @@ struct RecordingView: View {
     // 이전 펀치 카운트 저장
     @State private var lastPunchCount: Int = 0
     
+    @StateObject private var connectivityManager = WatchConnectivityManager.shared
+    
     var body: some View {
         ZStack {
             if showingSummary {
@@ -115,6 +117,11 @@ struct RecordingView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 recordingManager.startCamera()
                 isViewAppeared = true
+                
+                // 워치 연결 상태 감시
+                if !proceedWithoutWatch {
+                    checkWatchConnection()
+                }
             }
         }
         .onDisappear {
@@ -151,6 +158,17 @@ struct RecordingView: View {
                 },
                 secondaryButton: .cancel(Text("취소"))
             )
+        }
+        .onChange(of: connectivityManager.connectionState) { _ in
+            if connectivityManager.connectionState != .connected && isRecording && !proceedWithoutWatch {
+                // 녹화 중 연결이 끊어진 경우 알림
+                DispatchQueue.main.async {
+                    print("// 녹화 중 연결이 끊어진 경우 알림")
+//                    notificationHandler.title = "워치 연결 끊김"
+//                    notificationHandler.message = "워치와의 연결이 끊어졌습니다."
+//                    notificationHandler.isShowing = true
+                }
+            }
         }
         .onChange(of: recordingManager.punchCount) { newCount in
             if newCount > lastPunchCount {
@@ -230,13 +248,10 @@ struct RecordingView: View {
         healthKitManager.stopWorkoutSession()
         
         // 워치에 종료 메시지 전송
-        let session = WCSession.default
-        if session.isReachable {
-            session.sendMessage(["command": "stopWorkout"], replyHandler: { reply in
+        if connectivityManager.connectionState == .connected {
+            connectivityManager.sendMessage(["command": "stopWorkout"]) { reply in
                 print("워치 앱 종료 응답: \(reply)")
-            }, errorHandler: { error in
-                print("워치 앱 종료 메시지 전송 실패: \(error.localizedDescription)")
-            })
+            }
         }
         
         // 카메라와 모든 리소스 정리
@@ -247,22 +262,20 @@ struct RecordingView: View {
     }
     
     private func checkWatchConnection() -> Bool {
-        let session = WCSession.default
-        
-        // 이미 워치 없이 진행하기로 했다면 더 이상 체크하지 않음
-        if proceedWithoutWatch {
-            return true
+        guard WCSession.isSupported() else {
+            print("Watch connectivity is not supported")
+            showWatchAppAlert = true
+            return false
         }
         
-        // 워치 연결 상태 확인
+        let session = WCSession.default
         if !session.isPaired || !session.isWatchAppInstalled {
             print("Watch is not paired or app is not installed")
             showWatchAppAlert = true
             return false
         }
         
-        // 워치 앱이 설치되어 있지만 연결할 수 없는 경우
-        if !session.isReachable {
+        if connectivityManager.connectionState != .connected {
             print("Watch is not reachable")
             showProceedWithoutWatchAlert = true
             return false
@@ -272,21 +285,15 @@ struct RecordingView: View {
     }
     
     private func activateWatchApp() {
-        let session = WCSession.default
-        // 워치 앱 활성화 메시지 전송
-        session.sendMessage(["command": "activate"], replyHandler: { reply in
+        let message: [String: Any] = ["command": "activate"]
+        connectivityManager.sendMessage(message) { reply in
             if let success = reply["success"] as? Bool, success {
                 DispatchQueue.main.async {
                     self.isWatchAppReady = true
                     self.startRecordingAfterWatchReady()
                 }
             }
-        }, errorHandler: { error in
-            print("워치 앱 활성화 실패: \(error.localizedDescription)")
-            DispatchQueue.main.async {
-                self.showWatchActivationAlert = true
-            }
-        })
+        }
     }
     
     private func startRecording() {
@@ -330,6 +337,9 @@ struct RecordingView: View {
         savedCalories = healthKitManager.activeCalories
         savedMaxPunchSpeed = healthKitManager.maxPunchSpeed
         savedAvgPunchSpeed = healthKitManager.avgPunchSpeed
+        
+        print("맥스", healthKitManager.maxPunchSpeed)
+        print("평균", healthKitManager.avgPunchSpeed)
         
         // 녹화 중지
         recordingManager.stopRecording { url in

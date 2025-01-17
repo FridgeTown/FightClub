@@ -94,17 +94,6 @@ struct ChatRoomView: View {
                                 }
                                 .foregroundColor(Color.mainRed)
                             }
-                            
-                            // 새로운 펀치게임 버튼
-                            Button {
-                                showPunchGameView = true
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "figure.boxing")
-                                    Text("Game")
-                                }
-                                .foregroundColor(Color.mainRed)
-                            }
                         }
                     }
                 }
