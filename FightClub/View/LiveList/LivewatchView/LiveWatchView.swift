@@ -18,6 +18,7 @@ struct LiveWatchView: View {
     @State private var connectionError: String?
     @State private var isConnected = false
     @State private var videoTrack: VideoTrack?
+    @State private var audioTrack: AudioTrack?
     
     // Constants
     private let livekitUrl = "wss://openvidufightclubsubdomain.click"

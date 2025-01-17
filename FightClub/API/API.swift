@@ -21,7 +21,8 @@ enum APIEndpoint {
     case postLiveStart(channelId: String, place: String)
     case getLiveList
     case postEndLiveMatch(matchId: String) //방송 종료
-    case updateProfileImage(imageData: Data)  // 추가
+    case updateProfileImage(imageData: Data)
+    case postPunchGamgeStart(channelId: String)
     
     // 엔드 포인트
     var url: String {
@@ -54,12 +55,14 @@ enum APIEndpoint {
             return "http://43.200.49.201:8080/live/end/\(matchID)"
         case .updateProfileImage:
             return "http://43.200.49.201:8080/user/image"
+        case .postPunchGamgeStart:
+            return "http://43.200.49.201:8080/punch-game/start"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart, .postEndLiveMatch, .updateProfileImage:
+        case .logIn, .signup, .postMatchRequest, .postAcceptRequest, .postRejectRequest, .postLiveStart, .postEndLiveMatch, .updateProfileImage, .postPunchGamgeStart:
             return .post
         case .getUserInfo, .getUserRecommend, .getPendingMatch, .getNotificationSubscribe, .getLiveList:
             return .get
@@ -85,6 +88,8 @@ enum APIEndpoint {
             return nil
         case .updateProfileImage(let imageData):
             return ["file": imageData]
+        case .postPunchGamgeStart(let channelId):
+            return ["channelId": channelId]
         }
     }
     
@@ -100,7 +105,7 @@ enum APIEndpoint {
                 ]
             }
             return nil
-        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart, .getLiveList, .postEndLiveMatch:
+        case .getUserInfo, .getUserRecommend, .postMatchRequest, .postRejectRequest, .getPendingMatch, .postAcceptRequest, .getNotificationSubscribe, .postLiveStart, .getLiveList, .postEndLiveMatch, .postPunchGamgeStart:
             if let token = try? TokenManager.shared.getAccessToken() {
                 return [
                     "Authorization": "Bearer \(token)"

@@ -1,3 +1,10 @@
+//
+//  PunchDetector.swift
+//  FightClub
+//
+//  Created by Edward Lee on 12/3/24.
+//
+
 import Vision
 import CoreGraphics
 import QuartzCore

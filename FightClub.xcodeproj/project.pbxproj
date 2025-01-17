@@ -12,6 +12,7 @@
 		30109A4D2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A4C2D342F35007424FA /* FirebaseAnalyticsWithoutAdIdSupport */; };
 		30109A4F2D342F35007424FA /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A4E2D342F35007424FA /* FirebaseAppCheck */; };
 		30109A512D342F35007424FA /* FirebaseAppDistribution-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 30109A502D342F35007424FA /* FirebaseAppDistribution-Beta */; };
+		304397222D378EFD00EAC7CD /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 304397212D378EFD00EAC7CD /* WebRTC */; };
 		3093D1472D344E9E006EFF27 /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1462D344E9E006EFF27 /* LiveKit */; };
 		3093D14A2D344EDA006EFF27 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D1492D344EDA006EFF27 /* Alamofire */; };
 		3093D14D2D344EFF006EFF27 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 3093D14C2D344EFF006EFF27 /* KeychainAccess */; };
@@ -226,6 +227,7 @@
 				30A21ABF2D2ECE10005812C3 /* FirebaseMessaging in Frameworks */,
 				30A21AA92D2ECE10005812C3 /* FirebaseCore in Frameworks */,
 				30109A4B2D342F35007424FA /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
+				304397222D378EFD00EAC7CD /* WebRTC in Frameworks */,
 				30A21AC32D2ECE10005812C3 /* FirebaseRemoteConfig in Frameworks */,
 				30A21AB12D2ECE10005812C3 /* FirebaseFirestore in Frameworks */,
 				30109A4F2D342F35007424FA /* FirebaseAppCheck in Frameworks */,
@@ -485,6 +487,7 @@
 				3093D14F2D344F23006EFF27 /* spm-talkplus-framework */,
 				3093D1522D344F46006EFF27 /* GoogleSignIn */,
 				3093D1542D344F46006EFF27 /* GoogleSignInSwift */,
+				304397212D378EFD00EAC7CD /* WebRTC */,
 			);
 			productName = FightClub;
 			productReference = 305E535A2D1B0691002E4746 /* FightClub.app */;
@@ -643,6 +646,7 @@
 				3093D14B2D344EFF006EFF27 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				3093D14E2D344F23006EFF27 /* XCRemoteSwiftPackageReference "talkplus-ios-release" */,
 				3093D1512D344F46006EFF27 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				304397202D378EFD00EAC7CD /* XCRemoteSwiftPackageReference "Specs" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 305E535B2D1B0691002E4746 /* Products */;
@@ -1499,6 +1503,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		304397202D378EFD00EAC7CD /* XCRemoteSwiftPackageReference "Specs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/webrtc-sdk/Specs.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 125.6422.6;
+			};
+		};
 		3093D1442D344E66006EFF27 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -1569,6 +1581,11 @@
 		30109A502D342F35007424FA /* FirebaseAppDistribution-Beta */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = "FirebaseAppDistribution-Beta";
+		};
+		304397212D378EFD00EAC7CD /* WebRTC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 304397202D378EFD00EAC7CD /* XCRemoteSwiftPackageReference "Specs" */;
+			productName = WebRTC;
 		};
 		3093D1462D344E9E006EFF27 /* LiveKit */ = {
 			isa = XCSwiftPackageProductDependency;

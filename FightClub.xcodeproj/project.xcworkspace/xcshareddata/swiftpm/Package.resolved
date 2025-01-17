@@ -1,5 +1,5 @@
 {
-  "originHash" : "9358cb3fb28e5b39d4ff33cb079516ad80abff89ea542202515920e6965b6b2c",
+  "originHash" : "b66fc4fe6e05dcf434adbc1af7b98f9e6cba9a1ae62eb605f6cfab60bb508f5b",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -161,6 +161,15 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "specs",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/webrtc-sdk/Specs.git",
+      "state" : {
+        "revision" : "bb9b52fda9582a3a36e07879e7396100864e5044",
+        "version" : "125.6422.6"
       }
     },
     {

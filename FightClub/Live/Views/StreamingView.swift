@@ -11,7 +11,7 @@ import LiveKit
 import KeychainAccess
 import Network
 
-// 카메라 리 클래스
+// 카메라 클래스
 class StreamingManager: ObservableObject {
     static let shared = StreamingManager()
     
@@ -203,7 +203,7 @@ struct StreamingView: View {
                 // 채팅 오버레이
                 HStack {
                     Spacer()
-                    chatOverlay
+//                    chatOverlay
                         .frame(width: geometry.size.width * 0.3)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
@@ -339,6 +339,7 @@ struct StreamingView: View {
                     // 1. LiveKit 카메라 비활성화
                     let localParticipant = roomCtx.room.localParticipant
                     try await localParticipant.setCamera(enabled: false)
+                    try await localParticipant.setMicrophone(enabled: false)
                     await localParticipant.unpublishAll()
                     
                     // 2. LiveKit 연결 해제
@@ -457,40 +458,51 @@ struct StreamingView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
     
-    private var chatOverlay: some View {
-        VStack(spacing: 0) {
-            Text("실시간 채팅")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.5))
-            
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(messages) { message in
-                        ChatBubble(message: message)
-                            .padding(.horizontal, 8)
-                    }
-                }
-                .padding(.vertical, 8)
-            }
-            
-            HStack(spacing: 8) {
-                TextField("메시지 입력...", text: $newMessage)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 14))
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(mainRed)
-                }
-            }
-            .padding(8)
-            .background(Color.black.opacity(0.3))
-        }
-    }
+//    private var chatOverlay: some View {
+//        VStack(spacing: 0) {
+//            // QR 코드 이미지
+//            Image("qr_demo")
+//                .resizable()
+//                .scaledToFit()
+//                .frame(width: 100, height: 100)
+//                .foregroundColor(.white)
+//                .padding()
+////                .background(Color.black.opacity(0.5))
+//                .cornerRadius(10)
+//                .padding(.vertical, 10)
+//            
+////            Text("실시간 채팅")
+////                .font(.headline)
+////                .foregroundColor(.white)
+////                .padding(.vertical, 12)
+////                .frame(maxWidth: .infinity)
+////                .background(Color.black.opacity(0.5))
+//            
+//            ScrollView {
+//                LazyVStack(alignment: .leading, spacing: 8) {
+//                    ForEach(messages) { message in
+//                        ChatBubble(message: message)
+//                            .padding(.horizontal, 8)
+//                    }
+//                }
+//                .padding(.vertical, 8)
+//            }
+//            
+//            HStack(spacing: 8) {
+//                TextField("메시지 입력...", text: $newMessage)
+//                    .textFieldStyle(RoundedBorderTextFieldStyle())
+//                    .font(.system(size: 14))
+//                
+//                Button(action: sendMessage) {
+//                    Image(systemName: "arrow.up.circle.fill")
+//                        .font(.system(size: 24))
+//                        .foregroundColor(mainRed)
+//                }
+//            }
+//            .padding(8)
+//            .background(Color.black.opacity(0.3))
+//        }
+//    }
     
     private func sendMessage() {
         guard !newMessage.isEmpty else { return }

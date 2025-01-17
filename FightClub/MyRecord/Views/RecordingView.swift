@@ -9,6 +9,7 @@ import SwiftUI
 import AVFoundation
 import AVKit
 import WatchConnectivity
+import Vision
 
 struct RecordingView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -24,16 +25,27 @@ struct RecordingView: View {
     @State private var isViewAppeared = false
     @State private var showWatchAppAlert = false
     @State private var showPunchEffect = false
+    @State private var savedDuration: TimeInterval = 0
+    @State private var savedPunchCount: Int = 0
+    @State private var isWatchAppReady = false
+    @State private var showWatchActivationAlert = false
+    @State private var proceedWithoutWatch = false
+    @State private var showProceedWithoutWatchAlert = false
+    @State private var savedHeartRate: Double = 0
+    @State private var savedCalories: Double = 0
+    
+    // 녹화 상태 추가
+    @State private var isRecording = false
     
     var body: some View {
         ZStack {
             if showingSummary {
                 RecordingSummaryView(
-                    duration: recordingManager.elapsedTime,
-                    punchCount: recordingManager.punchCount,
+                    duration: savedDuration,
+                    punchCount: savedPunchCount,
                     videoURL: recordedVideoURL,
-                    heartRate: healthKitManager.heartRate,
-                    calories: healthKitManager.activeCalories,
+                    heartRate: savedHeartRate,
+                    calories: savedCalories,
                     memo: $memo,
                     onSave: saveRecording,
                     onDiscard: discardRecording
@@ -65,7 +77,8 @@ struct RecordingView: View {
         }
         .onDisappear {
             print("RecordingView disappeared")
-            recordingManager.stopCamera()
+            recordingManager.cleanup()
+            healthKitManager.stopWorkoutSession()
             isViewAppeared = false
         }
         .environmentObject(notificationHandler)
@@ -74,6 +87,27 @@ struct RecordingView: View {
                 title: Text("Watch App Not Installed"),
                 message: Text("Please install the Watch App to use this feature."),
                 dismissButton: .default(Text("OK"))
+            )
+        }
+        .alert(isPresented: $showWatchActivationAlert) {
+            Alert(
+                title: Text("워치 앱 활성화 필요"),
+                message: Text("워치 앱이 백그라운드 상태입니다. 워치의 앱을 활성화해주세요."),
+                primaryButton: .default(Text("다시 시도")) {
+                    activateWatchApp()
+                },
+                secondaryButton: .cancel(Text("취소"))
+            )
+        }
+        .alert(isPresented: $showProceedWithoutWatchAlert) {
+            Alert(
+                title: Text("워치 연결 실패"),
+                message: Text("워치와 연결할 수 없습니다. 워치 없이 진행하시겠습니까?"),
+                primaryButton: .default(Text("워치 없이 진행")) {
+                    proceedWithoutWatch = true
+                    startRecordingAfterWatchReady()
+                },
+                secondaryButton: .cancel(Text("취소"))
             )
         }
         .onChange(of: recordingManager.punchCount) { newCount in
@@ -106,7 +140,15 @@ struct RecordingView: View {
                     // 상단 바
                     TopBarView(
                         punchCount: recordingManager.punchCount,
-                        onClose: { showingConfirmation = true }
+                        onClose: {
+                            // 녹화 중이면 확인 알림 표시
+                            if recordingManager.isRecording {
+                                showingConfirmation = true
+                            } else {
+                                // 녹화 중이 아니면 바로 종료
+                                cleanupAndDismiss()
+                            }
+                        }
                     )
                     
                     Spacer()
@@ -134,29 +176,140 @@ struct RecordingView: View {
                 title: Text("녹화 종료"),
                 message: Text("녹화를 종료하시겠습니까?"),
                 primaryButton: .destructive(Text("종료")) {
-                    presentationMode.wrappedValue.dismiss()
+                    cleanupAndDismiss()
                 },
                 secondaryButton: .cancel(Text("취소"))
             )
         }
     }
     
-    private func startRecording() {
-        if !WCSession.default.isWatchAppInstalled {
+    private func cleanupAndDismiss() {
+        // 녹화 중지
+        if recordingManager.isRecording {
+            recordingManager.stopRecording { _ in }
+        }
+        
+        // HealthKit 세션 중지
+        healthKitManager.stopWorkoutSession()
+        
+        // 카메라와 모든 리소스 정리
+        recordingManager.cleanup()
+        
+        // 화면 닫기
+        presentationMode.wrappedValue.dismiss()
+    }
+    
+    private func checkWatchConnection() -> Bool {
+        let session = WCSession.default
+        
+        // 이미 워치 없이 진행하기로 했다면 더 이상 체크하지 않음
+        if proceedWithoutWatch {
+            return true
+        }
+        
+        // 워치 자체가 없는 경우 (페어링 안됨 또는 앱 미설치)
+        if !session.isPaired || !session.isWatchAppInstalled {
             showWatchAppAlert = true
+            return false
+        }
+        
+        // 워치는 있지만 연결이 안된 경우
+        if !session.isReachable {
+            // 아직 선택하지 않은 경우에만 알림 표시
+            if !proceedWithoutWatch {
+                showProceedWithoutWatchAlert = true
+            }
+            return false
+        }
+        
+        return true
+    }
+    
+    private func activateWatchApp() {
+        let session = WCSession.default
+        // 워치 앱 활성화 메시지 전송
+        session.sendMessage(["command": "activate"], replyHandler: { reply in
+            if let success = reply["success"] as? Bool, success {
+                DispatchQueue.main.async {
+                    self.isWatchAppReady = true
+                    self.startRecordingAfterWatchReady()
+                }
+            }
+        }, errorHandler: { error in
+            print("워치 앱 활성화 실패: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                self.showWatchActivationAlert = true
+            }
+        })
+    }
+    
+    private func startRecording() {
+        // 워치 없이 진행하기로 한 경우
+        if proceedWithoutWatch {
+            startRecordingAfterWatchReady()
             return
         }
         
+        // 워치 연결 확인
+        let session = WCSession.default
+        if session.isReachable {
+            // 워치 앱에 시작 명령 전송
+            healthKitManager.startWorkoutSession()
+            session.sendMessage(["command": "startWorkout"], replyHandler: { reply in
+                if let status = reply["status"] as? String, status == "ready" {
+                    print("워치 앱 준비 완료")
+                }
+                // 응답 받으면 녹화 시작
+                DispatchQueue.main.async {
+                    self.startRecordingAfterWatchReady()
+                }
+            }, errorHandler: { error in
+                print("워치 앱 시작 명령 전송 실패: \(error.localizedDescription)")
+                // 에러 발생해도 녹화는 시작
+                DispatchQueue.main.async {
+                    self.startRecordingAfterWatchReady()
+                }
+            })
+        } else {
+            // 워치가 연결되지 않은 경우 선택 알림
+            showProceedWithoutWatchAlert = true
+        }
+    }
+    
+    private func startRecordingAfterWatchReady() {
+        // 녹화 시작
         recordingManager.startRecording()
-        healthKitManager.startWorkoutSession()
+        
+        // 상태 업데이트
+        DispatchQueue.main.async {
+            self.isRecording = true
+        }
     }
     
     private func stopRecording() {
+        // 현재 데이터 저장
+        savedDuration = recordingManager.elapsedTime
+        savedPunchCount = recordingManager.punchCount
+        savedHeartRate = healthKitManager.heartRate
+        savedCalories = healthKitManager.activeCalories
+        
+        // 녹화 중지
         recordingManager.stopRecording { url in
-            healthKitManager.stopWorkoutSession()
             if let url = url {
-                self.recordedVideoURL = url
-                self.showingSummary = true
+                // 녹화 종료 후 데이터 저장
+                recordedVideoURL = url
+                
+                // HealthKit 세션 중지
+                HealthKitManager.shared.stopWorkoutSession()
+                
+                // 카메라 프리뷰와 모든 리소스 중지
+                recordingManager.cleanup()
+                
+                // 상태 업데이트
+                DispatchQueue.main.async {
+                    self.isRecording = false
+                    self.showingSummary = true
+                }
             }
         }
     }
@@ -164,16 +317,20 @@ struct RecordingView: View {
     private func saveRecording() {
         let newSession = BoxingSession(context: viewContext)
         
-        // 데이터 설정
+        // 저장된 데이터 사용
         newSession.date = Date()
-        newSession.duration = recordingManager.elapsedTime
-        newSession.punchCount = Int32(recordingManager.punchCount)
+        newSession.duration = savedDuration
+        newSession.punchCount = Int32(savedPunchCount)
         newSession.memo = memo.isEmpty ? nil : memo
-        newSession.heartRate = HealthKitManager.shared.heartRate
-        newSession.activeCalories = HealthKitManager.shared.activeCalories
+        newSession.heartRate = savedHeartRate
+        newSession.activeCalories = savedCalories
         
         do {
             try viewContext.save()
+            
+            // 저장 완료 후 모든 리소스 정리
+            recordingManager.cleanup()
+            
             presentationMode.wrappedValue.dismiss()
         } catch {
             print("저장 실패: \(error.localizedDescription)")
@@ -185,6 +342,10 @@ struct RecordingView: View {
         if let url = recordedVideoURL {
             try? FileManager.default.removeItem(at: url)
         }
+        
+        // 모든 리소스 정리
+        recordingManager.cleanup()
+        
         presentationMode.wrappedValue.dismiss()
     }
     
@@ -247,12 +408,12 @@ struct RecordingSummaryView: View {
                         )
                         
                         // 칼로리 카드
-                        StatisticCardView(
-                            icon: "flame.fill",
-                            value: String(format: "%.0f", calories),
-                            title: "소모 칼로리",
-                            color: mainRed
-                        )
+//                        StatisticCardView(
+//                            icon: "flame.fill",
+//                            value: String(format: "%.0f", calories),
+//                            title: "소모 칼로리",
+//                            color: mainRed
+//                        )
                     }
                     .padding(.horizontal)
                     

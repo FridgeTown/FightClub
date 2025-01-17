@@ -17,12 +17,9 @@ struct ContentView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
-                StartView()
-                if workoutManager.isWorkoutInProgress {
-//                    // 운동 중인 경우
+                if workoutManager.isWorkoutActive {
                     WorkoutView()
                 } else {
-//                    // 대기 상태
                     StartView()
                 }
             }
@@ -69,7 +66,7 @@ struct WorkoutView: View {
 //                // 칼로리
                 MetricView(
                     title: "소모 칼로리",
-                    value: Int(workoutManager.activeCalories),
+                    value: 0,
                     unit: "kcal",
                     systemImage: "flame.fill"
                 )

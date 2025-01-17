@@ -45,4 +45,9 @@ class DIContainer {
         let networkManager = NetworkManager.shared
         return MyProfileViewModel(networkManager: networkManager)
     }
+    
+    func makePunchRequestModel() -> PunchBagTestModel {
+        let networkManager = NetworkManager.shared
+        return PunchBagTestModel(networkManager: networkManager)
+    }
 }

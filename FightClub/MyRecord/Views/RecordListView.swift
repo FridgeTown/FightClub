@@ -72,10 +72,13 @@ struct RecordListView: View {
             .sheet(isPresented: $showingRecordingView) {
                 RecordingView()
             }
-            .sheet(isPresented: $showingVideoPlayer) {
+            .fullScreenCover(isPresented: $showingVideoPlayer) {
                 if let session = selectedSession,
                    let videoURL = session.videoURL {
                     RecordVideoPlayerView(url: videoURL)
+                        .onAppear {
+                            print("Video URL: \(videoURL)")
+                        }
                 }
             }
         }
@@ -204,24 +207,19 @@ struct RecordEmptyStateView: View {
 struct RecordVideoPlayerView: View {
     let url: URL
     @Environment(\.dismiss) private var dismiss
-    @State private var player: AVPlayer
-    
-    init(url: URL) {
-        self.url = url
-        _player = State(initialValue: AVPlayer(url: url))
-    }
     
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
             
-            AVKit.VideoPlayer(player: player)
+            CustomVideoPlayer(url: url)
                 .edgesIgnoringSafeArea(.all)
             
-            // 닫기 버튼
             VStack {
                 HStack {
-                    Button(action: { dismiss() }) {
+                    Button(action: { 
+                        dismiss() 
+                    }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title)
                             .foregroundColor(.white)
@@ -232,11 +230,20 @@ struct RecordVideoPlayerView: View {
                 Spacer()
             }
         }
-        .onAppear {
-            player.play()
-        }
-        .onDisappear {
-            player.pause()
-        }
     }
+}
+
+struct CustomVideoPlayer: UIViewControllerRepresentable {
+    let url: URL
+    
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        let player = AVPlayer(url: url)
+        controller.player = player
+        controller.showsPlaybackControls = true
+        player.play()
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
 }

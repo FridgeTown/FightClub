@@ -180,6 +180,27 @@ class RecordingManager: NSObject, ObservableObject {
     }
     
     private var recordingCompletionHandler: ((URL?) -> Void)?
+    
+    func cleanup() {
+        // 타이머 정리
+        timer?.invalidate()
+        timer = nil
+        
+        // 비디오 처리 체인 정리
+        videoProcessingChain = nil
+        
+        // 프레임 퍼블리셔 초기화
+        framePublisher = PassthroughSubject<CMSampleBuffer, Never>()
+        
+        // 녹화 관련 변수 초기화
+        isRecording = false
+        elapsedTime = 0
+        punchCount = 0
+        startTime = nil
+        
+        // 카메라 세션 정리
+        stopCamera()
+    }
 }
 
 extension RecordingManager: AVCaptureFileOutputRecordingDelegate {

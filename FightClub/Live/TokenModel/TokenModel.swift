@@ -16,3 +16,8 @@ struct TokenResponse: Codable {
     let token: String
 }
 
+struct TokenResponseRTC: Codable {
+    let token: String?
+}
+
+

@@ -13,6 +13,7 @@ struct ChatRoomView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var isViewAppeared = false
     @State private var showStreamingView = false
+    @State private var showPunchGameView = false
     
     // LiveKit Context 추가
     @StateObject private var roomContext: RoomContext
@@ -79,17 +80,31 @@ struct ChatRoomView: View {
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            setupLandscapeOrientation()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                showStreamingView = true
+                        HStack(spacing: 16) {
+                            // 기존 스트리밍 버튼
+                            Button {
+                                setupLandscapeOrientation()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    showStreamingView = true
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "video.fill")
+                                    Text("Live")
+                                }
+                                .foregroundColor(Color.mainRed)
                             }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "video.fill")
-                                Text("Live")
+                            
+                            // 새로운 펀치게임 버튼
+                            Button {
+                                showPunchGameView = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "figure.boxing")
+                                    Text("Game")
+                                }
+                                .foregroundColor(Color.mainRed)
                             }
-                            .foregroundColor(Color.mainRed)
                         }
                     }
                 }
@@ -101,9 +116,15 @@ struct ChatRoomView: View {
                     .environmentObject(roomContext)
                     .environmentObject(appContext)
             }
+            .fullScreenCover(isPresented: $showPunchGameView) {
+                PunchBagTestView(channelId: tpChannel.getId())
+                    .environmentObject(roomContext)
+                    .environmentObject(appContext)
+            }
         }
         .task {
             print("ChatRoomView - Task started")
+            print("Channel, " , tpChannel.getId())
             isViewAppeared = true
             setupKeyboardNotifications()
             print("ChatRoomView - Loading initial messages")
