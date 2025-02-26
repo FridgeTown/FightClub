@@ -167,7 +167,7 @@ class WorkoutManager: NSObject, ObservableObject {
         let query = HKObserverQuery(sampleType: caloriesType, predicate: nil) { [weak self] _, _, error in
             if let error = error {
                 print("Calories observer error: \(error)")
-                return
+            return
             }
             self?.fetchLatestCalories()
         }
@@ -244,8 +244,6 @@ class WorkoutManager: NSObject, ObservableObject {
         // 최대 속도 업데이트
         if speed > maxPunchSpeed {
             maxPunchSpeed = speed
-            // 최대 속도 갱신 시 전송
-            connectivityManager.sendPunchData(speed: speed, isMax: true)
         }
         
         // 평균 속도 계산 및 업데이트
@@ -253,8 +251,17 @@ class WorkoutManager: NSObject, ObservableObject {
         punchCount += 1
         avgPunchSpeed = totalPunchSpeed / Double(punchCount)
         
-        // 현재 펀치 데이터 전송
-        connectivityManager.sendPunchData(speed: speed)
+        // 모든 펀치 데이터를 한 번에 전송
+        let punchData: [String: Any] = [
+            "type": "punchData",
+            "speed": speed,
+            "maxSpeed": maxPunchSpeed,
+            "avgSpeed": avgPunchSpeed,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        // 즉시 전송
+        connectivityManager.sendMessage(punchData)
         
         print("펀치 감지 - 속도: \(speed) m/s, 최대: \(maxPunchSpeed) m/s, 평균: \(avgPunchSpeed) m/s")
     }
@@ -284,7 +291,7 @@ class WorkoutManager: NSObject, ObservableObject {
     
     private func startDataUpdateTimer() {
         updateTimer?.invalidate()
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             self?.updateAndSendHealthData()
         }
     }
@@ -313,13 +320,13 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
             
             switch quantityType.identifier {
             case HKQuantityTypeIdentifier.heartRate.rawValue:
-                let statistics = workoutBuilder.statistics(for: quantityType)
+            let statistics = workoutBuilder.statistics(for: quantityType)
                 let heartRate = statistics?.mostRecentQuantity()?.doubleValue(for: HKUnit.count().unitDivided(by: .minute())) ?? 0
                 DispatchQueue.main.async {
                     self.heartRate = heartRate
                     self.connectivityManager.sendHeartRate(heartRate)
                 }
-                
+            
             case HKQuantityTypeIdentifier.activeEnergyBurned.rawValue:
                 let statistics = workoutBuilder.statistics(for: quantityType)
                 let calories = statistics?.sumQuantity()?.doubleValue(for: HKUnit.kilocalorie()) ?? 0

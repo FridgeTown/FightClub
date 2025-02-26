@@ -54,18 +54,14 @@ struct RecordListView: View {
                         List {
                             ForEach(sessions) { session in
                                 RecordCardView(session: session)
-                                    .listRowBackground(Color.black)
-                                    .listRowInsets(EdgeInsets())
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal)
-                                    .onTapGesture {
-                                        selectedSession = session
-                                        showingVideoPlayer = true
-                                    }
                             }
                             .onDelete(perform: deleteItems)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                         }
-                        .listStyle(PlainListStyle())
+                        .listStyle(.plain)
+                        .background(Color(.background))
                     }
                 }
             }
@@ -107,44 +103,103 @@ struct RecordCardView: View {
     let session: BoxingSession
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
+            // 상단: 날짜와 재생 버튼
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(formattedDate)
-                        .font(.headline)
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
                     
                     if let memo = session.memo, !memo.isEmpty {
                         Text(memo)
-                            .font(.subheadline)
+                            .font(.system(size: 17))
                             .foregroundColor(.gray)
-                            .lineLimit(2)
+                            .lineLimit(1)
                     }
                 }
+                
                 Spacer()
+                
+                // 재생 버튼
                 Image(systemName: "play.circle.fill")
                     .resizable()
-                    .frame(width: 30, height: 30)
+                    .frame(width: 44, height: 44)
                     .foregroundColor(.mainRed)
+                    .shadow(color: .black.opacity(0.3), radius: 5)
             }
             
+            // 메인 통계
             HStack(spacing: 20) {
-                StatisticView(
-                    icon: "figure.boxing",
+                // 펀치 수
+                StatBox(
                     value: "\(session.punchCount)",
-                    label: "펀치 수"
+                    label: "PUNCH",
+                    icon: "figure.boxing",
+                    gradient: [Color.black.opacity(0.4), Color.black.opacity(0.2)]
                 )
                 
-                StatisticView(
-                    icon: "clock",
+                // 운동 시간
+                StatBox(
                     value: formattedDuration,
-                    label: "운동 시간"
+                    label: "TIME",
+                    icon: "clock",
+                    gradient: [Color.black.opacity(0.4), Color.black.opacity(0.2)]
                 )
             }
+            
+            // 워치 데이터가 있는 경우에만 표시
+            if hasWatchData {
+                Divider()
+                    .background(Color.gray.opacity(0.3))
+                    .padding(.vertical, 8)
+                
+                // 워치 통계
+                HStack(spacing: 16) {
+                    // 최고 속도
+                    if session.maxPunchSpeed > 0 {
+                        WatchStatView(
+                            value: String(format: "%.1f", session.maxPunchSpeed),
+                            unit: "m/s",
+                            label: "최고 속도",
+                            icon: "speedometer"
+                        )
+                    }
+                    
+                    // 평균 속도
+                    if session.avgPunchSpeed > 0 {
+                        WatchStatView(
+                            value: String(format: "%.1f", session.avgPunchSpeed),
+                            unit: "m/s",
+                            label: "평균 속도",
+                            icon: "gauge"
+                        )
+                    }
+                    
+                    // 심박수
+                    if session.heartRate > 0 {
+                        WatchStatView(
+                            value: String(format: "%.0f", session.heartRate),
+                            unit: "bpm",
+                            label: "심박수",
+                            icon: "heart.fill"
+                        )
+                    }
+                }
+            }
         }
-        .padding()
-        .background(Color.gray.opacity(0.2))
-        .cornerRadius(12)
+        .padding(20)
+        .background(Color.black.opacity(0.8))
+        .cornerRadius(15)
+        .shadow(color: Color.mainRed.opacity(0.2), radius: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.mainRed.opacity(0.1), lineWidth: 1)
+        )
+    }
+    
+    private var hasWatchData: Bool {
+        return session.heartRate > 0 || session.maxPunchSpeed > 0 || session.avgPunchSpeed > 0
     }
     
     private var formattedDate: String {
@@ -161,25 +216,78 @@ struct RecordCardView: View {
     }
 }
 
-struct StatisticView: View {
-    let icon: String
+// 메인 통계 박스
+struct StatBox: View {
     let value: String
     let label: String
+    let icon: String
+    let gradient: [Color]
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
+            // 아이콘
             Image(systemName: icon)
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.mainRed)
+                .frame(width: 44, height: 44)
+                .background(
+                    LinearGradient(gradient: Gradient(colors: gradient),
+                                 startPoint: .topLeading,
+                                 endPoint: .bottomTrailing)
+                )
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(Color.mainRed.opacity(0.2), lineWidth: 1)
+                )
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(value)
-                    .font(.headline)
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
+                
                 Text(label)
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .heavy))
+                    .kerning(1)
                     .foregroundColor(.gray)
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.5))
+        .cornerRadius(15)
+    }
+}
+
+// 워치 통계 뷰
+struct WatchStatView: View {
+    let value: String
+    let unit: String
+    let label: String
+    let icon: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.mainRed)
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold))
+                Text(unit)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(.white)
+            
+            Text(label)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.5))
+        .cornerRadius(12)
     }
 }
 

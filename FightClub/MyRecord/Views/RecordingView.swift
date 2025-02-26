@@ -16,6 +16,22 @@ class AudioPlayerManager: NSObject, AVAudioPlayerDelegate {
     static let shared = AudioPlayerManager()
     private var audioPlayer: AVAudioPlayer?
     
+    override init() {
+        super.init()
+        setupAudioSession()
+    }
+    
+    private func setupAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.allowAirPlay, .mixWithOthers])
+            try session.setActive(true)
+            print("오디오 세션 설정 완료")
+        } catch {
+            print("오디오 세션 설정 실패: \(error.localizedDescription)")
+        }
+    }
+    
     func playSound(named: String, volume: Float = 1.0) {
         guard let soundURL = Bundle.main.url(forResource: named, withExtension: "mp3") else {
             print("\(named) 효과음 파일을 찾을 수 없습니다")
@@ -33,6 +49,10 @@ class AudioPlayerManager: NSObject, AVAudioPlayerDelegate {
             audioPlayer?.volume = volume
             audioPlayer?.numberOfLoops = 0  // 한 번만 재생
             audioPlayer?.prepareToPlay()
+            
+            // 오디오 세션 활성화 확인
+            try AVAudioSession.sharedInstance().setActive(true)
+            
             audioPlayer?.play()
         } catch {
             print("\(named) 효과음 재생 실패: \(error.localizedDescription)")
@@ -90,6 +110,7 @@ struct RecordingView: View {
                     calories: savedCalories,
                     maxPunchSpeed: savedMaxPunchSpeed,
                     avgPunchSpeed: savedAvgPunchSpeed,
+                    proceedWithoutWatch: proceedWithoutWatch,
                     memo: $memo,
                     onSave: saveRecording,
                     onDiscard: discardRecording
@@ -118,6 +139,9 @@ struct RecordingView: View {
                 recordingManager.startCamera()
                 isViewAppeared = true
                 
+                // MAX 값 초기화
+                healthKitManager.maxPunchSpeed = 0.0
+                
                 // 워치 연결 상태 감시
                 if !proceedWithoutWatch {
                     checkWatchConnection()
@@ -129,6 +153,9 @@ struct RecordingView: View {
             recordingManager.cleanup()
             healthKitManager.stopWorkoutSession()
             isViewAppeared = false
+            
+            // MAX 값 초기화
+            healthKitManager.maxPunchSpeed = 0.0
         }
         .environmentObject(notificationHandler)
         .alert(isPresented: $showWatchAppAlert) {
@@ -194,7 +221,7 @@ struct RecordingView: View {
                 VStack(spacing: 0) {
                     // 상단 바
                     TopBarView(
-                        punchCount: recordingManager.punchCount,
+                        elapsedTime: recordingManager.elapsedTime,
                         onClose: {
                             // 녹화 중이면 확인 알림 표시
                             if recordingManager.isRecording {
@@ -210,7 +237,7 @@ struct RecordingView: View {
                     
                     // 하단 컨트롤
                     BottomControlView(
-                        elapsedTime: recordingManager.elapsedTime,
+                        punchCount: recordingManager.punchCount,
                         isRecording: recordingManager.isRecording,
                         onRecordingToggle: {
                             if recordingManager.isRecording {
@@ -333,13 +360,20 @@ struct RecordingView: View {
         // 현재 데이터 저장
         savedDuration = recordingManager.elapsedTime
         savedPunchCount = recordingManager.punchCount
-        savedHeartRate = healthKitManager.heartRate
-        savedCalories = healthKitManager.activeCalories
-        savedMaxPunchSpeed = healthKitManager.maxPunchSpeed
-        savedAvgPunchSpeed = healthKitManager.avgPunchSpeed
         
-        print("맥스", healthKitManager.maxPunchSpeed)
-        print("평균", healthKitManager.avgPunchSpeed)
+        // 워치 연결 시에만 워치 관련 데이터 저장
+        if !proceedWithoutWatch {
+            savedHeartRate = healthKitManager.heartRate
+            savedCalories = healthKitManager.activeCalories
+            savedMaxPunchSpeed = healthKitManager.maxPunchSpeed
+            savedAvgPunchSpeed = healthKitManager.avgPunchSpeed
+        } else {
+            // 워치 없이 진행한 경우 기본값 설정
+            savedHeartRate = 0
+            savedCalories = 0
+            savedMaxPunchSpeed = 0
+            savedAvgPunchSpeed = 0
+        }
         
         // 녹화 중지
         recordingManager.stopRecording { url in
@@ -347,8 +381,10 @@ struct RecordingView: View {
                 // 녹화 종료 후 데이터 저장
                 recordedVideoURL = url
                 
-                // HealthKit 세션 중지
-                healthKitManager.stopWorkoutSession()
+                // HealthKit 세션 중지 (워치 연결 시에만)
+                if !proceedWithoutWatch {
+                    healthKitManager.stopWorkoutSession()
+                }
                 
                 // 카메라 프리뷰와 모든 리소스 중지
                 recordingManager.cleanup()
@@ -418,6 +454,7 @@ struct RecordingSummaryView: View {
     let calories: Double
     let maxPunchSpeed: Double
     let avgPunchSpeed: Double
+    let proceedWithoutWatch: Bool
     @Binding var memo: String
     let onSave: () -> Void
     let onDiscard: () -> Void
@@ -457,33 +494,35 @@ struct RecordingSummaryView: View {
                     }
                     .padding(.horizontal)
 
-                    // 속도 통계 카드
-                    HStack(spacing: 20) {
-                        // 최고 펀치 속도 카드
-                        StatisticCardView(
-                            icon: "speedometer",
-                            value: String(format: "%.1f", maxPunchSpeed),
-                            title: "최고 속도",
-                            color: mainRed
-                        )
-                        
-                        // 평균 펀치 속도 카드
-                        StatisticCardView(
-                            icon: "gauge",
-                            value: String(format: "%.1f", avgPunchSpeed),
-                            title: "평균 속도",
-                            color: mainRed
-                        )
-                        
-                        // 심박수 카드
-                        StatisticCardView(
-                            icon: "heart.fill",
-                            value: String(format: "%.0f", heartRate),
-                            title: "평균 심박수",
-                            color: mainRed
-                        )
+                    // 워치 관련 통계 카드 (워치 연결 시에만 표시)
+                    if !proceedWithoutWatch {
+                        HStack(spacing: 20) {
+                            // 최고 펀치 속도 카드
+                            StatisticCardView(
+                                icon: "speedometer",
+                                value: String(format: "%.1f", maxPunchSpeed),
+                                title: "최고 속도",
+                                color: mainRed
+                            )
+                            
+                            // 평균 펀치 속도 카드
+                            StatisticCardView(
+                                icon: "gauge",
+                                value: String(format: "%.1f", avgPunchSpeed),
+                                title: "평균 속도",
+                                color: mainRed
+                            )
+                            
+                            // 심박수 카드
+                            StatisticCardView(
+                                icon: "heart.fill",
+                                value: String(format: "%.0f", heartRate),
+                                title: "심박수",
+                                color: mainRed
+                            )
+                        }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                     
                     // 비디오 미리보기
                     if let url = videoURL {
@@ -657,69 +696,210 @@ struct CameraPreviewView: UIViewRepresentable {
 
 // MARK: - Supporting Views
 struct TopBarView: View {
-    let punchCount: Int
+    let elapsedTime: TimeInterval
     let onClose: () -> Void
     
     var body: some View {
         HStack {
             Button(action: onClose) {
                 Image(systemName: "xmark")
-                    .font(.title2)
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
+                    .frame(width: 40, height: 40)
+                    .background(
+                        Circle()
+                            .fill(Color.black.opacity(0.5))
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    )
             }
-            .padding(.leading)
+            .padding(.leading, 16)
             
             Spacer()
             
-            HStack(spacing: 8) {
-                Image(systemName: "hand.raised.fill")
-                    .font(.title2)
-                Text("\(punchCount)")
-                    .font(.system(size: 24, weight: .bold))
-                Text("펀치")
-                    .font(.system(size: 16, weight: .medium))
+            // 타이머를 상단으로 이동
+            VStack(spacing: 4) {
+                Text(timeString(from: elapsedTime))
+                    .font(.system(size: 52, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                
+                Text("TIME")
+                    .font(.system(size: 18, weight: .heavy))
+                    .kerning(2)
+                    .foregroundColor(.white.opacity(0.9))
             }
-            .foregroundColor(.white)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
+            .frame(width: 200, height: 90)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.black.opacity(0.5))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                    )
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.black.opacity(0.7),
+                                    Color.black.opacity(0.5)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.white.opacity(0.3),
+                                    Color.white.opacity(0.1)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
             )
-            .padding(.trailing)
+            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+            
+            Spacer()
+            
+            Color.clear
+                .frame(width: 40, height: 40)
+                .padding(.trailing, 16)
         }
-        .padding(.top, 48)
+        .frame(height: 110)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.7),
+                    Color.black.opacity(0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+    
+    private func timeString(from timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
 
 struct BottomControlView: View {
-    let elapsedTime: TimeInterval
+    let punchCount: Int
     let isRecording: Bool
     let onRecordingToggle: () -> Void
+    @State private var scale: CGFloat = 1.0
+    @ObservedObject private var healthKitManager = HealthKitManager.shared
     
     var body: some View {
         VStack(spacing: 24) {
-            // 타이머
-            Text(timeString(from: elapsedTime))
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-                .padding(.horizontal, 24)
+            // 펀치 카운터와 최대 속도를 수평으로 배치
+            HStack(spacing: 16) {
+                // 펀치 카운터
+                VStack(spacing: 4) {
+                    Text("\(punchCount)")
+                        .font(.system(size: 52, weight: .bold))
+                        .foregroundColor(.white)
+                        .scaleEffect(scale)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0), value: scale)
+                        .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                        .onChange(of: punchCount) { _ in
+                            withAnimation {
+                                scale = 1.3
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                    withAnimation {
+                                        scale = 1.0
+                                    }
+                                }
+                            }
+                        }
+                    
+                    Text("PUNCH")
+                        .font(.system(size: 18, weight: .heavy))
+                        .kerning(2)
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                .frame(width: 140)
                 .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color.black.opacity(0.5))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.black.opacity(0.7),
+                                        Color.black.opacity(0.5)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.white.opacity(0.1)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
                 )
+                
+                // 최대 속도 표시 (50 이상일 때만)
+                if healthKitManager.maxPunchSpeed >= 50 {
+                    VStack(spacing: 4) {
+                        Text(String(format: "%.1f", healthKitManager.maxPunchSpeed))
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                        
+                        Text("MAX")
+                            .font(.system(size: 14, weight: .heavy))
+                            .kerning(2)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .frame(width: 100)
+                    .padding(.vertical, 12)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.red.opacity(0.7),
+                                            Color.red.opacity(0.5)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.white.opacity(0.3),
+                                            Color.white.opacity(0.1)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        }
+                    )
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                }
+            }
             
             // 녹화 버튼
             Button(action: onRecordingToggle) {
@@ -742,25 +922,6 @@ struct BottomControlView: View {
             }
             .padding(.bottom, 50)
         }
-        .background(
-            LinearGradient(
-                gradient: Gradient(
-                    colors: [
-                        Color.black.opacity(0),
-                        Color.black.opacity(0.5),
-                        Color.black.opacity(0.7)
-                    ]
-                ),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
-    
-    private func timeString(from timeInterval: TimeInterval) -> String {
-        let minutes = Int(timeInterval) / 60
-        let seconds = Int(timeInterval) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
 

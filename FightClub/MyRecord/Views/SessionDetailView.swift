@@ -38,7 +38,7 @@ struct SessionDetailView: View {
                             HStack {
                                 Image(systemName: "heart.fill")
                                     .foregroundColor(.red)
-                                Text("평균 심박수: \(Int(session.heartRate))bpm")
+                                Text("심박수: \(Int(session.heartRate))bpm")
                             }
                         }
                         
@@ -113,7 +113,7 @@ struct SessionDetailView: View {
                             .foregroundColor(.red)
                         Text("\(Int(self.session.heartRate))bpm")
                             .font(.headline)
-                        Text("평균 심박수")
+                        Text("심박수")
                             .font(.caption)
                     }
                     
